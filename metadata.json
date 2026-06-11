@@ -1,0 +1,6 @@
+{
+  "name": "Analista de Marketing IA",
+  "description": "Tu Analista de Marketing con IA que diseña estrategias integrales y calendarios con copys persuasivos de alto impacto listos para tus redes sociales.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

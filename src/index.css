@@ -1,0 +1,33 @@
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@300;400;500;600&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+}
+
+/* Custom Geometric utility styles */
+.geometric-grid {
+  background-size: 32px 32px;
+  background-image: 
+    linear-gradient(to right, rgba(63, 63, 110, 0.08) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(63, 63, 110, 0.08) 1px, transparent 1px);
+}
+
+.geometric-grid-light {
+  background-size: 32px 32px;
+  background-image: 
+    linear-gradient(to right, rgba(228, 228, 231, 0.6) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(228, 228, 231, 0.6) 1px, transparent 1px);
+}
+
+/* Add custom animations for geometrical transitions */
+@keyframes grid-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.animate-grid-fade {
+  animation: grid-fade-in 1.2s ease-out forwards;
+}
+
