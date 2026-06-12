@@ -4,7 +4,19 @@ import { createServer as createViteServer } from "vite";
 import { GoogleGenAI } from "@google/genai";
 import dotenv from "dotenv";
 
-dotenv.config();
+// Save the system-provided environment variables before dotenv might overwrite them
+const systemGeminiKey = (process.env.GEMINI_API_KEY || "").trim();
+const systemDashscopeKey = (process.env.DASHSCOPE_API_KEY || "").trim();
+
+dotenv.config({ override: true });
+
+// If the system injected a real Google Gemini key, restore it to override any dummy .env values
+if (systemGeminiKey.startsWith("AIzaSy") || systemGeminiKey.startsWith("AQ.")) {
+  process.env.GEMINI_API_KEY = systemGeminiKey;
+}
+if (systemDashscopeKey && !process.env.DASHSCOPE_API_KEY) {
+  process.env.DASHSCOPE_API_KEY = systemDashscopeKey;
+}
 
 async function startServer() {
   const app = express();
@@ -12,20 +24,119 @@ async function startServer() {
 
   app.use(express.json());
 
-  // Initialize Gemini client lazily/safely
-  const getGeminiClient = () => {
-    const apiKey = process.env.GEMINI_API_KEY;
-    if (!apiKey) {
-      console.warn("WARNING: GEMINI_API_KEY environment variable is not set. Gemini features will fail.");
+  // Dynamic AI Provider Helper function supporting both Google Gemini and Alibaba Cloud Model Studio (Qwen)
+  const getProviderAndKey = (): { provider: "gemini" | "qwen"; apiKey: string } => {
+    const geminiKey = (process.env.GEMINI_API_KEY || "").trim();
+    const dashscopeKey = (process.env.DASHSCOPE_API_KEY || "").trim();
+
+    // 1. If it looks like a real Google Gemini key (typically starting with AIzaSy or AQ.)
+    if (geminiKey.startsWith("AIzaSy") || geminiKey.startsWith("AQ.")) {
+      return { provider: "gemini", apiKey: geminiKey };
     }
-    return new GoogleGenAI({
-      apiKey: apiKey || "",
-      httpOptions: {
-        headers: {
-          'User-Agent': 'aistudio-build',
-        }
+
+    // 2. If DASHSCOPE_API_KEY is configured with a valid-looking key that is different from geminiKey
+    if (dashscopeKey && dashscopeKey.length > 0 && dashscopeKey !== geminiKey) {
+      return { provider: "qwen", apiKey: dashscopeKey };
+    }
+
+    // 3. If GEMINI_API_KEY is configured but does not look like a Google Gemini key (e.g. starts with Qwen style keys and not "AIzaSy" / "AQ.")
+    if (geminiKey && geminiKey.length > 0 && !geminiKey.startsWith("AIzaSy") && !geminiKey.startsWith("AQ.")) {
+      // If it looks like the user's project ID/OAuth client ID instead of a key
+      if (geminiKey.startsWith("gen-lang-client-") || geminiKey.includes(".apps.googleusercontent.com")) {
+        return { provider: "gemini", apiKey: geminiKey }; // Let it fall through so we can give a clear validation error
       }
-    });
+      return { provider: "qwen", apiKey: geminiKey };
+    }
+
+    return { provider: "gemini", apiKey: geminiKey || "" };
+  };
+
+  const callAI = async (prompt: string): Promise<string> => {
+    const { provider, apiKey } = getProviderAndKey();
+
+    if (provider === "gemini") {
+      if (!apiKey) {
+        throw new Error("SaaS backend error: GEMINI_API_KEY is not configured in server secrets.");
+      }
+      
+      // Perform validation check on key format to help user debug
+      if (apiKey.startsWith("gen-lang-client-")) {
+        throw new Error(`Clave de API inválida: Has configurado el Project ID ("${apiKey}") en lugar de una Clave de API de Gemini válida. Las claves de API de Google Gemini válidas deben comenzar con "AIzaSy". Obtén una Clave de API real en Google AI Studio.`);
+      }
+      
+      if (!apiKey.startsWith("AIzaSy") && !apiKey.startsWith("AQ.")) {
+        throw new Error(`La clave de API provista ("${apiKey.substring(0, 8)}...") no es válida para Google Gemini. Las claves válidas de Gemini deben comenzar estrictamente con el prefijo "AIzaSy" o "AQ.". Por favor verifica tu pestaña de Secrets o archivo .env.`);
+      }
+
+      const ai = new GoogleGenAI({
+        apiKey: apiKey,
+        httpOptions: {
+          headers: {
+            'User-Agent': 'aistudio-build',
+          }
+        }
+      });
+
+      const response = await ai.models.generateContent({
+        model: "gemini-3.5-flash",
+        contents: prompt,
+        config: {
+          responseMimeType: "application/json",
+          temperature: 0.7,
+        }
+      });
+
+      const responseText = response.text;
+      if (!responseText) {
+        throw new Error("No se pudo obtener una respuesta de Gemini");
+      }
+      return responseText.trim();
+    } else {
+      // Qwen / Dashscope (Alibaba Cloud Model Studio)
+      if (!apiKey) {
+        throw new Error("SaaS backend error: DASHSCOPE_API_KEY or Qwen key is not configured.");
+      }
+
+      try {
+        const response = await fetch("https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${apiKey}`
+          },
+          body: JSON.stringify({
+            model: "qwen-plus",
+            messages: [
+              {
+                role: "user",
+                content: prompt
+              }
+            ],
+            response_format: { type: "json_object" }
+          })
+        });
+
+        if (!response.ok) {
+          const errText = await response.text();
+          if (response.status === 401) {
+            throw new Error(`Error de Autenticación de Alibaba Qwen (401): La clave API provista ("${apiKey.substring(0, 8)}...") no es correcta o está inactiva.`);
+          }
+          throw new Error(`Alibaba Cloud Qwen API Error (${response.status}): ${errText}`);
+        }
+
+        const data: any = await response.json();
+        const responseText = data.choices?.[0]?.message?.content;
+        if (!responseText) {
+          throw new Error("No se pudo obtener una respuesta de Qwen");
+        }
+        return responseText.trim();
+      } catch (error: any) {
+        if (error.message && error.message.includes("Alibaba")) {
+          throw error;
+        }
+        throw new Error(`Error de comunicación con Qwen: ${error.message || error}`);
+      }
+    }
   };
 
   // API routes
@@ -34,11 +145,6 @@ async function startServer() {
       const { name, niche, description, targetAudience, socialHandles } = req.body;
       if (!name || !niche || !description) {
         return res.status(400).json({ error: "Faltan campos obligatorios: name, niche, description" });
-      }
-
-      const ai = getGeminiClient();
-      if (!process.env.GEMINI_API_KEY) {
-        return res.status(500).json({ error: "SaaS backend error: GEMINI_API_KEY is not configured in server secrets." });
       }
 
       const prompt = `Actúa como un Analista de Marketing Digital de primer nivel mundial adaptado para emprendedores hispanos.
@@ -58,9 +164,9 @@ Devuelve un JSON estrictamente estructurado en español con el siguiente esquema
     {
       "title": "Título llamativo del post",
       "copy": "El copy completo persuasivo, optimizado en español, con emojis y hashtags adecuados para vender más",
-      "channel": "Instagram", // o "TikTok" o "Facebook"
-      "scheduledDate": "Día 1", // ej: "Día 1", "Día 4", "Día 8", "Día 12"
-      "type": "Carrusel", // o "Reel", "Video", "Post unitario"
+      "channel": "Instagram",
+      "scheduledDate": "Día 1",
+      "type": "Carrusel",
       "imageUrlPrompt": "Un prompt detallado de imagen en inglés para colocar en un generador de imágenes de IA que describa una escena estética que represente este post"
     }
   ]
@@ -69,21 +175,8 @@ Devuelve un JSON estrictamente estructurado en español con el siguiente esquema
 Genera exactamente 6 posts bien distribuidos para un mes (por ejemplo, distribuidos en Día 1, Día 5, Día 10, Día 15, Día 20 y Día 25).
 Asegúrate de que cada copy de post sea real, completo, listo para copiar y de calidad profesional Premium. No uses placeholders.`;
 
-      const response = await ai.models.generateContent({
-        model: "gemini-3.5-flash",
-        contents: prompt,
-        config: {
-          responseMimeType: "application/json",
-          temperature: 0.7,
-        }
-      });
-
-      const responseText = response.text;
-      if (!responseText) {
-        throw new Error("No se pudo obtener una respuesta de la IA");
-      }
-
-      const parsedData = JSON.parse(responseText.trim());
+      const responseText = await callAI(prompt);
+      const parsedData = JSON.parse(responseText);
       res.json(parsedData);
     } catch (error: any) {
       console.error("Error generating strategy:", error);
@@ -99,11 +192,6 @@ Asegúrate de que cada copy de post sea real, completo, listo para copiar y de c
         return res.status(400).json({ error: "Faltan campos obligatorios: topic, channel" });
       }
 
-      const ai = getGeminiClient();
-      if (!process.env.GEMINI_API_KEY) {
-        return res.status(500).json({ error: "SaaS backend error: GEMINI_API_KEY error." });
-      }
-
       const prompt = `Genera un post persuasivo y profesional en español para ${channel} con un tono ${tone || "profesional y de confianza"}.
 El tema de la publicación es: "${topic}"
 El negocio se describe como: "${JSON.stringify(businessInfo || {})}"
@@ -115,20 +203,8 @@ Devuelve un JSON con la estructura:
   "imagePrompt": "Un prompt en inglés altamente descriptivo para generador de imágenes IA para ilustrar este post"
 }`;
 
-      const response = await ai.models.generateContent({
-        model: "gemini-3.5-flash",
-        contents: prompt,
-        config: {
-          responseMimeType: "application/json",
-          temperature: 0.7,
-        }
-      });
-
-      const responseText = response.text;
-      if (!responseText) {
-        throw new Error("Error generando copy.");
-      }
-      res.json(JSON.parse(responseText.trim()));
+      const responseText = await callAI(prompt);
+      res.json(JSON.parse(responseText));
     } catch (error: any) {
       console.error("Error in copywriter api:", error);
       res.status(500).json({ error: error.message || "Error interno" });
