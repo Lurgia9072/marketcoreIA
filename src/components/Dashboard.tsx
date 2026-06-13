@@ -371,43 +371,44 @@ export default function Dashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-zinc-100 flex flex-col md:flex-row font-sans selection:bg-zinc-200 selection:text-zinc-950">
+    <div className="min-h-screen bg-[#fafafc] text-zinc-800 flex flex-col md:flex-row font-sans selection:bg-zinc-200 selection:text-zinc-900">
       
       {/* SIDEBAR NAVIGATION PANEL */}
-      <aside className="w-full md:w-64 bg-zinc-900 border-b md:border-b-0 md:border-r-2 border-zinc-950 p-5 flex flex-col justify-between">
+      <aside className="w-full md:w-64 bg-white border-b md:border-b-0 md:border-r border-zinc-200 p-5 flex flex-col justify-between shadow-xs">
         <div className="flex flex-col gap-6">
           <div className="flex items-center justify-between">
             <Link to="/" className="flex items-center gap-2.5">
-              <div className="bg-zinc-950 p-2.5 rounded-none border border-zinc-800">
+              <div className="bg-zinc-900 p-2.5 rounded-none border border-zinc-900">
                 <Sparkles className="w-5 h-5 text-white" />
               </div>
-              <span className="font-sans font-bold text-base text-white uppercase tracking-wider">
-                Mercadea<span className="text-zinc-400 font-mono text-xs">_IA</span>
+              <span className="font-sans font-bold text-base text-zinc-900 uppercase tracking-wider">
+                Mercadea<span className="text-zinc-650 bg-zinc-100 text-zinc-600 border border-zinc-205 px-1.5 py-0.5 ml-1.5 text-[10px] font-mono font-bold rounded-none">_IA</span>
               </span>
             </Link>
           </div>
 
-          <div className="flex items-center gap-3 p-3 bg-zinc-950 border border-zinc-850 rounded-none font-sans">
+          <div className="flex items-center gap-3 p-3 bg-zinc-50 border border-zinc-200 rounded-none font-sans">
             {user?.photoURL ? (
-              <img src={user.photoURL} alt="Avatar" className="w-9 h-9 rounded-none object-cover border border-zinc-500/20" />
+              <img src={user.photoURL} alt="Avatar" className="w-9 h-9 rounded-none object-cover border border-zinc-200" />
             ) : (
-              <div className="w-9 h-9 bg-zinc-900 rounded-none flex items-center justify-center font-bold text-white border border-zinc-800">
+              <div className="w-9 h-9 bg-zinc-200 rounded-none flex items-center justify-center font-bold text-zinc-800 border border-zinc-300">
                 {user?.displayName?.substring(0, 1) || 'E'}
               </div>
             )}
             <div className="overflow-hidden">
-              <p className="text-xs font-bold text-zinc-200 truncate uppercase tracking-wide">{user?.displayName}</p>
-              <span className="text-[9px] bg-zinc-900 text-zinc-300 font-mono font-bold px-1.5 py-0.5 rounded-none block w-max uppercase mt-0.5 tracking-wider border border-zinc-800">TRIAL ACTIVO</span>
+              <p className="text-xs font-bold text-zinc-900 truncate uppercase tracking-wide">{user?.displayName}</p>
+              <span className="text-[9px] bg-zinc-200/50 text-zinc-700 font-mono font-bold px-1.5 py-0.5 rounded-none block w-max uppercase mt-0.5 tracking-wider border border-zinc-200">TRIAL ACTIVO</span>
             </div>
           </div>
 
           {/* Business Select Section */}
-          <div className="flex flex-col gap-2 pt-4 border-t border-zinc-850">
-            <div className="flex justify-between items-center text-[10px] font-mono font-bold text-zinc-400 tracking-widest">
+          <div className="flex flex-col gap-2 pt-4 border-t border-zinc-200">
+            <div className="flex justify-between items-center text-[10px] font-mono font-bold text-zinc-500 tracking-widest">
               <span>MIS NEGOCIOS</span>
               <button 
                 onClick={() => setShowAddBusiness(true)}
-                className="text-white hover:text-zinc-300 transition"
+                className="text-zinc-800 hover:text-zinc-600 transition"
+                title="Registrar nuevo negocio"
               >
                 <Plus className="w-4 h-4" />
               </button>
@@ -423,8 +424,8 @@ export default function Dashboard() {
                     onClick={() => setActiveBusiness(biz)}
                     className={`w-full text-left px-3 py-2.5 rounded-none text-xs font-bold flex items-center gap-2.5 transition font-sans ${
                       activeBusiness?.id === biz.id 
-                        ? 'bg-zinc-950 border border-zinc-100 text-white shadow-[2px_2px_0px_0px_rgba(9,9,11,1)]' 
-                        : 'bg-zinc-950/40 border border-transparent text-zinc-400 hover:bg-zinc-950 hover:text-white'
+                        ? 'bg-zinc-900 border border-zinc-900 text-white shadow-[2px_2px_0px_0px_rgba(24,24,27,0.15)]' 
+                        : 'bg-zinc-50 border border-zinc-200 text-zinc-700 hover:bg-zinc-100/85 hover:text-zinc-900'
                     }`}
                   >
                     <Building2 className="w-4 h-4 flex-shrink-0" />
@@ -436,17 +437,17 @@ export default function Dashboard() {
           </div>
         </div>
 
-        <div className="pt-6 border-t border-zinc-850 mt-6 flex flex-col gap-2">
+        <div className="pt-6 border-t border-zinc-200 mt-6 flex flex-col gap-2">
           <button
             onClick={() => setShowCopywriterDrawer(true)}
-            className="w-full bg-zinc-950 border border-zinc-800 text-zinc-300 hover:bg-zinc-850 hover:text-white px-4 py-3 rounded-none text-xs font-mono font-bold uppercase tracking-wider transition flex items-center justify-center gap-2 cursor-pointer shadow-[2px_2px_0px_0px_rgba(9,9,11,1)]"
+            className="w-full bg-zinc-900 border border-zinc-900 text-white hover:bg-zinc-800 px-4 py-3 rounded-none text-xs font-mono font-bold uppercase tracking-wider transition flex items-center justify-center gap-2 cursor-pointer shadow-[2px_2px_0px_0px_rgba(24,24,27,0.15)]"
           >
             <Sparkles className="w-4 h-4 text-white" /> REDACTOR COPY IA
           </button>
           
           <button 
             onClick={logout}
-            className="w-full bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-white hover:border-zinc-500 py-2.5 px-4 rounded-none text-[10px] font-mono font-bold uppercase tracking-widest transition flex items-center justify-center gap-2 cursor-pointer"
+            className="w-full bg-zinc-50 border border-zinc-200 text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900 py-2.5 px-4 rounded-none text-[10px] font-mono font-bold uppercase tracking-widest transition flex items-center justify-center gap-2 cursor-pointer"
           >
             <LogOut className="w-4 h-4" /> Cerrar sesión
           </button>
@@ -454,73 +455,73 @@ export default function Dashboard() {
       </aside>
 
       {/* MAIN DATA FEED INSIDE CONTAINER */}
-      <main className="flex-1 bg-zinc-950 p-6 md:p-10 overflow-y-auto max-w-7xl mx-auto w-full">
+      <main className="flex-1 bg-[#fbfbfc] p-6 md:p-10 overflow-y-auto max-w-7xl mx-auto w-full">
         {successMsg && (
-          <div className="bg-zinc-900/60 border-2 border-zinc-900 text-zinc-200 text-xs font-mono p-4 rounded-none mb-6 flex gap-2.5 items-center justify-between shadow-[2px_2px_0px_0px_rgba(9,9,11,1)]">
+          <div className="bg-emerald-50 border-2 border-emerald-300 text-emerald-950 text-xs font-mono p-4 rounded-none mb-6 flex gap-2.5 items-center justify-between shadow-[2px_2px_0px_0px_rgba(16,185,129,0.15)]">
             <div className="flex gap-2 items-center">
-              <Check className="w-4 h-4 text-zinc-300 flex-shrink-0" />
+              <Check className="w-4 h-4 text-emerald-600 flex-shrink-0" />
               <span className="uppercase tracking-wider">{successMsg}</span>
             </div>
-            <button onClick={() => setSuccessMsg(null)} className="text-zinc-500 hover:text-white font-bold text-xs cursor-pointer">✕</button>
+            <button onClick={() => setSuccessMsg(null)} className="text-emerald-750 hover:text-emerald-950 font-bold text-xs cursor-pointer">✕</button>
           </div>
         )}
 
         {genError && (
-          <div className="bg-zinc-900/60 border-2 border-rose-900 text-rose-200 text-xs font-mono p-4 rounded-none mb-6 flex gap-2.5 items-center justify-between shadow-[2px_2px_0px_0px_rgba(9,9,11,1)]">
+          <div className="bg-rose-50 border-2 border-rose-200 text-rose-950 text-xs font-mono p-4 rounded-none mb-6 flex gap-2.5 items-center justify-between shadow-[2px_2px_0px_0px_rgba(244,63,94,0.15)]">
             <div className="flex gap-2 items-center">
-              <AlertCircle className="w-4 h-4 text-rose-500 flex-shrink-0" />
+              <AlertCircle className="w-4 h-4 text-rose-600 flex-shrink-0" />
               <span className="uppercase tracking-wider">{genError}</span>
             </div>
-            <button onClick={() => setGenError(null)} className="text-zinc-500 hover:text-white font-bold text-xs cursor-pointer">✕</button>
+            <button onClick={() => setGenError(null)} className="text-zinc-500 hover:text-zinc-900 font-bold text-xs cursor-pointer">✕</button>
           </div>
         )}
 
-        {/* LOADING SCREEN IF APP INITIALLY PIPOING */}
+        {/* LOADING SCREEN */}
         {loadingData ? (
           <div className="min-h-[60vh] flex flex-col items-center justify-center text-center gap-4">
-            <div className="w-12 h-12 border-2 border-zinc-100 border-t-transparent rounded-none animate-spin"></div>
-            <p className="text-xs font-mono tracking-widest text-zinc-400 uppercase">Sincronizando perfiles de marca y plan desde Firestore...</p>
+            <div className="w-12 h-12 border-2 border-zinc-900 border-t-transparent rounded-none animate-spin"></div>
+            <p className="text-xs font-mono tracking-widest text-zinc-500 uppercase">Sincronizando perfiles de marca y plan desde Firestore...</p>
           </div>
         ) : businesses.length === 0 ? (
           
           /* WIZARD REGISTER FIRST TIME - 3 STEPS AT HOME */
           <div className="max-w-2xl mx-auto py-12">
-            <div className="bg-zinc-900/20 border-2 border-zinc-900 p-8 text-center relative rounded-none shadow-[8px_8px_0px_0px_rgba(9,9,11,1)]">
+            <div className="bg-white border-2 border-zinc-200 p-8 text-center relative rounded-none shadow-[8px_8px_0px_0px_rgba(24,24,27,1)]">
               
-              <div className="bg-zinc-900 border border-zinc-800 p-4 inline-block rounded-none mb-6">
-                <Building2 className="w-10 h-10 text-white" />
+              <div className="bg-zinc-50 border border-zinc-200 p-4 inline-block rounded-none mb-6">
+                <Building2 className="w-10 h-10 text-zinc-805 text-zinc-800" />
               </div>
 
-              <h2 className="font-sans font-bold text-2xl md:text-3xl tracking-tight text-white uppercase mb-2">
+              <h2 className="font-sans font-bold text-2xl md:text-3xl tracking-tight text-zinc-900 uppercase mb-2">
                 ¡Bienvenido a tu Espacio Creativo!
               </h2>
-              <p className="text-zinc-400 font-light text-xs max-w-lg mx-auto leading-relaxed">
+              <p className="text-zinc-650 font-light text-xs max-w-lg mx-auto leading-relaxed">
                 Para que nuestro Analista de Marketing IA pueda estructurar tu calendario mensual listo, primero necesitamos registrar tu negocio de forma transparente.
               </p>
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 my-8 text-left text-xs font-mono">
-                <div className="bg-zinc-950 p-4 rounded-none border border-zinc-900">
-                  <span className="font-bold text-zinc-100 text-sm block mb-1">STEP_01</span>
-                  <span className="font-bold text-zinc-300 block mb-1 uppercase text-[10px] tracking-wide">Registras tu marca</span>
-                  <p className="text-zinc-500 text-[11px] leading-normal font-sans font-light">Nos describes tus productos y target ideal.</p>
+                <div className="bg-zinc-50 p-4 rounded-none border border-zinc-200">
+                  <span className="font-bold text-zinc-900 text-sm block mb-1">STEP_01</span>
+                  <span className="font-bold text-zinc-700 block mb-1 uppercase text-[10px] tracking-wide">Registras tu marca</span>
+                  <p className="text-zinc-650 text-[11px] leading-normal font-sans font-light">Nos describes tus productos y target ideal.</p>
                 </div>
-                <div className="bg-zinc-950 p-4 rounded-none border border-zinc-900">
-                  <span className="font-bold text-zinc-100 text-sm block mb-1">STEP_02</span>
-                  <span className="font-bold text-zinc-300 block mb-1 uppercase text-[10px] tracking-wide">Generas estrategia</span>
-                  <p className="text-zinc-500 text-[11px] leading-normal font-sans font-light">El Analista IA de Gemini armará tu plan de copy.</p>
+                <div className="bg-zinc-50 p-4 rounded-none border border-zinc-200">
+                  <span className="font-bold text-zinc-900 text-sm block mb-1">STEP_02</span>
+                  <span className="font-bold text-zinc-700 block mb-1 uppercase text-[10px] tracking-wide">Generas estrategia</span>
+                  <p className="text-zinc-650 text-[11px] leading-normal font-sans font-light">El Analista IA de Gemini armará tu plan de copy.</p>
                 </div>
-                <div className="bg-zinc-950 p-4 rounded-none border border-zinc-900">
-                  <span className="font-bold text-zinc-100 text-sm block mb-1">STEP_03</span>
-                  <span className="font-bold text-zinc-300 block mb-1 uppercase text-[10px] tracking-wide">Calendario Listo</span>
-                  <p className="text-zinc-500 text-[11px] leading-normal font-sans font-light">Copias tus posts listos con 1-click al portapapeles.</p>
+                <div className="bg-zinc-50 p-4 rounded-none border border-zinc-200">
+                  <span className="font-bold text-zinc-900 text-sm block mb-1">STEP_03</span>
+                  <span className="font-bold text-zinc-700 block mb-1 uppercase text-[10px] tracking-wide">Calendario Listo</span>
+                  <p className="text-zinc-650 text-[11px] leading-normal font-sans font-light">Copias tus posts listos con 1-click al portapapeles.</p>
                 </div>
               </div>
 
               <button
                 onClick={() => setShowAddBusiness(true)}
-                className="bg-zinc-100 hover:bg-white text-zinc-950 font-mono font-bold py-4 px-6 rounded-none text-xs uppercase tracking-widest border-r-4 border-b-4 border-zinc-450 active:translate-y-0.5 inline-flex items-center gap-2 cursor-pointer shadow-md"
+                className="bg-zinc-900 hover:bg-zinc-950 text-white font-mono font-bold py-4 px-6 rounded-none text-xs uppercase tracking-widest border-r-4 border-b-4 border-zinc-600 active:translate-y-0.5 inline-flex items-center gap-2 cursor-pointer shadow-md"
               >
-                Comenzar Registro Ahora <ChevronRight className="w-4 h-4 text-zinc-900" />
+                Comenzar Registro Ahora <ChevronRight className="w-4 h-4 text-white" />
               </button>
             </div>
           </div>
@@ -531,27 +532,27 @@ export default function Dashboard() {
           <div>
             
             {/* Header section of dashboard */}
-            <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b-2 border-zinc-900 pb-6 mb-10">
+            <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b-2 border-zinc-200 pb-6 mb-10">
               <div>
-                <span className="text-[9px] text-zinc-500 font-mono font-bold tracking-widest uppercase block mb-1">MARCA SELECCIONADA</span>
-                <h1 className="font-sans font-bold text-2.5xl md:text-3xl text-white tracking-tight flex items-center gap-2.5 uppercase">
+                <span className="text-[9px] text-zinc-550 font-mono font-bold tracking-widest uppercase block mb-1">MARCA SELECCIONADA</span>
+                <h1 className="font-sans font-bold text-2.5xl md:text-3xl text-zinc-900 tracking-tight flex items-center gap-2.5 uppercase">
                   {activeBusiness?.name}
-                  <span className="text-[10px] bg-zinc-900 border border-zinc-800 text-zinc-300 font-mono tracking-wider py-1 px-2.5 rounded-none uppercase">
+                  <span className="text-[10px] bg-zinc-100 border border-zinc-200 text-zinc-700 font-mono tracking-wider py-1 px-2.5 rounded-none uppercase">
                     {activeBusiness?.niche}
                   </span>
                 </h1>
-                <p className="text-xs text-zinc-400 mt-2 max-w-xl truncate leading-normal italic font-sans font-light">{activeBusiness?.description}</p>
+                <p className="text-xs text-zinc-600 mt-2 max-w-xl truncate leading-normal italic font-sans font-light">{activeBusiness?.description}</p>
               </div>
 
               <div className="flex items-center gap-2">
                 <button
                   onClick={handleGenerateStrategy}
                   disabled={generatingStrategy}
-                  className="bg-zinc-105 bg-white hover:bg-zinc-100 text-zinc-950 disabled:opacity-50 disabled:pointer-events-none py-3.5 px-5 rounded-none text-xs font-mono font-bold uppercase tracking-widest border-r-4 border-b-4 border-zinc-405 active:translate-y-0.5 transition flex items-center gap-2 cursor-pointer shadow-md"
+                  className="bg-zinc-900 hover:bg-zinc-950 text-white disabled:opacity-50 disabled:pointer-events-none py-3.5 px-5 rounded-none text-xs font-mono font-bold uppercase tracking-widest border-r-4 border-b-4 border-zinc-600 active:translate-y-0.5 transition flex items-center gap-2 cursor-pointer shadow-md"
                 >
                   {generatingStrategy ? (
                     <>
-                      <div className="w-4 h-4 border-2 border-zinc-950 border-t-transparent rounded-none animate-spin"></div>
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-none animate-spin"></div>
                       <span>ARMANDO PLAN ESTRELLA CON GEMINI...</span>
                     </>
                   ) : (
@@ -567,12 +568,12 @@ export default function Dashboard() {
             {/* If no strategies generated yet for the current business profile */}
             {filterStrategiesByBiz(activeBusiness?.id || '').length === 0 ? (
               
-              <div className="bg-zinc-900/10 border-2 border-zinc-900 rounded-none p-8 text-center max-w-xl mx-auto my-6 shadow-[4px_4px_0px_0px_rgba(9,9,11,1)]">
-                <div className="bg-zinc-900 border border-zinc-850 p-3 rounded-none inline-block mb-4">
-                  <Sparkles className="w-8 h-8 text-white" />
+              <div className="bg-white border-2 border-zinc-200 rounded-none p-8 text-center max-w-xl mx-auto my-6 shadow-[4px_4px_0px_0px_rgba(24,24,27,1)]">
+                <div className="bg-zinc-50 border border-zinc-200 p-3 rounded-none inline-block mb-4">
+                  <Sparkles className="w-8 h-8 text-zinc-900" />
                 </div>
-                <h3 className="text-sm font-mono font-bold text-white uppercase tracking-wider mb-2">No hay estrategia para {activeBusiness?.name}</h3>
-                <p className="text-xs text-zinc-400 max-w-md mx-auto leading-relaxed font-sans font-light">
+                <h3 className="text-sm font-mono font-bold text-zinc-900 uppercase tracking-wider mb-2">No hay estrategia para {activeBusiness?.name}</h3>
+                <p className="text-xs text-zinc-650 max-w-md mx-auto leading-relaxed font-sans font-light">
                   Haz clic en el botón de la esquina superior derecha <strong>"CREAR NUEVA ESTRATEGIA MENSUAL"</strong>. Nuestra IA analizará tu nicho en tiempo real y te programará 6 posts optimizados en español con copies persuasivos y prompts ilustrativos listos para redes.
                 </p>
               </div>
@@ -586,17 +587,17 @@ export default function Dashboard() {
                 <div className="lg:col-span-4 flex flex-col gap-6">
                   
                   {/* Premium Brand Strategy report with Interactive Tabs */}
-                  <div className="bg-zinc-900/40 border-2 border-zinc-900 rounded-none p-5 shadow-[4px_4px_0px_0px_rgba(9,9,11,1)]">
-                    <div className="flex justify-between items-center pb-3 border-b border-zinc-855 mb-4">
-                      <span className="text-[10px] font-mono font-bold tracking-widest text-zinc-400 uppercase flex items-center gap-1.5">
-                        <Target className="w-3.5 h-3.5 text-white" /> PLAN ESTRATÉGICO DIRECTIVO
+                  <div className="bg-white border-2 border-zinc-200 rounded-none p-5 shadow-[4px_4px_0px_0px_rgba(24,24,27,1)]">
+                    <div className="flex justify-between items-center pb-3 border-b border-zinc-200 mb-4 font-mono font-bold text-[10px] text-zinc-500">
+                      <span className="tracking-widest uppercase flex items-center gap-1.5">
+                        <Target className="w-3.5 h-3.5 text-zinc-800" /> PLAN ESTRATÉGICO DIRECTIVO
                       </span>
                     </div>
 
                     {filterStrategiesByBiz(activeBusiness?.id || '').slice(0, 1).map(strat => (
                       <div key={strat.id} className="relative font-sans text-xs space-y-4">
                         <div className="flex justify-between items-start gap-1">
-                          <h4 className="font-sans font-extrabold text-sm text-zinc-100 uppercase tracking-wide leading-tight">{strat.title}</h4>
+                          <h4 className="font-sans font-extrabold text-sm text-zinc-900 uppercase tracking-wide leading-tight">{strat.title}</h4>
                           <button 
                             onClick={() => handleDeleteStrategy(strat.id)}
                             className="text-[9px] font-mono text-rose-500 hover:text-rose-450 uppercase cursor-pointer"
@@ -604,24 +605,24 @@ export default function Dashboard() {
                             Eliminar
                           </button>
                         </div>
-
+                        
                         {/* Strategy Sub-Tabs Navigation */}
-                        <div className="bg-zinc-950 p-1 border border-zinc-850 flex items-center gap-1 text-[9px] font-mono select-none">
+                        <div className="bg-zinc-100 p-1 border border-zinc-200 flex items-center gap-1 text-[9px] font-mono select-none">
                           <button 
                             onClick={() => setStratTab('resume')}
-                            className={`flex-1 py-1 text-center uppercase font-bold transition ${stratTab === 'resume' ? 'bg-zinc-800 text-white' : 'text-zinc-500 hover:text-zinc-350'}`}
+                            className={`flex-1 py-1 text-center uppercase font-bold transition ${stratTab === 'resume' ? 'bg-white text-zinc-900 border border-zinc-200 shadow-xs' : 'text-zinc-500 hover:text-zinc-800'}`}
                           >
                             Resumen
                           </button>
                           <button 
                             onClick={() => setStratTab('diagnostic')}
-                            className={`flex-1 py-1 text-center uppercase font-bold transition ${stratTab === 'diagnostic' ? 'bg-zinc-800 text-white' : 'text-zinc-500 hover:text-zinc-350'}`}
+                            className={`flex-1 py-1 text-center uppercase font-bold transition ${stratTab === 'diagnostic' ? 'bg-white text-zinc-900 border border-zinc-200 shadow-xs' : 'text-zinc-500 hover:text-zinc-805'}`}
                           >
                             Dirección
                           </button>
                           <button 
                             onClick={() => setStratTab('weekly')}
-                            className={`flex-1 py-1 text-center uppercase font-bold transition ${stratTab === 'weekly' ? 'bg-zinc-800 text-white' : 'text-zinc-500 hover:text-zinc-350'}`}
+                            className={`flex-1 py-1 text-center uppercase font-bold transition ${stratTab === 'weekly' ? 'bg-white text-zinc-900 border border-zinc-200 shadow-xs' : 'text-zinc-500 hover:text-zinc-805'}`}
                           >
                             Semanas
                           </button>
@@ -632,12 +633,12 @@ export default function Dashboard() {
                           <div className="space-y-3 pt-2">
                             <div>
                               <span className="text-[9px] font-mono text-zinc-500 block uppercase">RESUMEN DEL PLAN</span>
-                              <p className="text-zinc-300 leading-relaxed font-light mt-0.5 whitespace-pre-wrap">{strat.summary}</p>
+                              <p className="text-zinc-700 leading-relaxed font-light mt-0.5 whitespace-pre-wrap">{strat.summary}</p>
                             </div>
                             {strat.mainGoal && (
-                              <div className="bg-zinc-950/40 p-2.5 border border-zinc-900">
-                                <span className="text-[9px] font-mono text-zinc-400 block uppercase font-bold">OBJETIVO SMART PRINCIPAL</span>
-                                <p className="text-zinc-200 font-medium font-sans mt-0.5 leading-relaxed">{strat.mainGoal}</p>
+                              <div className="bg-zinc-50 p-2.5 border border-zinc-200">
+                                <span className="text-[9px] font-mono text-zinc-500 block uppercase font-bold">OBJETIVO SMART PRINCIPAL</span>
+                                <p className="text-zinc-800 font-medium font-sans mt-0.5 leading-relaxed">{strat.mainGoal}</p>
                               </div>
                             )}
                           </div>
@@ -648,7 +649,7 @@ export default function Dashboard() {
                             {strat.diagnostic && (
                               <div>
                                 <span className="text-[9px] font-mono text-zinc-500 block uppercase">DIAGNÓSTICO SITUACIONAL IA</span>
-                                <p className="text-zinc-300 font-light mt-0.5 leading-relaxed">{strat.diagnostic}</p>
+                                <p className="text-zinc-700 font-light mt-0.5 leading-relaxed">{strat.diagnostic}</p>
                               </div>
                             )}
                             {strat.suggestedKPIs && strat.suggestedKPIs.length > 0 && (
@@ -656,7 +657,7 @@ export default function Dashboard() {
                                 <span className="text-[9px] font-mono text-zinc-500 block uppercase">VALORES KPI RECOMENDADOS</span>
                                 <div className="flex flex-wrap gap-1 mt-1">
                                   {strat.suggestedKPIs.map((k, i) => (
-                                    <span key={i} className="text-[9px] bg-zinc-950 text-zinc-400 border border-zinc-900 py-0.5 px-2 font-mono uppercase tracking-wide">
+                                    <span key={i} className="text-[9px] bg-zinc-50 text-zinc-700 border border-zinc-200 py-0.5 px-2 font-mono uppercase tracking-wide">
                                       {k}
                                     </span>
                                   ))}
@@ -664,9 +665,9 @@ export default function Dashboard() {
                               </div>
                             )}
                             {strat.recommendedTone && (
-                              <div className="bg-zinc-950 p-2.5 border border-zinc-905">
-                                <span className="text-[9px] font-mono text-zinc-500 block uppercase">Tono editorial:</span>
-                                <p className="text-zinc-350 mt-0.5 font-light">{strat.recommendedTone}</p>
+                              <div className="bg-zinc-50 p-2.5 border border-zinc-200">
+                                <span className="text-[9px] font-mono text-zinc-555 text-zinc-500 block uppercase">Tono editorial:</span>
+                                <p className="text-zinc-700 mt-0.5 font-light">{strat.recommendedTone}</p>
                               </div>
                             )}
                           </div>
@@ -675,16 +676,16 @@ export default function Dashboard() {
                         {stratTab === 'weekly' && (
                           <div className="space-y-2.5 pt-2 max-h-[30vh] overflow-y-auto">
                             {strat.weeklyPlan && strat.weeklyPlan.map((wk: any, idx: number) => (
-                              <div key={idx} className="bg-zinc-950 p-2.5 border border-zinc-900 relative">
+                              <div key={idx} className="bg-zinc-50 p-2.5 border border-zinc-200 relative">
                                 <span className="text-[8px] font-mono font-bold text-zinc-500 uppercase block tracking-wider">SEMANA {idx + 1}</span>
-                                <p className="text-zinc-200 text-xs font-bold mt-0.5 leading-tight">{wk.objective}</p>
-                                <p className="text-[10px] text-zinc-450 font-light mt-1 whitespace-pre-wrap">CTA: "{wk.cta}"</p>
+                                <p className="text-zinc-800 text-xs font-bold mt-0.5 leading-tight">{wk.objective}</p>
+                                <p className="text-[10px] text-zinc-500 font-light mt-1 whitespace-pre-wrap">CTA: "{wk.cta}"</p>
                               </div>
                             ))}
                           </div>
                         )}
 
-                        <div className="pt-3 border-t border-zinc-855 text-[9px] font-mono text-zinc-500 uppercase tracking-wider flex justify-between">
+                        <div className="pt-3 border-t border-zinc-200 text-[9px] font-mono text-zinc-550 uppercase tracking-wider flex justify-between">
                           <span>CREADA: {new Date(strat.createdAt).toLocaleDateString()}</span>
                         </div>
                       </div>
@@ -692,8 +693,8 @@ export default function Dashboard() {
                   </div>
 
                   {/* Real-time Email Reminders Queue Tracker */}
-                  <div className="bg-zinc-900/10 border-2 border-zinc-900 rounded-none p-5 shadow-[4px_4px_0px_0px_rgba(9,9,11,1)]">
-                    <span className="text-[10px] font-mono font-bold tracking-widest text-zinc-400 uppercase block mb-2">COLA DE ALERTAS DE CORREO</span>
+                  <div className="bg-white border-2 border-zinc-200 rounded-none p-5 shadow-[4px_4px_0px_0px_rgba(24,24,27,1)]">
+                    <span className="text-[10px] font-mono font-bold tracking-widest text-zinc-500 uppercase block mb-2">COLA DE ALERTAS DE CORREO</span>
                     <p className="text-[11px] text-zinc-500 leading-relaxed font-sans font-light mb-3">
                       Se envían recordatorios automáticamente por email 30 min y 10 min antes de la hora de cada publicación programada para el equipo.
                     </p>
@@ -702,21 +703,21 @@ export default function Dashboard() {
                       {filterCalendarByBiz(activeBusiness?.id || '')
                         .filter(p => p.status === 'Programado' || p.status === 'Pendiente de aprobación')
                         .map(post => (
-                          <div key={post.id} className="bg-zinc-950 p-2.5 border border-zinc-900 text-[10px] flex items-center justify-between font-mono">
+                          <div key={post.id} className="bg-zinc-50 p-2.5 border border-zinc-200 text-[10px] flex items-center justify-between font-mono">
                             <div className="overflow-hidden pr-2">
-                              <span className="text-white block font-bold leading-tight truncate uppercase">{post.title}</span>
+                              <span className="text-zinc-900 block font-bold leading-tight truncate uppercase">{post.title}</span>
                               <span className="text-zinc-500 text-[8px] inline-flex items-center gap-1 mt-0.5">
-                                <Clock className="w-3 h-3 text-zinc-500" /> {post.scheduledDate} a las {post.scheduledTime}
+                                <Clock className="w-3 h-3 text-zinc-400" /> {post.scheduledDate} a las {post.scheduledTime}
                               </span>
                             </div>
-                            <span className="bg-emerald-950/20 text-emerald-400 border border-emerald-900 py-0.5 px-2 flex-shrink-0 uppercase font-bold text-[8px] tracking-widest">
+                            <span className="bg-emerald-50 text-emerald-855 text-emerald-700 border border-emerald-200 py-0.5 px-2 flex-shrink-0 uppercase font-bold text-[8px] tracking-widest">
                               ALERT_OK
                             </span>
                           </div>
                         ))
                       }
                       {filterCalendarByBiz(activeBusiness?.id || '').filter(p => p.status === 'Programado' || p.status === 'Pendiente de aprobación').length === 0 && (
-                        <div className="text-center py-2 text-[9px] text-zinc-600 uppercase font-bold italic tracking-wide">
+                        <div className="text-center py-2 text-[9px] text-zinc-450 uppercase font-bold italic tracking-wide">
                           No hay publicaciones programadas activas para alertas.
                         </div>
                       )}
@@ -724,29 +725,29 @@ export default function Dashboard() {
                   </div>
 
                   {/* Visual helper KPI panel */}
-                  <div className="bg-zinc-900/10 border-2 border-zinc-900 rounded-none p-5 shadow-[4px_4px_0px_0px_rgba(9,9,11,1)]">
-                    <span className="text-[10px] font-mono font-bold tracking-widest text-zinc-400 uppercase block mb-3">MÉTRICAS EDITORIALES (MES)</span>
+                  <div className="bg-white border-2 border-zinc-200 rounded-none p-5 shadow-[4px_4px_0px_0px_rgba(24,24,27,1)]">
+                    <span className="text-[10px] font-mono font-bold tracking-widest text-zinc-500 uppercase block mb-3">MÉTRICAS EDITORIALES (MES)</span>
                     
                     <div className="flex flex-col gap-3 font-sans text-xs">
                       <div className="flex justify-between items-center">
-                        <span className="text-zinc-450">Total calendarizados:</span>
-                        <span className="font-bold text-white font-mono">{filterCalendarByBiz(activeBusiness?.id || '').length} posts</span>
+                        <span className="text-zinc-550 text-zinc-650">Total calendarizados:</span>
+                        <span className="font-bold text-zinc-950 font-mono">{filterCalendarByBiz(activeBusiness?.id || '').length} posts</span>
                       </div>
                       <div className="flex justify-between items-center">
-                        <span className="text-zinc-450">Borradores (draft):</span>
-                        <span className="font-bold text-zinc-400 font-mono">
+                        <span className="text-zinc-550 text-zinc-650">Borradores (draft):</span>
+                        <span className="font-bold text-zinc-650 font-mono">
                           {filterCalendarByBiz(activeBusiness?.id || '').filter(p => p.status === 'Borrador').length}
                         </span>
                       </div>
                       <div className="flex justify-between items-center">
-                        <span className="text-zinc-450">Programados:</span>
-                        <span className="font-bold text-emerald-400 font-mono">
+                        <span className="text-zinc-550 text-zinc-650">Programados:</span>
+                        <span className="font-bold text-emerald-700 font-mono animate-pulse">
                           {filterCalendarByBiz(activeBusiness?.id || '').filter(p => p.status === 'Programado').length}
                         </span>
                       </div>
                       <div className="flex justify-between items-center">
-                        <span className="text-zinc-450">Publicados:</span>
-                        <span className="font-bold text-white font-mono">
+                        <span className="text-zinc-550 text-zinc-650">Publicados:</span>
+                        <span className="font-bold text-zinc-950 font-mono">
                           {filterCalendarByBiz(activeBusiness?.id || '').filter(p => p.status === 'Publicado').length}
                         </span>
                       </div>
@@ -758,26 +759,26 @@ export default function Dashboard() {
                 <div className="lg:col-span-8 flex flex-col gap-6">
                   
                   {/* CALENDAR FILTER HEADER BAR */}
-                  <div className="bg-zinc-900/35 border-2 border-zinc-900 p-4.5 rounded-none flex flex-wrap gap-4 items-center justify-between">
-                    <span className="text-[10px] font-mono font-bold tracking-widest text-zinc-400 uppercase flex items-center gap-1.5">
-                      <CalendarIcon className="w-4 h-4 text-white" /> PLANIFICACIÓN EDITORIAL DE CONTENIDOS
+                  <div className="bg-white border-2 border-zinc-200 p-4.5 rounded-none flex flex-wrap gap-4 items-center justify-between shadow-[4px_4px_0px_0px_rgba(24,24,27,1)]">
+                    <span className="text-[10px] font-mono font-bold tracking-widest text-zinc-500 uppercase flex items-center gap-1.5">
+                      <CalendarIcon className="w-4 h-4 text-zinc-900" /> PLANIFICACIÓN EDITORIAL DE CONTENIDOS
                     </span>
 
                     {/* View Switcher Toggle & Filters */}
                     <div className="flex flex-wrap gap-3 items-center text-[10px] font-mono">
                       {/* Grid / List switcher */}
-                      <div className="flex border border-zinc-800 bg-zinc-950 p-0.5 rounded-none">
+                      <div className="flex border border-zinc-200 bg-zinc-50 p-0.5 rounded-none">
                         <button
                           type="button"
                           onClick={() => setCalendarView('grid')}
-                          className={`px-3 py-1.5 text-[8.5px] uppercase font-bold tracking-wider rounded-none cursor-pointer transition-all ${calendarView === 'grid' ? 'bg-white text-black' : 'text-zinc-500 hover:text-white'}`}
+                          className={`px-3 py-1.5 text-[8.5px] uppercase font-bold tracking-wider rounded-none cursor-pointer transition-all ${calendarView === 'grid' ? 'bg-zinc-900 text-white shadow-xs' : 'text-zinc-500 hover:text-zinc-900'}`}
                         >
                           Vista Calendario (Mes)
                         </button>
                         <button
                           type="button"
                           onClick={() => setCalendarView('list')}
-                          className={`px-3 py-1.5 text-[8.5px] uppercase font-bold tracking-wider rounded-none cursor-pointer transition-all ${calendarView === 'list' ? 'bg-white text-black' : 'text-zinc-500 hover:text-white'}`}
+                          className={`px-3 py-1.5 text-[8.5px] uppercase font-bold tracking-wider rounded-none cursor-pointer transition-all ${calendarView === 'list' ? 'bg-zinc-900 text-white shadow-xs' : 'text-zinc-500 hover:text-zinc-900'}`}
                         >
                           Lista Completa
                         </button>
@@ -787,7 +788,7 @@ export default function Dashboard() {
                       <select 
                         value={filterChannel} 
                         onChange={(e) => setFilterChannel(e.target.value)}
-                        className="bg-zinc-950 border border-zinc-805 text-zinc-300 py-1.5 px-3 rounded-none focus:outline-none uppercase text-[9px] font-bold"
+                        className="bg-zinc-50 border border-zinc-200 text-zinc-700 py-1.5 px-3 rounded-none focus:outline-none uppercase text-[9px] font-bold"
                       >
                         <option value="Todos">Red social: Todas</option>
                         <option value="Instagram">Instagram</option>
@@ -799,7 +800,7 @@ export default function Dashboard() {
                       <select 
                         value={filterStatus} 
                         onChange={(e) => setFilterStatus(e.target.value)}
-                        className="bg-zinc-950 border border-zinc-805 text-zinc-300 py-1.5 px-3 rounded-none focus:outline-none uppercase text-[9px] font-bold"
+                        className="bg-zinc-50 border border-zinc-200 text-zinc-700 py-1.5 px-3 rounded-none focus:outline-none uppercase text-[9px] font-bold"
                       >
                         <option value="Todos">Estado: Todos</option>
                         <option value="Borrador">Borradores</option>
@@ -813,7 +814,7 @@ export default function Dashboard() {
                       <select 
                         value={filterWeek} 
                         onChange={(e) => setFilterWeek(e.target.value)}
-                        className="bg-zinc-950 border border-zinc-805 text-zinc-300 py-1.5 px-3 rounded-none focus:outline-none uppercase text-[9px] font-bold"
+                        className="bg-zinc-50 border border-zinc-200 text-zinc-700 py-1.5 px-3 rounded-none focus:outline-none uppercase text-[9px] font-bold"
                       >
                         <option value="Todos font-bold">Semana: Todas</option>
                         <option value="1">Semana 1</option>
@@ -830,17 +831,17 @@ export default function Dashboard() {
                     .filter(p => filterStatus === 'Todos' || p.status === filterStatus)
                     .filter(p => filterWeek === 'Todos' || String(p.weekNum) === filterWeek)
                     .length === 0 ? (
-                    <div className="bg-zinc-900/10 border-2 border-zinc-900 rounded-none p-12 text-center text-zinc-500 text-xs italic font-mono uppercase tracking-wider">
+                    <div className="bg-white border-2 border-zinc-200 rounded-none p-12 text-center text-zinc-600 text-xs italic font-mono uppercase tracking-wider shadow-[4px_4px_0px_0px_rgba(24,24,27,1)]">
                       Ningún post del calendario coincide con los filtros aplicados. Intenta de otra forma o crea un nuevo post.
                     </div>
                   ) : calendarView === 'grid' ? (
                     <div className="flex flex-col gap-4 font-sans text-xs">
                       {/* Grid representation */}
-                      <div className="grid grid-cols-7 gap-1 border-2 border-zinc-900 bg-zinc-950 p-1 select-none">
+                      <div className="grid grid-cols-7 gap-1 border-2 border-zinc-200 bg-zinc-100 p-1 select-none shadow-[4px_4px_0px_0px_rgba(24,24,27,1)]">
                         
                         {/* Day headers */}
                         {['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'].map((day) => (
-                          <div key={day} className="bg-zinc-900 border border-zinc-950 py-1.5 text-center font-mono font-bold text-zinc-400 text-[10px] uppercase tracking-wider">
+                          <div key={day} className="bg-zinc-200 border border-zinc-300 py-1.5 text-center font-mono font-bold text-zinc-700 text-[10px] uppercase tracking-wider">
                             {day}
                           </div>
                         ))}
@@ -860,16 +861,16 @@ export default function Dashboard() {
                               return (
                                 <div 
                                   key={`${weekNum}-${day}`}
-                                  className={`border bg-zinc-900/10 min-h-[110px] p-2 flex flex-col justify-between transition-all group relative ${
-                                    isWeekFilteredOut ? 'opacity-20 border-zinc-950 bg-zinc-950/40' : 'border-zinc-850 hover:bg-zinc-900/50'
+                                  className={`border bg-white min-h-[110px] p-2 flex flex-col justify-between transition-all group relative ${
+                                    isWeekFilteredOut ? 'opacity-20 border-zinc-100 bg-zinc-50' : 'border-zinc-200 hover:bg-zinc-50/50'
                                   }`}
                                 >
                                   {/* Week and abbreviated day */}
                                   <div className="flex justify-between items-center mb-1">
-                                    <span className="text-[8px] font-mono font-bold text-zinc-550 uppercase tracking-tighter">
+                                    <span className="text-[8px] font-mono font-bold text-zinc-400 uppercase tracking-tighter">
                                       Sem {weekNum}
                                     </span>
-                                    <span className="text-[8.5px] font-mono leading-none text-zinc-450 font-bold">
+                                    <span className="text-[8.5px] font-mono leading-none text-zinc-500 font-bold">
                                       {day.slice(0, 3)}
                                     </span>
                                   </div>
@@ -878,24 +879,24 @@ export default function Dashboard() {
                                   <div className="space-y-1 my-1 flex-1 overflow-y-auto max-h-[85px] scrollbar-thin">
                                     {cellPosts.map(post => {
                                       const badgeColor = 
-                                        post.channel === 'Instagram' ? 'bg-gradient-to-tr from-rose-950/50 to-orange-950/20 text-rose-350 border-rose-900/40' :
-                                        post.channel === 'Facebook' ? 'bg-blue-950/50 text-blue-300 border-blue-900/40' :
-                                        post.channel === 'TikTok' ? 'bg-zinc-950/80 text-zinc-300 border-zinc-800/50' :
-                                        'bg-sky-950/40 text-sky-300 border-sky-900/40';
+                                        post.channel === 'Instagram' ? 'bg-rose-50 text-rose-700 border-rose-200' :
+                                        post.channel === 'Facebook' ? 'bg-blue-50 text-blue-700 border-blue-200' :
+                                        post.channel === 'TikTok' ? 'bg-zinc-100 text-zinc-900 border-zinc-300' :
+                                        'bg-sky-50 text-sky-700 border-sky-200';
 
                                       const statusText = post.status || 'Borrador';
                                       const statusDotColor = 
                                         statusText === 'Publicado' ? 'bg-zinc-400' :
                                         statusText === 'Programado' ? 'bg-emerald-500 font-extrabold' :
-                                        statusText === 'Pendiente de aprobación' ? 'bg-amber-550' :
+                                        statusText === 'Pendiente de aprobación' ? 'bg-amber-500' :
                                         statusText === 'Aprobado' ? 'bg-teal-500' :
-                                        'bg-zinc-650';
+                                        'bg-zinc-400';
 
                                       return (
                                         <div 
                                           key={post.id}
                                           onClick={() => setSelectedPost(post)}
-                                          className="p-1 border border-zinc-850 bg-zinc-950 hover:bg-zinc-900/80 cursor-pointer text-left transition flex flex-col gap-0.5 hover:border-zinc-500"
+                                          className="p-1 border border-zinc-200 bg-zinc-50 hover:bg-white cursor-pointer text-left transition flex flex-col gap-0.5 hover:border-zinc-400 shadow-2xs"
                                           title={`Ver o programar post: ${post.title}`}
                                         >
                                           <div className="flex items-center justify-between gap-1 leading-none">
@@ -906,11 +907,11 @@ export default function Dashboard() {
                                               {post.scheduledTime || '18:00'}
                                             </span>
                                           </div>
-                                          <span className="text-[9px] font-bold text-zinc-200 truncate block leading-tight uppercase font-sans tracking-wide">
+                                          <span className="text-[9px] font-bold text-zinc-800 truncate block leading-tight uppercase font-sans tracking-wide">
                                             {post.title}
                                           </span>
                                           <div className="flex items-center gap-1">
-                                            <span className={`w-1 h-1 rounded-full ${statusDotColor}`} />
+                                            <span className={`w-1.5 h-1.5 rounded-full ${statusDotColor}`} />
                                             <span className="text-[7.5px] font-mono text-zinc-500 uppercase leading-none truncate max-w-[90%]">{statusText}</span>
                                           </div>
                                         </div>
@@ -919,7 +920,7 @@ export default function Dashboard() {
 
                                     {cellPosts.length === 0 && (
                                       <div className="h-full flex items-center justify-center">
-                                        <span className="text-[7.5px] font-mono text-zinc-700 uppercase tracking-wider opacity-60 group-hover:opacity-0 transition-opacity">Vacío</span>
+                                        <span className="text-[7.5px] font-mono text-zinc-300 uppercase tracking-wider opacity-60 group-hover:opacity-0 transition-opacity">Vacío</span>
                                       </div>
                                     )}
                                   </div>
@@ -948,7 +949,7 @@ export default function Dashboard() {
                                         };
                                         setSelectedPost(postObj);
                                       }}
-                                      className="w-full text-center py-0.5 border border-dashed border-zinc-800 hover:border-zinc-700 text-[8px] font-mono text-zinc-500 hover:text-white uppercase transition-all opacity-0 group-hover:opacity-100 mt-1 cursor-pointer"
+                                      className="w-full text-center py-0.5 border border-dashed border-zinc-200 hover:border-zinc-400 text-[8px] font-mono text-zinc-400 hover:text-zinc-800 uppercase transition-all opacity-0 group-hover:opacity-100 mt-1 cursor-pointer"
                                     >
                                       + Agregar
                                     </button>
@@ -970,26 +971,26 @@ export default function Dashboard() {
                           return (
                             <div 
                               key={post.id}
-                              className="bg-zinc-900/20 border-2 border-zinc-900 hover:border-zinc-700 p-5 rounded-none transition flex flex-col justify-between shadow-[3px_3px_0px_0px_rgba(9,9,11,1)] relative"
+                              className="bg-white border-2 border-zinc-200 hover:border-zinc-300 p-5 rounded-none transition flex flex-col justify-between shadow-[3px_3px_0px_0px_rgba(24,24,27,1)] relative"
                             >
                               <div className="flex items-start justify-between gap-3">
                                 <div className="flex items-center gap-2 flex-wrap">
                                   {post.weekNum && (
-                                    <span className="font-mono text-[9px] text-white font-bold bg-zinc-950/75 px-2 py-0.5 uppercase tracking-wider border border-zinc-800">
+                                    <span className="font-mono text-[9px] text-zinc-900 font-bold bg-zinc-100 px-2 py-0.5 uppercase tracking-wider border border-zinc-200">
                                       Semana {post.weekNum}
                                     </span>
                                   )}
-                                  <span className="font-mono text-[10px] text-zinc-400 font-bold bg-zinc-950 px-2.5 py-1 rounded-none border border-zinc-850">
+                                  <span className="font-mono text-[10px] text-zinc-600 font-bold bg-white px-2.5 py-1 rounded-none border border-zinc-200">
                                     {post.scheduledDate} @ {post.scheduledTime}
                                   </span>
                                   <span className={`text-[9px] font-mono font-bold py-1 px-2.5 rounded-none uppercase tracking-wider border ${
-                                    post.channel === 'Instagram' ? 'bg-zinc-950 text-zinc-350 border-zinc-800' :
-                                    post.channel === 'TikTok' ? 'bg-zinc-950 text-zinc-350 border-zinc-805' :
-                                    'bg-zinc-950 text-zinc-350 border-zinc-810'
+                                    post.channel === 'Instagram' ? 'bg-rose-50 text-rose-700 border-rose-200' :
+                                    post.channel === 'TikTok' ? 'bg-zinc-100 text-zinc-900 border-zinc-300' :
+                                    'bg-blue-50 text-blue-700 border-blue-200'
                                   }`}>
                                     {post.channel}
                                   </span>
-                                  <span className="text-[9px] bg-zinc-950 font-mono text-zinc-500 px-2 py-0.5 rounded-none uppercase border border-zinc-900">
+                                  <span className="text-[9px] bg-zinc-100 font-mono text-zinc-500 px-2 py-0.5 rounded-none uppercase border border-zinc-200">
                                     {post.type}
                                   </span>
                                 </div>
@@ -997,24 +998,24 @@ export default function Dashboard() {
                                 <div className="flex items-center gap-1.5 flex-shrink-0">
                                   <button
                                     onClick={() => setSelectedPost(post)}
-                                    className="text-[9px] bg-zinc-950 border border-zinc-850 hover:bg-zinc-900 text-zinc-400 hover:text-white py-1 px-2.5 rounded-none uppercase tracking-wider font-mono font-bold flex items-center gap-1"
+                                    className="text-[9px] bg-zinc-50 border border-zinc-200 hover:bg-zinc-100 text-zinc-650 hover:text-zinc-900 py-1 px-2.5 rounded-none uppercase tracking-wider font-mono font-bold flex items-center gap-1"
                                     title="Editar Post y Contenido"
                                   >
-                                    <Edit3 className="w-3 h-3 text-white" /> Editar
+                                    <Edit3 className="w-3 h-3 text-zinc-605" /> Editar
                                   </button>
                                   <span 
                                     className={`text-[9px] font-mono font-bold py-1 px-2.5 rounded-none uppercase tracking-widest border ${
-                                      post.status === 'Publicado' ? 'bg-zinc-100 text-zinc-950 border-zinc-200' :
-                                      post.status === 'Programado' ? 'bg-zinc-905 border border-emerald-900 text-emerald-400 font-extrabold shadow-sm' :
-                                      post.status === 'Pendiente de aprobación' ? 'bg-zinc-950 text-amber-500 border-amber-950 font-bold' :
-                                      'bg-zinc-950 text-zinc-500 border-zinc-900'
+                                      post.status === 'Publicado' ? 'bg-zinc-100 text-zinc-900 border-zinc-200' :
+                                      post.status === 'Programado' ? 'bg-emerald-50 border border-emerald-200 text-emerald-800 font-extrabold shadow-xs' :
+                                      post.status === 'Pendiente de aprobación' ? 'bg-amber-50 text-amber-800 border-amber-200 font-bold' :
+                                      'bg-zinc-100 text-zinc-500 border-zinc-200'
                                     }`}
                                   >
                                     {post.status}
                                   </span>
                                   <button 
                                     onClick={() => handleDeletePost(post.id)}
-                                    className="text-zinc-650 hover:text-white p-1 transition cursor-pointer"
+                                    className="text-zinc-400 hover:text-rose-600 p-1 transition cursor-pointer"
                                     title="Eliminar Publicación"
                                   >
                                     <Trash2 className="w-4 h-4 text-rose-500" />
@@ -1023,19 +1024,19 @@ export default function Dashboard() {
                               </div>
 
                               <div className="my-3.5">
-                                <h5 className="font-bold text-zinc-200 text-xs mb-1 uppercase tracking-wider">{post.title}</h5>
-                                <div className="bg-zinc-950 p-3.5 rounded-none border border-zinc-900 relative group mt-2.5">
-                                  <p className="text-zinc-350 leading-relaxed whitespace-pre-wrap font-sans font-light mt-1 text-[12px]">
+                                <h5 className="font-bold text-zinc-900 text-xs mb-1 uppercase tracking-wider">{post.title}</h5>
+                                <div className="bg-zinc-50 p-3.5 rounded-none border border-zinc-200 relative group mt-2.5">
+                                  <p className="text-zinc-700 leading-relaxed whitespace-pre-wrap font-sans font-light mt-1 text-[12px]">
                                     {post.copy}
                                   </p>
                                   <button
                                     onClick={() => copyToClipboard(post.id, post.copy)}
-                                    className="absolute top-2.5 right-2.5 bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-white p-1.5 rounded-none transition opacity-60 group-hover:opacity-100 flex items-center gap-1 text-[9px] font-mono uppercase tracking-wider cursor-pointer"
+                                    className="absolute top-2.5 right-2.5 bg-white border border-zinc-200 text-zinc-505 hover:text-zinc-900 p-1.5 rounded-none transition opacity-60 group-hover:opacity-100 flex items-center gap-1 text-[9px] font-mono uppercase tracking-wider cursor-pointer shadow-xs"
                                     title="Copiar texto listo"
                                   >
                                     {copiedId === post.id ? (
                                       <>
-                                        <Check className="w-3.5 h-3.5 text-white" /> <span className="text-white font-bold">COPIADO</span>
+                                        <Check className="w-3.5 h-3.5 text-zinc-800" /> <span className="text-zinc-900 font-bold">COPIADO</span>
                                       </>
                                     ) : (
                                       <>
@@ -1047,10 +1048,10 @@ export default function Dashboard() {
                               </div>
 
                               {post.imageUrlPrompt && (
-                                <div className="bg-zinc-950 border border-zinc-900 p-3 rounded-none text-[9px] mt-1 font-mono flex justify-between items-center gap-2">
+                                <div className="bg-amber-50/50 border border-amber-100 p-3 rounded-none text-[9px] mt-1 font-mono flex justify-between items-center gap-2">
                                   <div>
-                                    <span className="font-bold text-zinc-500 block uppercase mb-0.5">PROMPT DE IMAGEN IA SUGERIDO</span>
-                                    <span className="text-zinc-450 font-sans font-light italic leading-normal block">
+                                    <span className="font-bold text-amber-850 block uppercase mb-0.5">PROMPT DE IMAGEN IA SUGERIDO</span>
+                                    <span className="text-zinc-650 font-sans font-light italic leading-normal block">
                                       {post.imageUrlPrompt}
                                     </span>
                                   </div>
@@ -1078,20 +1079,20 @@ export default function Dashboard() {
       {/* REGISTER NEW BUSINESS DIALOG POPUP */}
       <AnimatePresence>
         {showAddBusiness && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-zinc-950/90 backdrop-blur-xs">
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-zinc-900/60 backdrop-blur-xs">
             <motion.div 
               initial={{ opacity: 0, y: 15 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 15 }}
-              className="bg-zinc-900 border-2 border-zinc-950 rounded-none w-full max-w-xl shadow-[8px_8px_0px_0px_rgba(9,9,11,1)] relative overflow-hidden"
+              className="bg-white border-2 border-zinc-200 rounded-none w-full max-w-xl shadow-[8px_8px_0px_0px_rgba(24,24,27,1)] relative overflow-hidden"
             >
-              <div className="px-6 py-5 border-b-2 border-zinc-950 flex justify-between items-center">
-                <span className="font-sans font-bold text-sm text-white flex items-center gap-2 uppercase tracking-wider">
-                  <Building2 className="w-5 h-5 text-white" /> REGISTRAR PERFIL DE NEGOCIO
+              <div className="px-6 py-5 border-b-2 border-zinc-200 flex justify-between items-center">
+                <span className="font-sans font-bold text-sm text-zinc-900 flex items-center gap-2 uppercase tracking-wider">
+                  <Building2 className="w-5 h-5 text-zinc-900" /> REGISTRAR PERFIL DE NEGOCIO
                 </span>
                 <button 
                   onClick={() => setShowAddBusiness(false)}
-                  className="text-zinc-500 hover:text-white font-mono font-bold text-sm cursor-pointer"
+                  className="text-zinc-500 hover:text-zinc-900 font-mono font-bold text-sm cursor-pointer"
                 >
                   ✕
                 </button>
@@ -1099,61 +1100,61 @@ export default function Dashboard() {
 
               <form onSubmit={handleRegisterBusiness} className="p-6 flex flex-col gap-4 max-h-[75vh] overflow-y-auto">
                 {formError && (
-                  <div className="bg-rose-955/10 border-2 border-rose-900 text-rose-300 text-xs p-3.5 rounded-none font-mono tracking-wide leading-relaxed flex items-center gap-2">
-                    <AlertCircle className="w-4 h-4 text-rose-400 flex-shrink-0" />
+                  <div className="bg-rose-50 border-2 border-rose-200 text-rose-700 text-xs p-3.5 rounded-none font-mono tracking-wide leading-relaxed flex items-center gap-2">
+                    <AlertCircle className="w-4 h-4 text-rose-500 flex-shrink-0" />
                     <span>{formError}</span>
                   </div>
                 )}
 
                 <div>
-                  <label className="text-[10px] font-mono font-bold text-zinc-400 block mb-1.5 uppercase tracking-wider">Nombre de la Empresa o Marca *</label>
+                  <label className="text-[10px] font-mono font-bold text-zinc-500 block mb-1.5 uppercase tracking-wider">Nombre de la Empresa o Marca *</label>
                   <input
                     type="text"
                     value={newBizName}
                     onChange={(e) => setNewBizName(e.target.value)}
                     placeholder="ej: Panadería Levadura Viva, FitStudio"
                     required
-                    className="w-full bg-zinc-950 border border-zinc-805 rounded-none py-2.5 px-3.5 text-xs text-white focus:border-white focus:outline-none font-sans"
+                    className="w-full bg-zinc-50 border border-zinc-200 rounded-none py-2.5 px-3.5 text-xs text-zinc-900 focus:border-zinc-500 focus:outline-none font-sans"
                   />
                 </div>
 
                 <div>
-                  <label className="text-[10px] font-mono font-bold text-zinc-400 block mb-1.5 uppercase tracking-wider">Nicho o Sector Comercial *</label>
+                  <label className="text-[10px] font-mono font-bold text-zinc-500 block mb-1.5 uppercase tracking-wider">Nicho o Sector Comercial *</label>
                   <input
                     type="text"
                     value={newBizNiche}
                     onChange={(e) => setNewBizNiche(e.target.value)}
                     placeholder="ej: Alimentación Premium, Fitness y Bienestar"
                     required
-                    className="w-full bg-zinc-950 border border-zinc-805 rounded-none py-2.5 px-3.5 text-xs text-white focus:border-white focus:outline-none font-sans"
+                    className="w-full bg-zinc-50 border border-zinc-200 rounded-none py-2.5 px-3.5 text-xs text-zinc-900 focus:border-zinc-500 focus:outline-none font-sans"
                   />
                 </div>
 
                 <div>
-                  <label className="text-[10px] font-mono font-bold text-zinc-400 block mb-1.5 uppercase tracking-wider">Descripción del Negocio / Qué vendes *</label>
+                  <label className="text-[10px] font-mono font-bold text-zinc-500 block mb-1.5 uppercase tracking-wider">Descripción del Negocio / Qué vendes *</label>
                   <textarea
                     value={newBizDesc}
                     onChange={(e) => setNewBizDesc(e.target.value)}
                     rows={3}
                     placeholder="ej: Elaboramos panes artesanales mediante masa madre de fermentación lenta..."
                     required
-                    className="w-full bg-zinc-950 border border-zinc-805 rounded-none py-2 px-3.5 text-xs text-white focus:border-white focus:outline-none font-sans font-light leading-relaxed resize-none"
+                    className="w-full bg-zinc-50 border border-zinc-200 rounded-none py-2 px-3.5 text-xs text-zinc-900 focus:border-zinc-500 focus:outline-none font-sans font-light leading-relaxed resize-none"
                   />
                 </div>
 
                 <div>
-                  <label className="text-[10px] font-mono font-bold text-zinc-400 block mb-1.5 uppercase tracking-wider">Público Objetivo o Cliente Ideal (Opcional)</label>
+                  <label className="text-[10px] font-mono font-bold text-zinc-500 block mb-1.5 uppercase tracking-wider">Público Objetivo o Cliente Ideal (Opcional)</label>
                   <input
                     type="text"
                     value={newBizAudience}
                     onChange={(e) => setNewBizAudience(e.target.value)}
                     placeholder="ej: Personas interesadas en comida orgánica"
-                    className="w-full bg-zinc-950 border border-zinc-805 rounded-none py-2.5 px-3.5 text-xs text-white focus:border-white focus:outline-none font-sans"
+                    className="w-full bg-zinc-50 border border-zinc-200 rounded-none py-2.5 px-3.5 text-xs text-zinc-900 focus:border-zinc-500 focus:outline-none font-sans"
                   />
                 </div>
 
-                <div className="border-t border-zinc-850 pt-3">
-                  <span className="text-[10px] font-mono font-bold text-zinc-400 block mb-2 uppercase tracking-wider">Canales de Redes Sociales Activos (Opcional)</span>
+                <div className="border-t border-zinc-200 pt-3">
+                  <span className="text-[10px] font-mono font-bold text-zinc-500 block mb-2 uppercase tracking-wider">Canales de Redes Sociales Activos (Opcional)</span>
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 font-mono text-[10px]">
                     <div>
                       <span className="text-zinc-500 block mb-0.5">Instagram @</span>
@@ -1162,7 +1163,7 @@ export default function Dashboard() {
                         value={newBizInsta}
                         onChange={(e) => setNewBizInsta(e.target.value)}
                         placeholder="ej: levaduraviva"
-                        className="w-full bg-zinc-950 border border-zinc-805 rounded-none py-2 px-2.5 text-[11px] text-white focus:border-white focus:outline-none font-sans"
+                        className="w-full bg-zinc-50 border border-zinc-200 rounded-none py-2 px-2.5 text-[11px] text-zinc-900 focus:border-zinc-500 focus:outline-none font-sans"
                       />
                     </div>
                     <div>
@@ -1172,7 +1173,7 @@ export default function Dashboard() {
                         value={newBizTikTok}
                         onChange={(e) => setNewBizTikTok(e.target.value)}
                         placeholder="ej: levaduraviva"
-                        className="w-full bg-zinc-950 border border-zinc-805 rounded-none py-2 px-2.5 text-[11px] text-white focus:border-white focus:outline-none font-sans"
+                        className="w-full bg-zinc-50 border border-zinc-200 rounded-none py-2 px-2.5 text-[11px] text-zinc-900 focus:border-zinc-500 focus:outline-none font-sans"
                       />
                     </div>
                     <div>
@@ -1182,27 +1183,27 @@ export default function Dashboard() {
                         value={newBizFb}
                         onChange={(e) => setNewBizFb(e.target.value)}
                         placeholder="ej: facebook.com/levaduraviva"
-                        className="w-full bg-zinc-950 border border-zinc-805 rounded-none py-2 px-2.5 text-[11px] text-white focus:border-white focus:outline-none font-sans"
+                        className="w-full bg-zinc-50 border border-zinc-200 rounded-none py-2 px-2.5 text-[11px] text-zinc-900 focus:border-zinc-500 focus:outline-none font-sans"
                       />
                     </div>
                   </div>
                 </div>
 
-                <div className="flex gap-3 justify-end pt-4 border-t border-zinc-800 mt-2 font-mono text-xs">
+                <div className="flex gap-3 justify-end pt-4 border-t border-zinc-200 mt-2 font-mono text-xs">
                   <button
                     type="button"
                     onClick={() => setShowAddBusiness(false)}
-                    className="bg-zinc-950 border border-zinc-800 hover:bg-zinc-850 px-4.5 py-2.5 rounded-none text-zinc-400 uppercase tracking-widest cursor-pointer"
+                    className="bg-zinc-50 border border-zinc-200 hover:bg-zinc-100 px-4.5 py-2.5 rounded-none text-zinc-650 uppercase tracking-widest cursor-pointer"
                   >
                     Cancelar
                   </button>
                   <button
                     type="submit"
                     disabled={addingBiz}
-                    className="bg-zinc-100 hover:bg-white text-zinc-950 border-r-4 border-b-4 border-zinc-400 active:translate-y-0.5 font-bold px-5 py-2.5 rounded-none cursor-pointer flex items-center gap-1.5 uppercase tracking-wider"
+                    className="bg-zinc-900 hover:bg-zinc-850 text-white border-r-4 border-b-4 border-zinc-400 active:translate-y-0.5 font-bold px-5 py-2.5 rounded-none cursor-pointer flex items-center gap-1.5 uppercase tracking-wider"
                   >
                     {addingBiz ? (
-                      <div className="w-3.5 h-3.5 border-2 border-zinc-950 border-t-transparent rounded-none animate-spin"></div>
+                      <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-none animate-spin"></div>
                     ) : (
                       <>
                         <Check className="w-4 h-4" /> Registrar Marca
@@ -1220,7 +1221,7 @@ export default function Dashboard() {
       {/* COPyWRITER SLIDEOUT DRAWER PANEL */}
       <AnimatePresence>
         {showCopywriterDrawer && (
-          <div className="fixed inset-0 z-50 flex justify-end bg-zinc-950/90 backdrop-blur-xs">
+          <div className="fixed inset-0 z-50 flex justify-end bg-zinc-900/60 backdrop-blur-xs">
             {/* Backdrop close */}
             <div className="absolute inset-0" onClick={() => setShowCopywriterDrawer(false)}></div>
 
@@ -1229,26 +1230,26 @@ export default function Dashboard() {
               animate={{ x: 0 }}
               exit={{ x: '100%' }}
               transition={{ type: 'spring', damping: 25, stiffness: 220 }}
-              className="w-full max-w-lg bg-zinc-900 border-l-2 border-zinc-950 h-full flex flex-col justify-between shadow-2xl relative z-10 rounded-none"
+              className="w-full max-w-lg bg-white border-l-2 border-zinc-200 h-full flex flex-col justify-between shadow-2xl relative z-10 rounded-none"
             >
               {/* Drawer header */}
-              <div className="px-6 py-5 border-b-2 border-zinc-950 flex justify-between items-center bg-zinc-900">
-                <span className="font-sans font-bold text-sm text-white flex items-center gap-2 uppercase tracking-wider">
-                  <Sparkles className="w-5 h-5 text-white animate-pulse" /> REDACTOR DE COPYWRITING IA
+              <div className="px-6 py-5 border-b-2 border-zinc-200 flex justify-between items-center bg-zinc-50">
+                <span className="font-sans font-bold text-sm text-zinc-900 flex items-center gap-2 uppercase tracking-wider">
+                  <Sparkles className="w-5 h-5 text-zinc-900 animate-pulse" /> REDACTOR DE COPYWRITING IA
                 </span>
                 <button 
                   onClick={() => setShowCopywriterDrawer(false)}
-                  className="text-zinc-500 hover:text-white font-mono font-bold text-sm cursor-pointer"
+                  className="text-zinc-500 hover:text-zinc-900 font-mono font-bold text-sm cursor-pointer"
                 >
                   ✕
                 </button>
               </div>
 
               {/* Drawer core content */}
-              <div className="flex-1 p-6 overflow-y-auto flex flex-col gap-6 bg-zinc-900/30">
+              <div className="flex-1 p-6 overflow-y-auto flex flex-col gap-6 bg-white">
                 
                 {cwError && (
-                  <div className="bg-rose-955/10 border-2 border-rose-900 text-rose-350 text-xs p-3.5 rounded-none font-mono tracking-wide leading-relaxed flex items-center gap-2">
+                  <div className="bg-rose-50 border-2 border-rose-200 text-rose-700 text-xs p-3.5 rounded-none font-mono tracking-wide leading-relaxed flex items-center gap-2">
                     <AlertCircle className="w-4 h-4 text-rose-500 flex-shrink-0" />
                     <span>{cwError}</span>
                   </div>
@@ -1256,24 +1257,24 @@ export default function Dashboard() {
 
                 <form onSubmit={handleGenerateCustomCopy} className="flex flex-col gap-4">
                   <div>
-                    <label className="text-[10px] font-mono font-bold text-zinc-400 block mb-1.5 uppercase tracking-wider">Tema o Ángulo de Venta para el post</label>
+                    <label className="text-[10px] font-mono font-bold text-zinc-550 text-zinc-650 block mb-1.5 uppercase tracking-wider">Tema o Ángulo de Venta para el post</label>
                     <textarea
                       value={cwTopic}
                       onChange={(e) => setCwTopic(e.target.value)}
                       rows={3}
                       placeholder="ej: Oferta especial o beneficios reales del producto"
                       required
-                      className="w-full bg-zinc-950 border border-zinc-805 rounded-none py-2.5 px-3.5 text-xs text-white focus:border-white focus:outline-none font-sans font-light resize-none leading-relaxed"
+                      className="w-full bg-zinc-50 border border-zinc-200 rounded-none py-2.5 px-3.5 text-xs text-zinc-900 focus:border-zinc-500 focus:outline-none font-sans font-light resize-none leading-relaxed"
                     />
                   </div>
 
                   <div className="grid grid-cols-2 gap-3 text-xs font-mono">
                     <div>
-                      <label className="text-[10px] font-mono font-bold text-zinc-400 block mb-1.5 uppercase tracking-wider">Red Social</label>
+                      <label className="text-[10px] font-mono font-bold text-zinc-550 text-zinc-650 block mb-1.5 uppercase tracking-wider">Red Social</label>
                       <select
                         value={cwChannel}
                         onChange={(e) => setCwChannel(e.target.value as any)}
-                        className="w-full bg-zinc-950 border border-zinc-805 rounded-none py-2.5 px-3 text-xs text-white focus:border-white focus:outline-none font-sans"
+                        className="w-full bg-zinc-50 border border-zinc-200 rounded-none py-2.5 px-3 text-xs text-zinc-750 focus:border-zinc-500 focus:outline-none font-sans"
                       >
                         <option value="Instagram">Instagram</option>
                         <option value="TikTok">TikTok</option>
@@ -1283,11 +1284,11 @@ export default function Dashboard() {
                     </div>
 
                     <div>
-                      <label className="text-[10px] font-mono font-bold text-zinc-400 block mb-1.5 uppercase tracking-wider">Tono del copy</label>
+                      <label className="text-[10px] font-mono font-bold text-zinc-550 text-zinc-650 block mb-1.5 uppercase tracking-wider">Tono del copy</label>
                       <select
                         value={cwTone}
                         onChange={(e) => setCwTone(e.target.value)}
-                        className="w-full bg-zinc-950 border border-zinc-805 rounded-none py-2.5 px-3 text-xs text-white focus:border-white focus:outline-none font-sans"
+                        className="w-full bg-zinc-50 border border-zinc-200 rounded-none py-2.5 px-3 text-xs text-zinc-750 focus:border-zinc-500 focus:outline-none font-sans"
                       >
                         <option value="persuasivo y emocionante">Persuasivo & Emocionante</option>
                         <option value="artesanal, cálido e inspirativo">Artesanal & Cálido</option>
@@ -1300,11 +1301,11 @@ export default function Dashboard() {
                   <button
                     type="submit"
                     disabled={cwLoading}
-                    className="w-full bg-zinc-100 hover:bg-white text-zinc-950 disabled:opacity-50 disabled:pointer-events-none py-3.5 rounded-none text-xs font-mono font-bold uppercase tracking-widest border-r-4 border-b-4 border-zinc-400 active:translate-y-0.5 transition flex items-center justify-center gap-2 cursor-pointer shadow-md"
+                    className="w-full bg-zinc-900 hover:bg-zinc-850 text-white disabled:opacity-50 disabled:pointer-events-none py-3.5 rounded-none text-xs font-mono font-bold uppercase tracking-widest border-r-4 border-b-4 border-zinc-500 active:translate-y-0.5 transition flex items-center justify-center gap-2 cursor-pointer shadow-md"
                   >
                     {cwLoading ? (
                       <>
-                        <div className="w-4 h-4 border-2 border-zinc-950 border-t-transparent rounded-none animate-spin"></div>
+                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-none animate-spin"></div>
                         <span>ESCRIBIENDO NUEVO COPY IA...</span>
                       </>
                     ) : (
@@ -1321,28 +1322,28 @@ export default function Dashboard() {
                   <motion.div 
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="bg-zinc-950 p-5 rounded-none border border-zinc-900 mt-2 relative group shadow-[3px_3px_0px_0px_rgba(9,9,11,1)]"
+                    className="bg-zinc-50 p-5 rounded-none border border-zinc-200 mt-2 relative group shadow-[3px_3px_0px_0px_rgba(24,24,27,1)]"
                   >
-                    <span className="text-[9px] bg-zinc-900 text-zinc-300 font-mono px-2 py-0.5 rounded-none font-bold uppercase tracking-widest block w-max mb-3 border border-zinc-800">
+                    <span className="text-[9px] bg-zinc-100 text-zinc-700 font-mono px-2 py-0.5 rounded-none font-bold uppercase tracking-widest block w-max mb-3 border border-zinc-200">
                       PROPUESTA LOGRADA CON GEMINI
                     </span>
                     
-                    <h5 className="font-sans font-bold text-sm text-zinc-200 uppercase tracking-wide">{cwResult.title}</h5>
+                    <h5 className="font-sans font-bold text-sm text-zinc-900 uppercase tracking-wide">{cwResult.title}</h5>
                     
-                    <div className="bg-zinc-900 border border-zinc-850 p-4 rounded-none mt-3 relative leading-relaxed text-xs text-zinc-300 whitespace-pre-wrap font-sans font-light">
+                    <div className="bg-white border border-zinc-200 p-4 rounded-none mt-3 relative leading-relaxed text-xs text-zinc-700 whitespace-pre-wrap font-sans font-light">
                       {cwResult.copy}
                       <button
                         onClick={() => copyToClipboard('cw_res', cwResult.copy)}
-                        className="absolute top-2.5 right-2.5 bg-zinc-950 border border-zinc-800 text-zinc-400 hover:text-white p-1 rounded-none transition opacity-60 flex items-center gap-1 text-[9px] font-mono uppercase tracking-wider cursor-pointer"
+                        className="absolute top-2.5 right-2.5 bg-zinc-50 border border-zinc-200 text-zinc-500 hover:text-zinc-900 p-1 rounded-none transition opacity-60 flex items-center gap-1 text-[9px] font-mono uppercase tracking-wider cursor-pointer"
                       >
-                        {copiedId === 'cw_res' ? <Check className="w-3.5 h-3.5 text-white" /> : <Copy className="w-3" />} Copiar
+                        {copiedId === 'cw_res' ? <Check className="w-3.5 h-3.5 text-zinc-800" /> : <Copy className="w-3" />} Copiar
                       </button>
                     </div>
 
                     {cwResult.imagePrompt && (
-                      <div className="bg-zinc-900/60 p-3 rounded-none text-[9px] mt-3 border border-zinc-850 font-mono">
-                        <span className="font-bold text-zinc-500 block uppercase mb-1">PROMPT SUGERIDO PARA IMAGEN IA</span>
-                        <span className="text-zinc-400 font-sans font-light italic leading-normal block">
+                      <div className="bg-amber-50/50 p-3 rounded-none text-[9px] mt-3 border border-amber-100 font-mono">
+                        <span className="font-bold text-amber-900 block uppercase mb-1">PROMPT SUGERIDO PARA IMAGEN IA</span>
+                        <span className="text-zinc-650 font-sans font-light italic leading-normal block">
                           {cwResult.imagePrompt}
                         </span>
                       </div>
@@ -1350,7 +1351,7 @@ export default function Dashboard() {
 
                     <button
                       onClick={handleAddCwToCalendar}
-                      className="w-full bg-zinc-900 hover:bg-zinc-850 border border-zinc-800 text-white text-[10px] font-mono font-bold py-2.5 rounded-none uppercase tracking-wider transition mt-5 flex items-center justify-center gap-1.5 cursor-pointer shadow-sm"
+                      className="w-full bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 text-white text-[10px] font-mono font-bold py-2.5 rounded-none uppercase tracking-wider transition mt-5 flex items-center justify-center gap-1.5 cursor-pointer shadow-md"
                     >
                       <Plus className="w-4 h-4" /> AGREGAR PROPUESTA AL CALENDARIO
                     </button>
@@ -1360,7 +1361,7 @@ export default function Dashboard() {
               </div>
 
               {/* Drawer footer */}
-              <div className="px-6 py-4 border-t-2 border-zinc-950 text-center text-[9px] text-zinc-500 font-mono uppercase tracking-widest bg-zinc-900">
+              <div className="px-6 py-4 border-t-2 border-zinc-200 text-center text-[9px] text-zinc-500 font-mono uppercase tracking-widest bg-zinc-50">
                 Acceso bajo motor LLM de Gemini en Español
               </div>
             </motion.div>

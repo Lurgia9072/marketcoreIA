@@ -363,68 +363,68 @@ export default function StrategyWizard({ userId, business, onClose, onSuccess }:
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-zinc-950 p-4 md:p-10 overflow-y-auto">
-      <div className="bg-zinc-900 border-2 border-zinc-100/15 w-full max-w-5xl rounded-none shadow-[20px_20px_0px_0px_rgba(9,9,11,1)] flex flex-col justify-between max-h-[90vh] overflow-hidden">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-zinc-900/60 p-4 md:p-10 overflow-y-auto">
+      <div className="bg-white border-2 border-zinc-200 w-full max-w-5xl rounded-none shadow-[20px_20px_0px_0px_rgba(24,24,27,1)] flex flex-col justify-between max-h-[90vh] overflow-hidden">
         
         {/* Header bar */}
-        <div className="px-6 py-5 border-b-2 border-zinc-950 flex justify-between items-center bg-zinc-900">
+        <div className="px-6 py-5 border-b-2 border-zinc-200 flex justify-between items-center bg-zinc-50">
           <div className="flex items-center gap-3">
-            <div className="bg-zinc-950 p-2.5 rounded-none border border-zinc-800">
-              <Sparkles className="w-5 h-5 text-zinc-100" />
+            <div className="bg-zinc-100 p-2.5 rounded-none border border-zinc-200">
+              <Sparkles className="w-5 h-5 text-zinc-900" />
             </div>
             <div>
-              <span className="text-[9px] font-mono font-bold tracking-widest uppercase block text-zinc-400">PLANIFICADOR ESTRATÉGICO IA</span>
-              <h2 className="font-sans font-extrabold text-base text-zinc-100 uppercase tracking-wide">
+              <span className="text-[9px] font-mono font-bold tracking-widest uppercase block text-zinc-505">PLANIFICADOR ESTRATÉGICO IA</span>
+              <h2 className="font-sans font-extrabold text-base text-zinc-900 uppercase tracking-wide">
                 NUEVO FLUJO MENSUAL: {business.name}
               </h2>
             </div>
           </div>
           <button 
             onClick={onClose}
-            className="text-zinc-500 hover:text-white p-2 border border-transparent hover:border-zinc-800 transition"
+            className="text-zinc-500 hover:text-zinc-900 p-2 border border-transparent hover:border-zinc-200 transition"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
         {/* Wizard track indicator bar */}
-        <div className="bg-zinc-950 px-6 py-3 border-b border-zinc-900 flex flex-wrap justify-between items-center text-[10px] font-mono text-zinc-500 gap-2">
+        <div className="bg-zinc-50 px-6 py-3 border-b border-zinc-200 flex flex-wrap justify-between items-center text-[10px] font-mono text-zinc-500 gap-2">
           <div className="flex items-center gap-1.5 md:gap-3">
-            <span className={`${step >= 1 ? 'text-zinc-100 font-bold' : ''}`}>1. OBJETIVO</span>
+            <span className={`${step >= 1 ? 'text-zinc-900 font-bold' : ''}`}>1. OBJETIVO</span>
             <ChevronRight className="w-3 h-3" />
-            <span className={`${step >= 2 ? 'text-zinc-100 font-bold' : ''}`}>2. RED SOCIAL</span>
+            <span className={`${step >= 2 ? 'text-zinc-900 font-bold' : ''}`}>2. RED SOCIAL</span>
             <ChevronRight className="w-3 h-3" />
-            <span className={`${step >= 3 ? 'text-zinc-100 font-bold' : ''}`}>3. MATERIALES</span>
+            <span className={`${step >= 3 ? 'text-zinc-900 font-bold' : ''}`}>3. MATERIALES</span>
             <ChevronRight className="w-3 h-3" />
-            <span className={`${step >= 4 ? 'text-zinc-100 font-bold' : ''}`}>4. ANÁLISIS IA</span>
+            <span className={`${step >= 4 ? 'text-zinc-900 font-bold' : ''}`}>4. ANÁLISIS IA</span>
             <ChevronRight className="w-3 h-3" />
-            <span className={`${step >= 5 ? 'text-zinc-100 font-bold' : ''}`}>5. PROPUESTA IA</span>
+            <span className={`${step >= 5 ? 'text-zinc-900 font-bold' : ''}`}>5. PROPUESTA IA</span>
             <ChevronRight className="w-3 h-3" />
-            <span className={`${step >= 6 ? 'text-zinc-100 font-bold' : ''}`}>6. REVISIÓN Y GUARDADO</span>
+            <span className={`${step >= 6 ? 'text-zinc-900 font-bold' : ''}`}>6. REVISIÓN Y GUARDADO</span>
           </div>
-          <span className="bg-zinc-900 border border-zinc-800 px-2 py-0.5 text-zinc-400 font-bold">Paso {step === 6 ? 6 : step}/6</span>
+          <span className="bg-white border border-zinc-200 px-2 py-0.5 text-zinc-750 font-bold">Paso {step === 6 ? 6 : step}/6</span>
         </div>
 
         {/* Global errors alerts */}
         {error && (
-          <div className="bg-rose-950/20 border-b border-rose-900 px-6 py-3 test-zinc-300 text-xs font-mono flex items-center gap-2">
+          <div className="bg-rose-50 border-b border-rose-200 px-6 py-3 text-rose-850 text-xs font-mono flex items-center gap-2">
             <AlertCircle className="w-4 h-4 text-rose-500 flex-shrink-0" />
             <span className="uppercase tracking-wide">{error}</span>
           </div>
         )}
 
         {/* Main interactive screens */}
-        <div className="flex-1 p-6 md:p-8 overflow-y-auto bg-zinc-900/50">
+        <div className="flex-grow p-6 md:p-8 overflow-y-auto bg-white">
           
           {generating ? (
             <div className="min-h-[45vh] flex flex-col items-center justify-center text-center p-6 gap-5">
               <div className="relative">
-                <div className="w-16 h-16 border-4 border-zinc-800 border-t-white rounded-none animate-spin"></div>
-                <Sparkles className="w-6 h-6 text-white absolute inset-0 m-auto animate-pulse" />
+                <div className="w-16 h-16 border-4 border-zinc-200 border-t-zinc-900 rounded-none animate-spin"></div>
+                <Sparkles className="w-6 h-6 text-zinc-900 absolute inset-0 m-auto animate-pulse" />
               </div>
               <div>
-                <h3 className="text-sm font-mono font-bold text-white uppercase tracking-wider mb-1.5">El director creativo de Gemini está estructurando tu campaña...</h3>
-                <p className="text-zinc-400 text-xs font-sans font-light max-w-sm mx-auto leading-relaxed italic">
+                <h3 className="text-sm font-mono font-bold text-zinc-900 uppercase tracking-wider mb-1.5">El director creativo de Gemini está estructurando tu campaña...</h3>
+                <p className="text-zinc-500 text-xs font-sans font-light max-w-sm mx-auto leading-relaxed italic">
                   "{genStepMessage}"
                 </p>
               </div>
@@ -435,10 +435,10 @@ export default function StrategyWizard({ userId, business, onClose, onSuccess }:
               {step === 1 && (
                 <div className="flex flex-col gap-6">
                   <div>
-                    <h3 className="font-sans font-extrabold text-zinc-100 text-lg uppercase tracking-tight mb-1">
+                    <h3 className="font-sans font-extrabold text-zinc-900 text-lg uppercase tracking-tight mb-1">
                       ¿Qué deseas lograr este mes con {business.name}?
                     </h3>
-                    <p className="text-xs text-zinc-400 font-light leading-relaxed">
+                    <p className="text-xs text-zinc-500 font-light leading-relaxed">
                       Selecciona una o varias metas importantes para que nuestra IA pueda sugerir copys y llamados a la acción bien encauzados de forma realista.
                     </p>
                   </div>
@@ -453,25 +453,25 @@ export default function StrategyWizard({ userId, business, onClose, onSuccess }:
                           onClick={() => handleToggleGoal(goal)}
                           className={`text-left p-4 rounded-none border text-xs font-bold transition flex items-center justify-between gap-2.5 ${
                             active 
-                              ? 'bg-zinc-100 border-zinc-100 text-zinc-950 shadow-[3px_3px_0px_0px_rgba(9,9,11,1)]' 
-                              : 'bg-zinc-950/40 border-zinc-800 text-zinc-300 hover:border-zinc-700 hover:bg-zinc-950 hover:text-white'
+                              ? 'bg-zinc-900 border-zinc-900 text-white shadow-[3px_3px_0px_0px_rgba(113,113,122,1)]' 
+                              : 'bg-zinc-50 border-zinc-200 text-zinc-700 hover:border-zinc-400 hover:bg-zinc-100 hover:text-zinc-900'
                           }`}
                         >
                           <span className="uppercase tracking-wide leading-relaxed">{goal}</span>
-                          {active && <Check className="w-4 h-4 flex-shrink-0 text-zinc-950 bg-white border border-zinc-950" />}
+                          {active && <Check className="w-4 h-4 flex-shrink-0 text-white bg-zinc-900 border border-zinc-700" />}
                         </button>
                       );
                     })}
                   </div>
 
-                  <div className="pt-4 border-t border-zinc-850">
-                    <label className="text-[10px] font-mono font-bold text-zinc-400 block mb-2 uppercase tracking-widest">OTRO OBJETIVO PERSONALIZADO</label>
+                  <div className="pt-4 border-t border-zinc-200">
+                    <label className="text-[10px] font-mono font-bold text-zinc-500 block mb-2 uppercase tracking-widest">OTRO OBJETIVO PERSONALIZADO</label>
                     <input
                       type="text"
                       value={customObjective}
                       onChange={(e) => setCustomObjective(e.target.value)}
                       placeholder="ej: Deseas potenciar las suscripciones a tu newsletter semanal..."
-                      className="w-full bg-zinc-950 border border-zinc-800 rounded-none py-3 px-4 text-xs text-zinc-100 focus:border-white focus:outline-none placeholder-zinc-650"
+                      className="w-full bg-zinc-50 border border-zinc-200 rounded-none py-3 px-4 text-xs text-zinc-900 focus:border-zinc-550 focus:outline-none placeholder-zinc-400 font-sans"
                     />
                   </div>
                 </div>
@@ -481,10 +481,10 @@ export default function StrategyWizard({ userId, business, onClose, onSuccess }:
               {step === 2 && (
                 <div className="flex flex-col gap-6">
                   <div>
-                    <h3 className="font-sans font-extrabold text-zinc-100 text-lg uppercase tracking-tight mb-1">
+                    <h3 className="font-sans font-extrabold text-zinc-900 text-lg uppercase tracking-tight mb-1">
                       ¿Para qué red social deseas trabajar este mes?
                     </h3>
-                    <p className="text-xs text-zinc-400 font-light">
+                    <p className="text-xs text-zinc-500 font-light">
                       Elige los canales de comunicación activos para los cuales se generarán las publicaciones del calendario. Puede seleccionar múltiples redes.
                     </p>
                   </div>
@@ -498,11 +498,11 @@ export default function StrategyWizard({ userId, business, onClose, onSuccess }:
                           onClick={() => handleToggleNetwork(net)}
                           className={`p-6 border rounded-none text-center flex flex-col items-center justify-center gap-3 transition ${
                             isSelected 
-                              ? 'bg-zinc-100 text-zinc-950 border-zinc-200 font-bold shadow-[4px_4px_0px_0px_rgba(9,9,11,1)]' 
-                              : 'bg-zinc-950/40 border-zinc-800 text-zinc-400 hover:text-white hover:border-zinc-700 hover:bg-zinc-950'
+                              ? 'bg-zinc-900 text-white border-zinc-900 font-bold shadow-[4px_4px_0px_0px_rgba(113,113,122,1)]' 
+                              : 'bg-zinc-50 border-zinc-200 text-zinc-505 hover:text-zinc-900 hover:border-zinc-405 hover:bg-zinc-100'
                           }`}
                         >
-                          <div className={`p-3 rounded-none border ${isSelected ? 'bg-zinc-900 text-white border-zinc-800' : 'bg-zinc-900/60 text-zinc-500 border-zinc-850'}`}>
+                          <div className={`p-3 rounded-none border ${isSelected ? 'bg-zinc-800 text-white border-zinc-700' : 'bg-zinc-100 text-zinc-400 border-zinc-200'}`}>
                             {net === 'Facebook' && <span className="font-bold text-lg font-mono">F</span>}
                             {net === 'Instagram' && <span className="font-bold text-lg font-mono">I</span>}
                             {net === 'TikTok' && <span className="font-bold text-lg font-mono">T</span>}
@@ -519,10 +519,10 @@ export default function StrategyWizard({ userId, business, onClose, onSuccess }:
               {step === 3 && (
                 <div className="flex flex-col gap-6">
                   <div>
-                    <h3 className="font-sans font-extrabold text-zinc-100 text-lg uppercase tracking-tight mb-1">
+                    <h3 className="font-sans font-extrabold text-zinc-900 text-lg uppercase tracking-tight mb-1">
                       ¿Ya tienes material real para trabajar este mes?
                     </h3>
-                    <p className="text-xs text-zinc-400 font-light">
+                    <p className="text-xs text-zinc-500 font-light">
                       Selecciona con qué recursos gráficos cuentas en este momento para tus publicaciones mensuales.
                     </p>
                   </div>
@@ -539,8 +539,8 @@ export default function StrategyWizard({ userId, business, onClose, onSuccess }:
                         onClick={() => setMaterialType(item.key as any)}
                         className={`p-4 border rounded-none text-center transition font-bold uppercase tracking-wide ${
                           materialType === item.key 
-                            ? 'bg-zinc-100 border-zinc-200 text-zinc-950 shadow-[2px_2px_0px_0px_rgba(9,9,11,1)]' 
-                            : 'bg-zinc-950/45 border-zinc-800 text-zinc-400 hover:text-white hover:bg-zinc-950'
+                            ? 'bg-zinc-900 border-zinc-900 text-white shadow-[2px_2px_0px_0px_rgba(113,113,122,1)]' 
+                            : 'bg-zinc-50 border-zinc-200 text-zinc-500 hover:text-zinc-905 hover:bg-zinc-100'
                         }`}
                       >
                         {item.label}
@@ -549,16 +549,16 @@ export default function StrategyWizard({ userId, business, onClose, onSuccess }:
                   </div>
 
                   {materialType !== 'ninguno' && (
-                    <div className="mt-4 border-t border-zinc-850 pt-5">
-                      <label className="text-[10px] font-mono font-bold text-zinc-400 block mb-3 uppercase tracking-widest">
+                    <div className="mt-4 border-t border-zinc-200 pt-5">
+                      <label className="text-[10px] font-mono font-bold text-zinc-500 block mb-3 uppercase tracking-widest">
                         Subir Imágenes o Videos a Firebase Storage
                       </label>
 
-                      <div className="border-2 border-dashed border-zinc-800 hover:border-zinc-650 bg-zinc-950/25 p-8 text-center flex flex-col items-center justify-center gap-3 relative transition">
-                        <Upload className="w-8 h-8 text-zinc-500" />
+                      <div className="border-2 border-dashed border-zinc-200 hover:border-zinc-400 bg-zinc-50/50 p-8 text-center flex flex-col items-center justify-center gap-3 relative transition">
+                        <Upload className="w-8 h-8 text-zinc-400" />
                         <div className="text-xs">
-                          <span className="text-zinc-300 font-medium font-sans">Arrastra tus archivos aquí o </span>
-                          <label className="text-white underline font-bold cursor-pointer hover:text-zinc-300">
+                          <span className="text-zinc-600 font-medium font-sans">Arrastra tus archivos aquí o </span>
+                          <label className="text-zinc-900 underline font-bold cursor-pointer hover:text-zinc-650">
                             selecciona desde tu equipo
                             <input 
                               type="file" 
@@ -569,24 +569,24 @@ export default function StrategyWizard({ userId, business, onClose, onSuccess }:
                             />
                           </label>
                         </div>
-                        <p className="text-[10px] text-zinc-600 font-mono">Formatos recomendados: JPG, PNG, MP4</p>
+                        <p className="text-[10px] text-zinc-400 font-mono">Formatos recomendados: JPG, PNG, MP4</p>
                       </div>
 
                       {uploading && (
-                        <div className="flex items-center gap-2.5 bg-zinc-950 p-3 mt-3 border border-zinc-850 text-xs font-mono">
-                          <div className="w-4 h-4 border-2 border-zinc-100 border-t-transparent animate-spin"></div>
-                          <span className="uppercase tracking-widest text-[9px] text-zinc-400">Subiendo archivos de forma real en Storage...</span>
+                        <div className="flex items-center gap-2.5 bg-zinc-50 p-3 mt-3 border border-zinc-200 text-xs font-mono">
+                          <div className="w-4 h-4 border-2 border-zinc-900 border-t-transparent animate-spin"></div>
+                          <span className="uppercase tracking-widest text-[9px] text-zinc-500">Subiendo archivos de forma real en Storage...</span>
                         </div>
                       )}
 
                       {/* Display Uploaded File Previews */}
                       {uploadedFiles.length > 0 && (
                         <div className="mt-5">
-                          <span className="text-[10px] font-mono font-bold text-zinc-400 tracking-wider block mb-2">RECURSOS SUBIDOS ACTUALMENTE ({uploadedFiles.length})</span>
+                          <span className="text-[10px] font-mono font-bold text-zinc-500 tracking-wider block mb-2">RECURSOS SUBIDOS ACTUALMENTE ({uploadedFiles.length})</span>
                           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                             {uploadedFiles.map((file) => (
-                              <div key={file.id} className="bg-zinc-950 p-2.5 border border-zinc-850 flex flex-col gap-2 relative">
-                                <div className="aspect-video bg-zinc-900 border border-zinc-800 flex items-center justify-center overflow-hidden">
+                              <div key={file.id} className="bg-zinc-50 p-2.5 border border-zinc-200 flex flex-col gap-2 relative">
+                                <div className="aspect-video bg-zinc-100 border border-zinc-200 flex items-center justify-center overflow-hidden">
                                   {file.type === 'image' ? (
                                     <img src={file.url} alt={file.name} referrerPolicy="no-referrer" className="w-full h-full object-cover" />
                                   ) : (
@@ -597,8 +597,8 @@ export default function StrategyWizard({ userId, business, onClose, onSuccess }:
                                   )}
                                 </div>
                                 <div className="overflow-hidden">
-                                  <p className="text-[9px] font-mono font-bold text-zinc-300 truncate">{file.name}</p>
-                                  <span className="text-[8px] font-mono text-zinc-500 italic block">{(file.size / (1024 * 1024)).toFixed(2)} MB</span>
+                                  <p className="text-[9px] font-mono font-bold text-zinc-700 truncate">{file.name}</p>
+                                  <span className="text-[8px] font-mono text-zinc-550 italic block">{(file.size / (1024 * 1024)).toFixed(2)} MB</span>
                                 </div>
                               </div>
                             ))}
@@ -614,16 +614,16 @@ export default function StrategyWizard({ userId, business, onClose, onSuccess }:
               {step === 4 && (
                 <div className="flex flex-col gap-6">
                   <div>
-                    <h3 className="font-sans font-extrabold text-zinc-100 text-lg uppercase tracking-tight mb-1">
+                    <h3 className="font-sans font-extrabold text-zinc-905 text-lg uppercase tracking-tight mb-1">
                       Auditoría Visual de Recursos con IA (Opcional)
                     </h3>
-                    <p className="text-xs text-zinc-400 font-light leading-relaxed">
+                    <p className="text-xs text-zinc-500 font-light leading-relaxed">
                       Si has subido fotos o videos, el motor de Gemini puede analizarlos antes de armar la estrategia para conocer la iluminación, composición y branding del producto real, agregando valor técnico.
                     </p>
                   </div>
 
                   {uploadedFiles.length === 0 ? (
-                    <div className="bg-zinc-950/35 border border-zinc-850 p-8 text-center text-xs font-mono text-zinc-500 uppercase tracking-widest">
+                    <div className="bg-zinc-50/50 border border-zinc-200 p-8 text-center text-xs font-mono text-zinc-500 uppercase tracking-widest">
                       No has cargado imágenes ni videos en el paso anterior. Puedes omitir y continuar.
                     </div>
                   ) : (
@@ -633,11 +633,11 @@ export default function StrategyWizard({ userId, business, onClose, onSuccess }:
                         const isAnalyzing = analyzingFileId === file.id;
 
                         return (
-                          <div key={file.id} className="bg-zinc-950 p-5 border border-zinc-850 flex flex-col md:flex-row gap-5 items-start justify-between">
+                          <div key={file.id} className="bg-zinc-50 p-5 border border-zinc-200 flex flex-col md:flex-row gap-5 items-start justify-between">
                             
                             {/* File graphic info */}
                             <div className="flex items-center gap-3 flex-shrink-0 w-full md:w-1/4">
-                              <div className="w-16 h-16 bg-zinc-900 border border-zinc-800 flex items-center justify-center overflow-hidden">
+                              <div className="w-16 h-16 bg-zinc-100 border border-zinc-200 flex items-center justify-center overflow-hidden">
                                 {file.type === 'image' ? (
                                   <img src={file.url} referrerPolicy="no-referrer" alt="" className="object-cover w-full h-full" />
                                 ) : (
@@ -645,37 +645,37 @@ export default function StrategyWizard({ userId, business, onClose, onSuccess }:
                                 )}
                               </div>
                               <div className="overflow-hidden">
-                                <p className="text-[10px] font-mono font-bold text-zinc-100 truncate">{file.name}</p>
-                                <span className="text-[9px] bg-zinc-900 text-zinc-400 border border-zinc-850 py-0.5 px-1.5 uppercase font-mono mt-1 inline-block">
+                                <p className="text-[10px] font-mono font-bold text-zinc-900 truncate">{file.name}</p>
+                                <span className="text-[9px] bg-zinc-100 text-zinc-600 border border-zinc-250 py-0.5 px-1.5 uppercase font-mono mt-1 inline-block">
                                   {file.type}
                                 </span>
                               </div>
                             </div>
 
                             {/* Analysis response text */}
-                            <div className="flex-1 border-t md:border-t-0 md:border-l border-zinc-900 pt-3 md:pt-0 md:pl-5 text-xs">
+                            <div className="flex-1 border-t md:border-t-0 md:border-l border-zinc-200 pt-3 md:pt-0 md:pl-5 text-xs">
                               {isAnalyzing ? (
-                                <div className="flex items-center gap-2 font-mono text-[10px] text-zinc-400">
-                                  <div className="w-4 h-4 border-2 border-zinc-200 border-t-transparent animate-spin"></div>
+                                <div className="flex items-center gap-2 font-mono text-[10px] text-zinc-500">
+                                  <div className="w-4 h-4 border-2 border-zinc-900 border-t-transparent animate-spin"></div>
                                   <span className="uppercase tracking-widest">Gemini está analizando este recurso estético...</span>
                                 </div>
                               ) : hasAnalysis ? (
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-[11px]">
                                   <div>
                                     <span className="text-[9px] font-mono font-bold text-zinc-500 block uppercase">PRODUCTO / CONTENIDO</span>
-                                    <p className="text-zinc-300 font-sans font-light mt-0.5">{file.analysis?.productShown}</p>
+                                    <p className="text-zinc-700 font-sans font-light mt-0.5">{file.analysis?.productShown}</p>
                                   </div>
                                   <div>
                                     <span className="text-[9px] font-mono font-bold text-zinc-500 block uppercase">CALIDAD SENSORIAL</span>
-                                    <p className="text-zinc-300 font-sans font-light mt-0.5">{file.analysis?.quality}</p>
+                                    <p className="text-zinc-700 font-sans font-light mt-0.5">{file.analysis?.quality}</p>
                                   </div>
                                   <div>
                                     <span className="text-[9px] font-mono font-bold text-zinc-500 block uppercase">ILUMINACIÓN & FONDO</span>
-                                    <p className="text-zinc-300 font-sans font-light mt-0.5">{file.analysis?.lighting} — {file.analysis?.background}</p>
+                                    <p className="text-zinc-700 font-sans font-light mt-0.5">{file.analysis?.lighting} — {file.analysis?.background}</p>
                                   </div>
                                   <div>
                                     <span className="text-[9px] font-mono font-bold text-zinc-500 block uppercase">RECOMENDACIONES DE LA IA</span>
-                                    <ul className="list-disc pl-4 text-zinc-300 space-y-0.5 mt-1 font-sans font-light">
+                                    <ul className="list-disc pl-4 text-zinc-700 space-y-0.5 mt-1 font-sans font-light">
                                       {file.analysis?.recommendations?.map((rec, i) => <li key={i}>{rec}</li>)}
                                     </ul>
                                   </div>
@@ -690,7 +690,7 @@ export default function StrategyWizard({ userId, business, onClose, onSuccess }:
                               type="button"
                               onClick={() => analyzeMaterialFile(file)}
                               disabled={isAnalyzing}
-                              className="bg-zinc-900 hover:bg-zinc-800 text-white font-mono text-[9px] font-bold py-2 px-3 border border-zinc-800 transition rounded-none uppercase flex-shrink-0 cursor-pointer w-full md:w-auto mt-2 md:mt-0"
+                              className="bg-white hover:bg-zinc-50 text-zinc-850 font-mono text-[9px] font-bold py-2 px-3 border border-zinc-250 transition rounded-none uppercase flex-shrink-0 cursor-pointer w-full md:w-auto mt-2 md:mt-0"
                             >
                               Analizar con IA
                             </button>
@@ -705,15 +705,15 @@ export default function StrategyWizard({ userId, business, onClose, onSuccess }:
               {/* PASO 5 - TRIGGER / PROMPT GENERATION */}
               {step === 5 && (
                 <div className="flex flex-col gap-6 text-center py-8">
-                  <div className="bg-zinc-950 border border-zinc-805 p-6 inline-block mx-auto rounded-none">
-                    <Cpu className="w-12 h-12 text-zinc-100 animate-pulse" />
+                  <div className="bg-zinc-50 border border-zinc-200 p-6 inline-block mx-auto rounded-none">
+                    <Cpu className="w-12 h-12 text-zinc-900 animate-pulse" />
                   </div>
                   
                   <div className="max-w-md mx-auto">
-                    <h3 className="font-sans font-extrabold text-zinc-100 text-2xl uppercase tracking-tight mb-2">
+                    <h3 className="font-sans font-extrabold text-zinc-900 text-2xl uppercase tracking-tight mb-2">
                       ¡Todo listo para estructurar tu mes comercial!
                     </h3>
-                    <p className="text-zinc-400 text-xs font-sans font-light leading-relaxed">
+                    <p className="text-zinc-550 text-xs font-sans font-light leading-relaxed">
                       Nuestra Inteligencia Artificial de Gemini integrará tu diagnóstico, metas elegidas y el material indexado para planificar una estrategia comercial sólida distribuida en 4 semanas.
                     </p>
                   </div>
@@ -722,7 +722,7 @@ export default function StrategyWizard({ userId, business, onClose, onSuccess }:
                     <button
                       type="button"
                       onClick={triggerStrategyAI}
-                      className="bg-zinc-100 hover:bg-white text-zinc-950 font-mono font-bold py-4.5 px-8 rounded-none text-xs uppercase tracking-widest border-r-4 border-b-4 border-zinc-400 active:translate-y-0.5 cursor-pointer flex items-center gap-2 shadow-lg"
+                      className="bg-zinc-900 hover:bg-zinc-800 text-white font-mono font-bold py-4.5 px-8 rounded-none text-xs uppercase tracking-widest border-r-4 border-b-4 border-zinc-500 active:translate-y-0.5 cursor-pointer flex items-center gap-2 shadow-lg"
                     >
                       <Sparkles className="w-5 h-5" /> GENERAR NUEVA ESTRATEGIA MENSUAL IA
                     </button>
@@ -735,13 +735,13 @@ export default function StrategyWizard({ userId, business, onClose, onSuccess }:
                 <div className="flex flex-col gap-8 text-left font-sans text-xs">
                   
                   {/* General details of strategy */}
-                  <div className="bg-zinc-950 p-6 border border-zinc-850">
-                    <div className="flex items-center gap-2.5 pb-3 border-b border-zinc-900 mb-4 text-zinc-400 font-mono font-bold uppercase text-[10px]">
-                      <FileText className="w-4 h-4 text-white" /> 1. DIAGNÓSTICO ESTRATÉGICO IA
+                  <div className="bg-zinc-50 p-6 border border-zinc-200">
+                    <div className="flex items-center gap-2.5 pb-3 border-b border-zinc-200 mb-4 text-zinc-500 font-mono font-bold uppercase text-[10px]">
+                      <FileText className="w-4 h-4 text-zinc-900" /> 1. DIAGNÓSTICO ESTRATÉGICO IA
                     </div>
-                    <h3 className="text-base font-extrabold text-white uppercase tracking-wider mb-2">{strategyOutput.title}</h3>
+                    <h3 className="text-base font-extrabold text-zinc-900 uppercase tracking-wider mb-2">{strategyOutput.title}</h3>
                     
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5 text-zinc-350 leading-relaxed font-light mt-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5 text-zinc-700 leading-relaxed font-light mt-4">
                       <div>
                         <span className="text-[9px] font-mono font-bold text-zinc-500 block uppercase mb-1">RESUMEN EJECUTIVO</span>
                         <p className="whitespace-pre-wrap">{strategyOutput.summary}</p>
@@ -755,74 +755,74 @@ export default function StrategyWizard({ userId, business, onClose, onSuccess }:
 
                   {/* Strategic targets defined */}
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-                    <div className="bg-zinc-950 p-5 border border-zinc-850">
+                    <div className="bg-zinc-50 p-5 border border-zinc-200">
                       <span className="text-[9px] font-mono font-bold text-zinc-500 block uppercase mb-2">OBJETIVO PRINCIPAL SMART</span>
-                      <p className="text-zinc-200 font-medium leading-relaxed">{strategyOutput.mainGoal}</p>
+                      <p className="text-zinc-805 font-medium leading-relaxed">{strategyOutput.mainGoal}</p>
                     </div>
 
-                    <div className="bg-zinc-950 p-5 border border-zinc-850">
+                    <div className="bg-zinc-50 p-5 border border-zinc-200">
                       <span className="text-[9px] font-mono font-bold text-zinc-500 block uppercase mb-2">OBJETIVOS SECUNDARIOS</span>
-                      <ul className="list-disc pl-4 text-zinc-300 space-y-1 font-light">
+                      <ul className="list-disc pl-4 text-zinc-750 space-y-1 font-light">
                         {strategyOutput.secondaryGoals?.map((goal: string, idx: number) => <li key={idx}>{goal}</li>)}
                       </ul>
                     </div>
 
-                    <div className="bg-zinc-950 p-5 border border-zinc-850">
+                    <div className="bg-zinc-50 p-5 border border-zinc-200">
                       <span className="text-[9px] font-mono font-bold text-zinc-500 block uppercase mb-2">KPI SUGERIDOS DE MEDICIÓN</span>
-                      <ul className="list-disc pl-4 text-zinc-300 space-y-1 font-mono text-[10px]">
+                      <ul className="list-disc pl-4 text-zinc-750 space-y-1 font-mono text-[10px]">
                         {strategyOutput.suggestedKPIs?.map((kpi: string, idx: number) => <li key={idx} className="uppercase tracking-wider">{kpi}</li>)}
                       </ul>
                     </div>
                   </div>
 
                   {/* Marketing directions (Tone, Type, Frequency) */}
-                  <div className="grid grid-cols-1 md:grid-cols-4 gap-4 text-zinc-300">
-                    <div className="bg-zinc-950 p-4 border border-zinc-900">
+                  <div className="grid grid-cols-1 md:grid-cols-4 gap-4 text-zinc-700">
+                    <div className="bg-zinc-50 p-4 border border-zinc-200">
                       <span className="text-[9px] font-mono font-bold text-zinc-500 block uppercase mb-1.5">TONO RECOMENDADO</span>
                       <p className="font-light leading-relaxed">{strategyOutput.recommendedTone}</p>
                     </div>
-                    <div className="bg-zinc-950 p-4 border border-zinc-900">
+                    <div className="bg-zinc-50 p-4 border border-zinc-200">
                       <span className="text-[9px] font-mono font-bold text-zinc-500 block uppercase mb-1.5">TIPOS DE CONTENIDO</span>
                       <p className="font-light leading-relaxed">{strategyOutput.recommendedContentType}</p>
                     </div>
-                    <div className="bg-zinc-950 p-4 border border-zinc-900">
+                    <div className="bg-zinc-50 p-4 border border-zinc-200">
                       <span className="text-[9px] font-mono font-bold text-zinc-500 block uppercase mb-1.5">FRECUENCIA Y HORARIOS</span>
                       <p className="font-light leading-relaxed">{strategyOutput.recommendedFrequency}</p>
                     </div>
-                    <div className="bg-zinc-950 p-4 border border-zinc-900">
+                    <div className="bg-zinc-50 p-4 border border-zinc-200">
                       <span className="text-[9px] font-mono font-bold text-zinc-500 block uppercase mb-1.5">DISTRIBUCIÓN DE REDES</span>
                       <p className="font-light leading-relaxed">{strategyOutput.socialDistribution}</p>
                     </div>
                   </div>
 
                   {/* Weekly Plan detailed */}
-                  <div className="border-t border-zinc-900 pt-6">
-                    <div className="flex items-center gap-2 pb-3 border-b border-zinc-950 mb-4 text-zinc-400 font-mono font-bold uppercase text-[10px]">
-                      <Layers className="w-4 h-4 text-white" /> 2. PLAN DE PUBLICACIÓN MENSUAL (4 SEMANAS)
+                  <div className="border-t border-zinc-200 pt-6">
+                    <div className="flex items-center gap-2 pb-3 border-b border-zinc-200 mb-4 text-zinc-500 font-mono font-bold uppercase text-[10px]">
+                      <Layers className="w-4 h-4 text-zinc-900" /> 2. PLAN DE PUBLICACIÓN MENSUAL (4 SEMANAS)
                     </div>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                       {strategyOutput.weeklyPlan?.map((plan: any, idx: number) => (
-                        <div key={idx} className="bg-zinc-950 p-4 border border-zinc-850 hover:border-zinc-700 transition">
-                          <span className="text-[10px] bg-zinc-900 text-white font-mono font-bold px-2 py-0.5 border border-zinc-800 uppercase inline-block mb-3 tracking-wider">
+                        <div key={idx} className="bg-zinc-50 p-4 border border-zinc-200 hover:border-zinc-400 transition shadow-2xs">
+                          <span className="text-[10px] bg-zinc-900 text-white font-mono font-bold px-2 py-0.5 border border-zinc-705 uppercase inline-block mb-3 tracking-wider">
                             {plan.week}
                           </span>
                           <div className="space-y-3 font-sans text-xs">
                             <div>
                               <span className="text-[9px] font-mono text-zinc-500 block uppercase">OBJETIVO DE LA SEMANA</span>
-                              <p className="text-zinc-200 mt-0.5 font-bold leading-normal">{plan.objective}</p>
+                              <p className="text-zinc-800 mt-0.5 font-bold leading-normal">{plan.objective}</p>
                             </div>
                             <div>
                               <span className="text-[9px] font-mono text-zinc-500 block uppercase">TIPO DE CONTENIDO</span>
-                              <p className="text-zinc-350 mt-0.5 font-light">{plan.contentType}</p>
+                              <p className="text-zinc-700 mt-0.5 font-light">{plan.contentType}</p>
                             </div>
                             <div>
                               <span className="text-[9px] font-mono text-zinc-500 block uppercase">CTA PRINCIPAL</span>
-                              <p className="text-zinc-350 mt-0.5 font-light font-mono text-[10px] italic">"{plan.cta}"</p>
+                              <p className="text-zinc-700 mt-0.5 font-light font-mono text-[10px] italic">"{plan.cta}"</p>
                             </div>
-                            <div className="pt-2 border-t border-zinc-900">
+                            <div className="pt-2 border-t border-zinc-200">
                               <span className="text-[9px] font-mono text-zinc-500 block uppercase">KPI SEMANAL ESPERADO</span>
-                              <span className="text-zinc-400 font-semibold font-mono text-[10px] uppercase block mt-0.5 tracking-wider">{plan.expectedKPI}</span>
+                              <span className="text-zinc-550 font-semibold font-mono text-[10px] uppercase block mt-0.5 tracking-wider">{plan.expectedKPI}</span>
                             </div>
                           </div>
                         </div>
@@ -831,10 +831,10 @@ export default function StrategyWizard({ userId, business, onClose, onSuccess }:
                   </div>
 
                   {/* Generated calendar posts listing */}
-                  <div className="border-t border-zinc-900 pt-6">
+                  <div className="border-t border-zinc-200 pt-6">
                     <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-2 mb-4">
                       <div>
-                        <span className="text-[10px] font-mono font-bold text-zinc-400 tracking-wider uppercase block">
+                        <span className="text-[10px] font-mono font-bold text-zinc-500 tracking-wider uppercase block">
                           PUBLICACIONES GENERADAS LISTAS PARA TU CALENDARIO ({editablePosts.length})
                         </span>
                         <p className="text-[9.5px] font-mono text-zinc-500 mt-1 uppercase">
@@ -878,17 +878,17 @@ export default function StrategyWizard({ userId, business, onClose, onSuccess }:
                         };
 
                         return (
-                          <div key={post.id || idx} className="bg-zinc-950/70 p-4 border border-zinc-850/80 rounded-none flex flex-col justify-between hover:border-zinc-700 transition relative">
+                          <div key={post.id || idx} className="bg-zinc-50/75 p-4 border border-zinc-200 rounded-none flex flex-col justify-between hover:border-zinc-400 transition relative">
                             <div className="space-y-3.5">
                               {/* Header Card parameters */}
-                              <div className="grid grid-cols-2 gap-2 pb-3 border-b border-zinc-900">
+                              <div className="grid grid-cols-2 gap-2 pb-3 border-b border-zinc-204 border-zinc-200">
                                 {/* Channel Selector */}
                                 <div>
                                   <label className="text-[8px] font-mono font-bold text-zinc-500 uppercase tracking-wide block mb-1">Red Social / Canal</label>
                                   <select
                                     value={post.channel || 'Instagram'}
                                     onChange={(e) => handleFieldChange('channel', e.target.value)}
-                                    className="w-full bg-zinc-900 border border-zinc-800 text-xs text-white p-1 focus:outline-none focus:border-zinc-500 font-mono font-bold rounded-none"
+                                    className="w-full bg-white border border-zinc-200 text-xs text-zinc-800 p-1 focus:outline-none focus:border-zinc-500 font-mono font-bold rounded-none"
                                   >
                                     <option value="Instagram">Instagram</option>
                                     <option value="Facebook">Facebook</option>
@@ -903,7 +903,7 @@ export default function StrategyWizard({ userId, business, onClose, onSuccess }:
                                   <select
                                     value={post.status || 'Borrador'}
                                     onChange={(e) => handleFieldChange('status', e.target.value)}
-                                    className="w-full bg-zinc-900 border border-zinc-800 text-xs text-white p-1 focus:outline-none focus:border-zinc-500 font-mono font-bold uppercase rounded-none"
+                                    className="w-full bg-white border border-zinc-200 text-xs text-zinc-805 p-1 focus:outline-none focus:border-zinc-500 font-mono font-bold uppercase rounded-none"
                                   >
                                     <option value="Borrador">Borrador</option>
                                     <option value="Pendiente de aprobación">Pendiente</option>
@@ -917,11 +917,11 @@ export default function StrategyWizard({ userId, business, onClose, onSuccess }:
                               {/* Day and Timing */}
                               <div className="grid grid-cols-3 gap-2">
                                 <div>
-                                  <label className="text-[8px] font-mono font-bold text-zinc-550 uppercase tracking-wide block mb-0.5">Semana</label>
+                                  <label className="text-[8px] font-mono font-bold text-zinc-500 uppercase tracking-wide block mb-0.5">Semana</label>
                                   <select
                                     value={currWeek}
                                     onChange={(e) => handleFieldChange('weekNum', Number(e.target.value))}
-                                    className="w-full bg-zinc-900/60 border border-zinc-805 text-zinc-300 py-1 px-1.5 focus:outline-none uppercase text-[9px] font-bold rounded-none"
+                                    className="w-full bg-white border border-zinc-200 text-zinc-800 py-1 px-1.5 focus:outline-none uppercase text-[9px] font-bold rounded-none"
                                   >
                                     <option value={1}>Semana 1</option>
                                     <option value={2}>Semana 2</option>
@@ -930,11 +930,11 @@ export default function StrategyWizard({ userId, business, onClose, onSuccess }:
                                   </select>
                                 </div>
                                 <div>
-                                  <label className="text-[8px] font-mono font-bold text-zinc-550 uppercase tracking-wide block mb-0.5">Día</label>
+                                  <label className="text-[8px] font-mono font-bold text-zinc-500 uppercase tracking-wide block mb-0.5">Día</label>
                                   <select
                                     value={currDay}
                                     onChange={(e) => handleFieldChange('selectedDay', e.target.value)}
-                                    className="w-full bg-zinc-900/60 border border-zinc-850 text-zinc-300 py-1 px-1 focus:outline-none uppercase text-[9px] font-bold rounded-none"
+                                    className="w-full bg-white border border-zinc-200 text-zinc-800 py-1 px-1 focus:outline-none uppercase text-[9px] font-bold rounded-none"
                                   >
                                     <option value="Lunes">Lunes</option>
                                     <option value="Martes">Martes</option>
@@ -946,12 +946,12 @@ export default function StrategyWizard({ userId, business, onClose, onSuccess }:
                                   </select>
                                 </div>
                                 <div>
-                                  <label className="text-[8px] font-mono font-bold text-zinc-555 uppercase tracking-wide block mb-0.5">Hora</label>
+                                  <label className="text-[8px] font-mono font-bold text-zinc-500 uppercase tracking-wide block mb-0.5">Hora</label>
                                   <input
                                     type="text"
                                     value={post.scheduledTime || '18:00'}
                                     onChange={(e) => handleFieldChange('scheduledTime', e.target.value)}
-                                    className="w-full bg-zinc-900/60 border border-zinc-850 text-zinc-350 py-1 px-1.5 focus:outline-none text-[9px] rounded-none"
+                                    className="w-full bg-white border border-zinc-200 text-zinc-800 py-1 px-1.5 focus:outline-none text-[9px] rounded-none"
                                     placeholder="ej: 19:30"
                                   />
                                 </div>
@@ -959,41 +959,41 @@ export default function StrategyWizard({ userId, business, onClose, onSuccess }:
 
                               {/* Title / Concept */}
                               <div>
-                                <label className="text-[8px] font-mono font-bold text-zinc-550 uppercase block mb-0.5">Título / Concepto del Post</label>
+                                <label className="text-[8px] font-mono font-bold text-zinc-500 uppercase block mb-0.5">Título / Concepto del Post</label>
                                 <input
                                   type="text"
                                   value={post.title || ''}
                                   onChange={(e) => handleFieldChange('title', e.target.value)}
-                                  className="w-full bg-zinc-900 border border-zinc-800 text-[11px] text-zinc-200 py-1.5 px-2.5 focus:outline-none focus:border-zinc-500 font-sans font-bold uppercase tracking-wider rounded-none"
+                                  className="w-full bg-white border border-zinc-200 text-[11px] text-zinc-900 py-1.5 px-2.5 focus:outline-none focus:border-zinc-500 font-sans font-bold uppercase tracking-wider rounded-none"
                                 />
                               </div>
 
                               {/* Copy Persuasivo */}
                               <div>
-                                <label className="text-[8px] font-mono font-bold text-zinc-550 uppercase block mb-0.5">Texto / Copy Persuasivo IA</label>
+                                <label className="text-[8px] font-mono font-bold text-zinc-500 uppercase block mb-0.5">Texto / Copy Persuasivo IA</label>
                                 <textarea
                                   value={post.copy || ''}
                                   onChange={(e) => handleFieldChange('copy', e.target.value)}
                                   rows={5}
-                                  className="w-full bg-zinc-900 border border-zinc-800 text-[11.5px] text-zinc-300 p-2 focus:outline-none focus:border-zinc-650 font-sans font-light leading-relaxed whitespace-pre-wrap rounded-none"
+                                  className="w-full bg-white border border-zinc-200 text-[11.5px] text-zinc-700 p-2 focus:outline-none focus:border-zinc-500 font-sans font-light leading-relaxed whitespace-pre-wrap rounded-none"
                                 />
                               </div>
 
                               {/* Call to action */}
                               <div>
-                                <label className="text-[8px] font-mono font-bold text-zinc-550 uppercase block mb-0.5">Llamado a la acción (CTA)</label>
+                                <label className="text-[8px] font-mono font-bold text-zinc-500 uppercase block mb-0.5">Llamado a la acción (CTA)</label>
                                 <input
                                   type="text"
                                   value={post.cta || ''}
                                   onChange={(e) => handleFieldChange('cta', e.target.value)}
-                                  className="w-full bg-zinc-900 border border-zinc-800 text-[10.5px] text-zinc-400 py-1.5 px-2.5 focus:outline-none font-sans rounded-none"
+                                  className="w-full bg-white border border-zinc-200 text-[10.5px] text-zinc-650 py-1.5 px-2.5 focus:outline-none font-sans rounded-none"
                                 />
                               </div>
 
                               {post.imageUrlPrompt && (
-                                <div className="bg-zinc-900/40 p-2.5 border border-zinc-900">
-                                  <span className="text-[8px] font-mono font-bold text-zinc-550 block uppercase mb-1">PROMPT SUGERIDO GENERADOR DE IMÁGENES</span>
-                                  <span className="text-[10px] text-zinc-500 font-sans italic font-light block leading-relaxed">{post.imageUrlPrompt}</span>
+                                <div className="bg-amber-50/30 p-2.5 border border-amber-100">
+                                  <span className="text-[8px] font-mono font-bold text-zinc-500 block uppercase mb-1">PROMPT SUGERIDO GENERADOR DE IMÁGENES</span>
+                                  <span className="text-[10px] text-zinc-600 font-sans italic font-light block leading-relaxed">{post.imageUrlPrompt}</span>
                                 </div>
                               )}
                             </div>
@@ -1005,7 +1005,7 @@ export default function StrategyWizard({ userId, business, onClose, onSuccess }:
                                 onClick={() => {
                                   setEditablePosts(prev => prev.filter((_, i) => i !== idx));
                                 }}
-                                className="text-[8.5px] font-mono text-zinc-550 hover:text-rose-450 uppercase tracking-widest cursor-pointer"
+                                className="text-[8.5px] font-mono text-zinc-500 hover:text-rose-600 uppercase tracking-widest cursor-pointer"
                               >
                                 [ Eliminar Publicación ]
                               </button>
@@ -1026,18 +1026,18 @@ export default function StrategyWizard({ userId, business, onClose, onSuccess }:
 
         {/* Action Controls Footer */}
         {!generating && (
-          <div className="px-6 py-4.5 border-t-2 border-zinc-950 flex justify-between items-center bg-zinc-900 font-mono text-xs">
+          <div className="px-6 py-4.5 border-t-2 border-zinc-200 flex justify-between items-center bg-zinc-50 font-mono text-xs">
             {step === 6 ? (
               <>
                 <button
                   onClick={() => setStep(5)}
-                  className="bg-zinc-950 border border-zinc-800 hover:bg-zinc-850 px-4 py-2.5 rounded-none text-zinc-400 uppercase tracking-widest cursor-pointer"
+                  className="bg-white border border-zinc-250 hover:bg-zinc-100 px-4 py-2.5 rounded-none text-zinc-600 uppercase tracking-widest cursor-pointer"
                 >
                   Regresar
                 </button>
                 <button
                   onClick={handleConfirmAndSave}
-                  className="bg-zinc-100 hover:bg-white text-zinc-950 border-r-4 border-b-4 border-zinc-450 active:translate-y-0.5 font-bold px-6 py-2.5 rounded-none cursor-pointer flex items-center gap-1.5 uppercase tracking-widest"
+                  className="bg-zinc-900 hover:bg-zinc-800 text-white border-r-4 border-b-4 border-zinc-500 active:translate-y-0.5 font-bold px-6 py-2.5 rounded-none cursor-pointer flex items-center gap-1.5 uppercase tracking-widest"
                 >
                   <Calendar className="w-4 h-4" /> Guardar en mi Calendario
                 </button>
@@ -1047,15 +1047,15 @@ export default function StrategyWizard({ userId, business, onClose, onSuccess }:
                 <button
                   disabled={step === 1}
                   onClick={() => setStep(prev => prev - 1)}
-                  className="bg-zinc-950 border border-zinc-805 disabled:opacity-30 disabled:pointer-events-none hover:bg-zinc-850 px-4 py-2.5 rounded-none text-zinc-400 uppercase tracking-widest cursor-pointer"
+                  className="bg-white border border-zinc-250 disabled:opacity-30 disabled:pointer-events-none hover:bg-zinc-100 px-4 py-2.5 rounded-none text-zinc-600 uppercase tracking-widest cursor-pointer"
                 >
                   Atrás
                 </button>
                 <button
                   onClick={handleNextStep}
-                  className="bg-zinc-100 hover:bg-white text-zinc-950 border-r-4 border-b-4 border-zinc-450 active:translate-y-0.5 font-bold px-6 py-2.5 rounded-none cursor-pointer flex items-center gap-1.5 uppercase tracking-widest"
+                  className="bg-zinc-900 hover:bg-zinc-800 text-white border-r-4 border-b-4 border-zinc-500 active:translate-y-0.5 font-bold px-6 py-2.5 rounded-none cursor-pointer flex items-center gap-1.5 uppercase tracking-widest"
                 >
-                  Continuar <ArrowRight className="w-4 h-4 text-zinc-950" />
+                  Continuar <ArrowRight className="w-4 h-4 text-white" />
                 </button>
               </>
             )}
