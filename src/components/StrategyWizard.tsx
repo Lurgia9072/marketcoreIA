@@ -80,6 +80,7 @@ export default function StrategyWizard({ userId, business, onClose, onSuccess }:
   const [generating, setGenerating] = useState(false);
   const [genStepMessage, setGenStepMessage] = useState('');
   const [strategyOutput, setStrategyOutput] = useState<any | null>(null);
+  const [editablePosts, setEditablePosts] = useState<any[]>([]);
 
   // Toggle checklist utilities
   const handleToggleGoal = (goal: string) => {
@@ -245,6 +246,36 @@ export default function StrategyWizard({ userId, business, onClose, onSuccess }:
 
       const data = await res.json();
       setStrategyOutput(data);
+      if (data && data.posts) {
+        const preppedPosts = data.posts.map((p: any, idx: number) => {
+          const defaultDates: Record<number, string> = {
+            1: 'Lunes de la Semana 1',
+            2: 'Miércoles de la Semana 2',
+            3: 'Lunes de la Semana 3',
+            4: 'Miércoles de la Semana 4'
+          };
+          const scheduledDate = p.scheduledDate || defaultDates[p.weekNum || 1] || 'Lunes de la Semana 1';
+          return {
+            id: p.id || 'temp_post_' + idx + '_' + Math.random().toString(36).substring(2, 6),
+            title: p.title || `Publicación ${idx + 1}`,
+            copy: p.copy || '',
+            cta: p.cta || '',
+            hashtags: p.hashtags || [],
+            channel: p.channel || 'Instagram',
+            scheduledDate: scheduledDate,
+            scheduledTime: p.scheduledTime || '18:00',
+            type: p.type || 'Imagen',
+            imageUrlPrompt: p.imageUrlPrompt || '',
+            status: 'Borrador',
+            weekNum: p.weekNum || Math.ceil((idx + 1) / 2),
+            priority: p.priority || 'Media',
+            objective: p.objective || 'Venta'
+          };
+        });
+        setEditablePosts(preppedPosts);
+      } else {
+        setEditablePosts([]);
+      }
       setStep(6); // Go directly to step 6 (Review Strategy and parameters)
     } catch (err: any) {
       console.error(err);
@@ -289,20 +320,11 @@ export default function StrategyWizard({ userId, business, onClose, onSuccess }:
 
       // 2. Create posts as CalendarPost documents
       const createdPosts: CalendarPost[] = [];
-      const postsList = strategyOutput.posts || [];
+      const postsList = editablePosts;
 
       for (let i = 0; i < postsList.length; i++) {
         const item = postsList[i];
         const postId = 'post_' + Math.random().toString(36).substring(2, 9);
-
-        // Assign a dummy scheduled date based on weekNum
-        const defaultDates: Record<number, string> = {
-          1: 'Lunes Semana 1',
-          2: 'Miércoles Semana 2',
-          3: 'Lunes Semana 3',
-          4: 'Miércoles Semana 4'
-        };
-        const scheduledDate = item.scheduledDate || defaultDates[item.weekNum || 1] || 'Día 1';
 
         const postObj: CalendarPost = {
           id: postId,
@@ -312,14 +334,15 @@ export default function StrategyWizard({ userId, business, onClose, onSuccess }:
           copy: item.copy || '',
           cta: item.cta || '',
           hashtags: item.hashtags || [],
-          channel: item.channel || (networks[i % networks.length] as any) || 'Instagram',
-          scheduledDate: scheduledDate,
+          channel: item.channel || 'Instagram',
+          scheduledDate: item.scheduledDate || 'Lunes de la Semana 1',
           scheduledTime: item.scheduledTime || '18:00',
           type: item.type || (materialType === 'videos' ? 'Reel' : 'Imagen'),
           imageUrlPrompt: item.imageUrlPrompt || '',
-          imageUrl: '', // default empty, prompt provided
-          status: 'Borrador',
-          weekNum: item.weekNum || Math.ceil((i + 1) / 2),
+          imageUrl: item.imageUrl || '',
+          videoUrl: item.videoUrl || '',
+          status: item.status || 'Borrador',
+          weekNum: Number(item.weekNum) || 1,
           priority: item.priority || 'Media',
           objective: item.objective || 'Venta',
           createdAt: new Date().toISOString()
@@ -809,27 +832,187 @@ export default function StrategyWizard({ userId, business, onClose, onSuccess }:
 
                   {/* Generated calendar posts listing */}
                   <div className="border-t border-zinc-900 pt-6">
-                    <span className="text-[10px] font-mono font-bold text-zinc-400 tracking-wider block mb-4">PUBLICACIONES GENERADAS LISTAS PARA EL CALENDARIO ({strategyOutput.posts?.length || 0})</span>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {strategyOutput.posts?.map((post: any, idx: number) => (
-                        <div key={idx} className="bg-zinc-950 p-4 border border-zinc-900 relative">
-                          <div className="flex justify-between items-center pb-2.5 border-b border-zinc-900 mb-3">
-                            <span className="text-[9px] bg-zinc-900 text-zinc-300 font-mono font-bold px-2.5 py-0.5 border border-zinc-800 uppercase tracking-wider">
-                              SEMANA {post.weekNum || 1}
-                            </span>
-                            <span className="text-[10px] font-bold text-white uppercase tracking-wider font-mono">
-                              {post.channel}
-                            </span>
+                    <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-2 mb-4">
+                      <div>
+                        <span className="text-[10px] font-mono font-bold text-zinc-400 tracking-wider uppercase block">
+                          PUBLICACIONES GENERADAS LISTAS PARA TU CALENDARIO ({editablePosts.length})
+                        </span>
+                        <p className="text-[9.5px] font-mono text-zinc-500 mt-1 uppercase">
+                          puedes programar, aprobar y ajustar cada post antes de guardarlos en tu agenda live
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+                      {editablePosts.map((post: any, idx: number) => {
+                        // helper to parse day name and weekNum
+                        const parseDayVal = (dateStr: string): string => {
+                          const val = (dateStr || '').toLowerCase();
+                          if (val.includes('lun')) return 'Lunes';
+                          if (val.includes('mar')) return 'Martes';
+                          if (val.includes('mie') || val.includes('mié')) return 'Miércoles';
+                          if (val.includes('jue')) return 'Jueves';
+                          if (val.includes('vie')) return 'Viernes';
+                          if (val.includes('sab') || val.includes('sáb')) return 'Sábado';
+                          if (val.includes('dom')) return 'Domingo';
+                          return 'Lunes';
+                        };
+
+                        const currDay = parseDayVal(post.scheduledDate);
+                        const currWeek = Number(post.weekNum) || 1;
+
+                        const handleFieldChange = (field: string, val: any) => {
+                          setEditablePosts(prev => prev.map((p, i) => {
+                            if (i === idx) {
+                              const newPost = { ...p, [field]: val };
+                              if (field === 'selectedDay') {
+                                newPost.scheduledDate = `${val} de la Semana ${p.weekNum || 1}`;
+                              } else if (field === 'weekNum') {
+                                const parsedDay = parseDayVal(p.scheduledDate);
+                                newPost.scheduledDate = `${parsedDay} de la Semana ${val}`;
+                              }
+                              return newPost;
+                            }
+                            return p;
+                          }));
+                        };
+
+                        return (
+                          <div key={post.id || idx} className="bg-zinc-950/70 p-4 border border-zinc-850/80 rounded-none flex flex-col justify-between hover:border-zinc-700 transition relative">
+                            <div className="space-y-3.5">
+                              {/* Header Card parameters */}
+                              <div className="grid grid-cols-2 gap-2 pb-3 border-b border-zinc-900">
+                                {/* Channel Selector */}
+                                <div>
+                                  <label className="text-[8px] font-mono font-bold text-zinc-500 uppercase tracking-wide block mb-1">Red Social / Canal</label>
+                                  <select
+                                    value={post.channel || 'Instagram'}
+                                    onChange={(e) => handleFieldChange('channel', e.target.value)}
+                                    className="w-full bg-zinc-900 border border-zinc-800 text-xs text-white p-1 focus:outline-none focus:border-zinc-500 font-mono font-bold rounded-none"
+                                  >
+                                    <option value="Instagram">Instagram</option>
+                                    <option value="Facebook">Facebook</option>
+                                    <option value="TikTok">TikTok</option>
+                                    <option value="Twitter">Twitter</option>
+                                  </select>
+                                </div>
+
+                                {/* Status Selector */}
+                                <div>
+                                  <label className="text-[8px] font-mono font-bold text-zinc-500 uppercase tracking-wide block mb-1">Estado de Publicación</label>
+                                  <select
+                                    value={post.status || 'Borrador'}
+                                    onChange={(e) => handleFieldChange('status', e.target.value)}
+                                    className="w-full bg-zinc-900 border border-zinc-800 text-xs text-white p-1 focus:outline-none focus:border-zinc-500 font-mono font-bold uppercase rounded-none"
+                                  >
+                                    <option value="Borrador">Borrador</option>
+                                    <option value="Pendiente de aprobación">Pendiente</option>
+                                    <option value="Aprobado">Aprobado</option>
+                                    <option value="Programado">Programado</option>
+                                    <option value="Publicado">Publicado</option>
+                                  </select>
+                                </div>
+                              </div>
+
+                              {/* Day and Timing */}
+                              <div className="grid grid-cols-3 gap-2">
+                                <div>
+                                  <label className="text-[8px] font-mono font-bold text-zinc-550 uppercase tracking-wide block mb-0.5">Semana</label>
+                                  <select
+                                    value={currWeek}
+                                    onChange={(e) => handleFieldChange('weekNum', Number(e.target.value))}
+                                    className="w-full bg-zinc-900/60 border border-zinc-805 text-zinc-300 py-1 px-1.5 focus:outline-none uppercase text-[9px] font-bold rounded-none"
+                                  >
+                                    <option value={1}>Semana 1</option>
+                                    <option value={2}>Semana 2</option>
+                                    <option value={3}>Semana 3</option>
+                                    <option value={4}>Semana 4</option>
+                                  </select>
+                                </div>
+                                <div>
+                                  <label className="text-[8px] font-mono font-bold text-zinc-550 uppercase tracking-wide block mb-0.5">Día</label>
+                                  <select
+                                    value={currDay}
+                                    onChange={(e) => handleFieldChange('selectedDay', e.target.value)}
+                                    className="w-full bg-zinc-900/60 border border-zinc-850 text-zinc-300 py-1 px-1 focus:outline-none uppercase text-[9px] font-bold rounded-none"
+                                  >
+                                    <option value="Lunes">Lunes</option>
+                                    <option value="Martes">Martes</option>
+                                    <option value="Miércoles">Miércoles</option>
+                                    <option value="Jueves">Jueves</option>
+                                    <option value="Viernes">Viernes</option>
+                                    <option value="Sábado">Sábado</option>
+                                    <option value="Domingo">Domingo</option>
+                                  </select>
+                                </div>
+                                <div>
+                                  <label className="text-[8px] font-mono font-bold text-zinc-555 uppercase tracking-wide block mb-0.5">Hora</label>
+                                  <input
+                                    type="text"
+                                    value={post.scheduledTime || '18:00'}
+                                    onChange={(e) => handleFieldChange('scheduledTime', e.target.value)}
+                                    className="w-full bg-zinc-900/60 border border-zinc-850 text-zinc-350 py-1 px-1.5 focus:outline-none text-[9px] rounded-none"
+                                    placeholder="ej: 19:30"
+                                  />
+                                </div>
+                              </div>
+
+                              {/* Title / Concept */}
+                              <div>
+                                <label className="text-[8px] font-mono font-bold text-zinc-550 uppercase block mb-0.5">Título / Concepto del Post</label>
+                                <input
+                                  type="text"
+                                  value={post.title || ''}
+                                  onChange={(e) => handleFieldChange('title', e.target.value)}
+                                  className="w-full bg-zinc-900 border border-zinc-800 text-[11px] text-zinc-200 py-1.5 px-2.5 focus:outline-none focus:border-zinc-500 font-sans font-bold uppercase tracking-wider rounded-none"
+                                />
+                              </div>
+
+                              {/* Copy Persuasivo */}
+                              <div>
+                                <label className="text-[8px] font-mono font-bold text-zinc-550 uppercase block mb-0.5">Texto / Copy Persuasivo IA</label>
+                                <textarea
+                                  value={post.copy || ''}
+                                  onChange={(e) => handleFieldChange('copy', e.target.value)}
+                                  rows={5}
+                                  className="w-full bg-zinc-900 border border-zinc-800 text-[11.5px] text-zinc-300 p-2 focus:outline-none focus:border-zinc-650 font-sans font-light leading-relaxed whitespace-pre-wrap rounded-none"
+                                />
+                              </div>
+
+                              {/* Call to action */}
+                              <div>
+                                <label className="text-[8px] font-mono font-bold text-zinc-550 uppercase block mb-0.5">Llamado a la acción (CTA)</label>
+                                <input
+                                  type="text"
+                                  value={post.cta || ''}
+                                  onChange={(e) => handleFieldChange('cta', e.target.value)}
+                                  className="w-full bg-zinc-900 border border-zinc-800 text-[10.5px] text-zinc-400 py-1.5 px-2.5 focus:outline-none font-sans rounded-none"
+                                />
+                              </div>
+
+                              {post.imageUrlPrompt && (
+                                <div className="bg-zinc-900/40 p-2.5 border border-zinc-900">
+                                  <span className="text-[8px] font-mono font-bold text-zinc-550 block uppercase mb-1">PROMPT SUGERIDO GENERADOR DE IMÁGENES</span>
+                                  <span className="text-[10px] text-zinc-500 font-sans italic font-light block leading-relaxed">{post.imageUrlPrompt}</span>
+                                </div>
+                              )}
+                            </div>
+
+                            {/* Remove card button */}
+                            <div className="mt-3 text-right">
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setEditablePosts(prev => prev.filter((_, i) => i !== idx));
+                                }}
+                                className="text-[8.5px] font-mono text-zinc-550 hover:text-rose-450 uppercase tracking-widest cursor-pointer"
+                              >
+                                [ Eliminar Publicación ]
+                              </button>
+                            </div>
                           </div>
-                          <h5 className="font-bold text-zinc-200 text-xs uppercase tracking-wide mb-1.5">{post.title}</h5>
-                          <p className="text-zinc-400 leading-normal text-[11px] h-20 overflow-y-auto mb-3 whitespace-pre-wrap font-sans font-light bg-zinc-900/40 p-2 border border-zinc-900">
-                            {post.copy}
-                          </p>
-                          <div className="bg-zinc-900 p-2 text-[9px] font-mono text-zinc-500">
-                            <strong>PROMPT SUGERIDO:</strong> {post.imageUrlPrompt}
-                          </div>
-                        </div>
-                      ))}
+                        );
+                      })}
                     </div>
                   </div>
 

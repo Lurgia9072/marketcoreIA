@@ -49,6 +49,18 @@ import { Link } from 'react-router-dom';
 import StrategyWizard from './StrategyWizard';
 import PostDetailsModal from './PostDetailsModal';
 
+const getDayOfWeek = (scheduledDate: string): string => {
+  const normalized = (scheduledDate || '').toLowerCase();
+  if (normalized.includes('lun')) return 'Lunes';
+  if (normalized.includes('mar')) return 'Martes';
+  if (normalized.includes('mie') || normalized.includes('mié')) return 'Miércoles';
+  if (normalized.includes('jue')) return 'Jueves';
+  if (normalized.includes('vie')) return 'Viernes';
+  if (normalized.includes('sab') || normalized.includes('sáb')) return 'Sábado';
+  if (normalized.includes('dom')) return 'Domingo';
+  return 'Lunes'; // Fallback
+};
+
 export default function Dashboard() {
   const { user, logout } = useAuth();
   const userId = user?.uid || '';
@@ -82,6 +94,7 @@ export default function Dashboard() {
   const [filterStatus, setFilterStatus] = useState<string>('Todos');
   const [filterChannel, setFilterChannel] = useState<string>('Todos');
   const [filterWeek, setFilterWeek] = useState<string>('Todos');
+  const [calendarView, setCalendarView] = useState<'grid' | 'list'>('grid');
 
   // Strategy layout tab toggle
   const [stratTab, setStratTab] = useState<'resume' | 'diagnostic' | 'weekly'>('resume');
@@ -746,12 +759,30 @@ export default function Dashboard() {
                   
                   {/* CALENDAR FILTER HEADER BAR */}
                   <div className="bg-zinc-900/35 border-2 border-zinc-900 p-4.5 rounded-none flex flex-wrap gap-4 items-center justify-between">
-                    <span className="text-[10px] font-mono font-bold tracking-widest text-zinc-400 uppercase flex items-center gap-1">
-                      <CalendarIcon className="w-4 h-4 text-white" /> TABLA EDITORIAL DE PLANIFICACIÓN
+                    <span className="text-[10px] font-mono font-bold tracking-widest text-zinc-400 uppercase flex items-center gap-1.5">
+                      <CalendarIcon className="w-4 h-4 text-white" /> PLANIFICACIÓN EDITORIAL DE CONTENIDOS
                     </span>
 
-                    {/* Filter Dropdowns with custom styling */}
-                    <div className="flex flex-wrap gap-2 text-[10px] font-mono">
+                    {/* View Switcher Toggle & Filters */}
+                    <div className="flex flex-wrap gap-3 items-center text-[10px] font-mono">
+                      {/* Grid / List switcher */}
+                      <div className="flex border border-zinc-800 bg-zinc-950 p-0.5 rounded-none">
+                        <button
+                          type="button"
+                          onClick={() => setCalendarView('grid')}
+                          className={`px-3 py-1.5 text-[8.5px] uppercase font-bold tracking-wider rounded-none cursor-pointer transition-all ${calendarView === 'grid' ? 'bg-white text-black' : 'text-zinc-500 hover:text-white'}`}
+                        >
+                          Vista Calendario (Mes)
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setCalendarView('list')}
+                          className={`px-3 py-1.5 text-[8.5px] uppercase font-bold tracking-wider rounded-none cursor-pointer transition-all ${calendarView === 'list' ? 'bg-white text-black' : 'text-zinc-500 hover:text-white'}`}
+                        >
+                          Lista Completa
+                        </button>
+                      </div>
+
                       {/* Network Filter */}
                       <select 
                         value={filterChannel} 
@@ -800,7 +831,134 @@ export default function Dashboard() {
                     .filter(p => filterWeek === 'Todos' || String(p.weekNum) === filterWeek)
                     .length === 0 ? (
                     <div className="bg-zinc-900/10 border-2 border-zinc-900 rounded-none p-12 text-center text-zinc-500 text-xs italic font-mono uppercase tracking-wider">
-                      Ningún post del calendario coincide con los filtros aplicados. Intenta de otra forma.
+                      Ningún post del calendario coincide con los filtros aplicados. Intenta de otra forma o crea un nuevo post.
+                    </div>
+                  ) : calendarView === 'grid' ? (
+                    <div className="flex flex-col gap-4 font-sans text-xs">
+                      {/* Grid representation */}
+                      <div className="grid grid-cols-7 gap-1 border-2 border-zinc-900 bg-zinc-950 p-1 select-none">
+                        
+                        {/* Day headers */}
+                        {['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'].map((day) => (
+                          <div key={day} className="bg-zinc-900 border border-zinc-950 py-1.5 text-center font-mono font-bold text-zinc-400 text-[10px] uppercase tracking-wider">
+                            {day}
+                          </div>
+                        ))}
+
+                        {/* Weeks rows */}
+                        {[1, 2, 3, 4].map((weekNum) => (
+                          <React.Fragment key={weekNum}>
+                            {['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'].map((day) => {
+                              const cellPosts = filterCalendarByBiz(activeBusiness?.id || '')
+                                .filter(p => filterChannel === 'Todos' || p.channel === filterChannel)
+                                .filter(p => filterStatus === 'Todos' || p.status === filterStatus)
+                                .filter(p => filterWeek === 'Todos' || String(p.weekNum) === filterWeek)
+                                .filter(p => Number(p.weekNum) === weekNum && getDayOfWeek(p.scheduledDate) === day);
+
+                              const isWeekFilteredOut = filterWeek !== 'Todos' && filterWeek !== String(weekNum);
+
+                              return (
+                                <div 
+                                  key={`${weekNum}-${day}`}
+                                  className={`border bg-zinc-900/10 min-h-[110px] p-2 flex flex-col justify-between transition-all group relative ${
+                                    isWeekFilteredOut ? 'opacity-20 border-zinc-950 bg-zinc-950/40' : 'border-zinc-850 hover:bg-zinc-900/50'
+                                  }`}
+                                >
+                                  {/* Week and abbreviated day */}
+                                  <div className="flex justify-between items-center mb-1">
+                                    <span className="text-[8px] font-mono font-bold text-zinc-550 uppercase tracking-tighter">
+                                      Sem {weekNum}
+                                    </span>
+                                    <span className="text-[8.5px] font-mono leading-none text-zinc-450 font-bold">
+                                      {day.slice(0, 3)}
+                                    </span>
+                                  </div>
+
+                                  {/* Cell posts list */}
+                                  <div className="space-y-1 my-1 flex-1 overflow-y-auto max-h-[85px] scrollbar-thin">
+                                    {cellPosts.map(post => {
+                                      const badgeColor = 
+                                        post.channel === 'Instagram' ? 'bg-gradient-to-tr from-rose-950/50 to-orange-950/20 text-rose-350 border-rose-900/40' :
+                                        post.channel === 'Facebook' ? 'bg-blue-950/50 text-blue-300 border-blue-900/40' :
+                                        post.channel === 'TikTok' ? 'bg-zinc-950/80 text-zinc-300 border-zinc-800/50' :
+                                        'bg-sky-950/40 text-sky-300 border-sky-900/40';
+
+                                      const statusText = post.status || 'Borrador';
+                                      const statusDotColor = 
+                                        statusText === 'Publicado' ? 'bg-zinc-400' :
+                                        statusText === 'Programado' ? 'bg-emerald-500 font-extrabold' :
+                                        statusText === 'Pendiente de aprobación' ? 'bg-amber-550' :
+                                        statusText === 'Aprobado' ? 'bg-teal-500' :
+                                        'bg-zinc-650';
+
+                                      return (
+                                        <div 
+                                          key={post.id}
+                                          onClick={() => setSelectedPost(post)}
+                                          className="p-1 border border-zinc-850 bg-zinc-950 hover:bg-zinc-900/80 cursor-pointer text-left transition flex flex-col gap-0.5 hover:border-zinc-500"
+                                          title={`Ver o programar post: ${post.title}`}
+                                        >
+                                          <div className="flex items-center justify-between gap-1 leading-none">
+                                            <span className={`text-[7.5px] font-mono px-1 rounded-none border leading-none py-0.5 uppercase tracking-wide truncate max-w-[45px] ${badgeColor}`}>
+                                              {post.channel}
+                                            </span>
+                                            <span className="text-[7.5px] font-mono text-zinc-500 font-bold text-right leading-none">
+                                              {post.scheduledTime || '18:00'}
+                                            </span>
+                                          </div>
+                                          <span className="text-[9px] font-bold text-zinc-200 truncate block leading-tight uppercase font-sans tracking-wide">
+                                            {post.title}
+                                          </span>
+                                          <div className="flex items-center gap-1">
+                                            <span className={`w-1 h-1 rounded-full ${statusDotColor}`} />
+                                            <span className="text-[7.5px] font-mono text-zinc-500 uppercase leading-none truncate max-w-[90%]">{statusText}</span>
+                                          </div>
+                                        </div>
+                                      );
+                                    })}
+
+                                    {cellPosts.length === 0 && (
+                                      <div className="h-full flex items-center justify-center">
+                                        <span className="text-[7.5px] font-mono text-zinc-700 uppercase tracking-wider opacity-60 group-hover:opacity-0 transition-opacity">Vacío</span>
+                                      </div>
+                                    )}
+                                  </div>
+
+                                  {/* Inline direct manual addition for cell */}
+                                  {!isWeekFilteredOut && (
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        const newPostId = 'post_manual_' + Math.random().toString(36).substring(2, 9);
+                                        const postObj: CalendarPost = {
+                                          id: newPostId,
+                                          userId,
+                                          businessId: activeBusiness?.id || '',
+                                          title: 'Nueva Publicación ' + day,
+                                          copy: 'Escribe el copy persuasivo de tu publicación aquí...',
+                                          channel: filterChannel !== 'Todos' ? (filterChannel as any) : 'Instagram',
+                                          scheduledDate: `${day} de la Semana ${weekNum}`,
+                                          scheduledTime: '18:00',
+                                          type: 'Imagen',
+                                          imageUrlPrompt: '',
+                                          status: filterStatus !== 'Todos' ? (filterStatus as any) : 'Borrador',
+                                          weekNum: weekNum,
+                                          priority: 'Media',
+                                          createdAt: new Date().toISOString()
+                                        };
+                                        setSelectedPost(postObj);
+                                      }}
+                                      className="w-full text-center py-0.5 border border-dashed border-zinc-800 hover:border-zinc-700 text-[8px] font-mono text-zinc-500 hover:text-white uppercase transition-all opacity-0 group-hover:opacity-100 mt-1 cursor-pointer"
+                                    >
+                                      + Agregar
+                                    </button>
+                                  )}
+                                </div>
+                              );
+                            })}
+                          </React.Fragment>
+                        ))}
+                      </div>
                     </div>
                   ) : (
                     <div className="flex flex-col gap-4 font-sans text-xs">

@@ -18,7 +18,7 @@ import {
   AlertCircle
 } from 'lucide-react';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { doc, updateDoc, deleteDoc } from 'firebase/firestore';
+import { doc, setDoc, deleteDoc } from 'firebase/firestore';
 import { db, storage } from '../lib/firebase';
 import { CalendarPost } from '../types';
 
@@ -49,6 +49,27 @@ export default function PostDetailsModal({ userId, post, onClose, onUpdate, onDe
   const [imageUrl, setImageUrl] = useState(post.imageUrl || '');
   const [videoUrl, setVideoUrl] = useState(post.videoUrl || '');
 
+  // Helper to parse and select Day and Week easily
+  const parseDayName = (dateStr: string): string => {
+    const val = (dateStr || '').toLowerCase();
+    if (val.includes('lun')) return 'Lunes';
+    if (val.includes('mar')) return 'Martes';
+    if (val.includes('mie') || val.includes('mié')) return 'Miércoles';
+    if (val.includes('jue')) return 'Jueves';
+    if (val.includes('vie')) return 'Viernes';
+    if (val.includes('sab') || val.includes('sáb')) return 'Sábado';
+    if (val.includes('dom')) return 'Domingo';
+    return 'Lunes';
+  };
+
+  const [selectedDay, setSelectedDay] = useState(parseDayName(post.scheduledDate || 'Lunes'));
+  const [selectedWeek, setSelectedWeek] = useState<number>(post.weekNum || 1);
+
+  // Auto-sync scheduledDate when selectedDay or selectedWeek changes
+  useEffect(() => {
+    setScheduledDate(`${selectedDay} de la Semana ${selectedWeek}`);
+  }, [selectedDay, selectedWeek]);
+
   // AI Alternatives Generation
   const [aiVariations, setAiVariations] = useState<{
     copies: string[];
@@ -71,7 +92,7 @@ export default function PostDetailsModal({ userId, post, onClose, onUpdate, onDe
         .map(h => h.trim().replace(/^#/, ''))
         .filter(Boolean);
 
-      const updatedObj: Partial<CalendarPost> = {
+      const updatedObj = {
         title,
         copy,
         cta,
@@ -83,16 +104,24 @@ export default function PostDetailsModal({ userId, post, onClose, onUpdate, onDe
         type,
         imageUrlPrompt,
         imageUrl,
-        videoUrl
+        videoUrl,
+        weekNum: Number(selectedWeek)
       };
 
       const docRef = doc(db, `users/${userId}/calendar`, post.id);
-      await updateDoc(docRef, updatedObj);
-
-      onUpdate({
-        ...post,
+      
+      const fullObj = {
+        id: post.id,
+        userId: userId,
+        businessId: post.businessId,
+        priority: post.priority || 'Media',
+        createdAt: post.createdAt || new Date().toISOString(),
         ...updatedObj
-      } as CalendarPost);
+      };
+
+      await setDoc(docRef, fullObj, { merge: true });
+
+      onUpdate(fullObj as CalendarPost);
       
       onClose();
     } catch (err) {
@@ -328,15 +357,35 @@ export default function PostDetailsModal({ userId, post, onClose, onUpdate, onDe
                 </div>
               </div>
 
-              <div className="grid grid-cols-3 gap-3 font-mono text-[10px]">
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 font-mono text-[10px]">
                 <div>
-                  <label className="text-zinc-500 block mb-1 uppercase tracking-wider">Fecha Destino</label>
-                  <input
-                    type="text"
-                    value={scheduledDate}
-                    onChange={(e) => setScheduledDate(e.target.value)}
-                    className="w-full bg-zinc-950 border border-zinc-805 rounded-none py-2 px-2.5 text-[11px] text-white focus:border-white focus:outline-none font-sans"
-                  />
+                  <label className="text-zinc-500 block mb-1 uppercase tracking-wider">Semana</label>
+                  <select
+                    value={selectedWeek}
+                    onChange={(e) => setSelectedWeek(Number(e.target.value))}
+                    className="w-full bg-zinc-950 border border-zinc-805 rounded-none py-2 px-2 text-[11px] text-white focus:border-white focus:outline-none font-sans font-bold"
+                  >
+                    <option value={1}>Semana 1</option>
+                    <option value={2}>Semana 2</option>
+                    <option value={3}>Semana 3</option>
+                    <option value={4}>Semana 4</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="text-zinc-500 block mb-1 uppercase tracking-wider">Día Planificado</label>
+                  <select
+                    value={selectedDay}
+                    onChange={(e) => setSelectedDay(e.target.value)}
+                    className="w-full bg-zinc-950 border border-zinc-805 rounded-none py-2 px-2 text-[11px] text-white focus:border-white focus:outline-none font-sans font-bold"
+                  >
+                    <option value="Lunes">Lunes</option>
+                    <option value="Martes">Martes</option>
+                    <option value="Miércoles">Miércoles</option>
+                    <option value="Jueves">Jueves</option>
+                    <option value="Viernes">Viernes</option>
+                    <option value="Sábado">Sábado</option>
+                    <option value="Domingo">Domingo</option>
+                  </select>
                 </div>
                 <div>
                   <label className="text-zinc-500 block mb-1 uppercase tracking-wider">Hora Destino</label>
@@ -352,7 +401,7 @@ export default function PostDetailsModal({ userId, post, onClose, onUpdate, onDe
                   <select
                     value={status}
                     onChange={(e) => setStatus(e.target.value as any)}
-                    className="w-full bg-zinc-950 border border-zinc-805 rounded-none py-2.5 px-1.5 text-[11px] text-white focus:border-white focus:outline-none font-sans font-bold uppercase"
+                    className="w-full bg-zinc-950 border border-zinc-805 rounded-none py-2 px-1.5 text-[11px] text-white focus:border-white focus:outline-none font-sans font-bold uppercase"
                   >
                     <option value="Borrador">Borrador</option>
                     <option value="Pendiente de aprobación">Pendiente</option>
