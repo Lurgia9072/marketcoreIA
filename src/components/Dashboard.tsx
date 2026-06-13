@@ -38,10 +38,16 @@ import {
   Eye,
   ArrowRight,
   TrendingUp,
-  Award
+  Award,
+  Layers,
+  CheckSquare,
+  HelpCircle,
+  Edit3
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Link } from 'react-router-dom';
+import StrategyWizard from './StrategyWizard';
+import PostDetailsModal from './PostDetailsModal';
 
 export default function Dashboard() {
   const { user, logout } = useAuth();
@@ -67,6 +73,18 @@ export default function Dashboard() {
   const [newBizFb, setNewBizFb] = useState('');
   const [formError, setFormError] = useState<string | null>(null);
   const [addingBiz, setAddingBiz] = useState(false);
+
+  // Modals / Wizard Toggles
+  const [showWizard, setShowWizard] = useState(false);
+  const [selectedPost, setSelectedPost] = useState<CalendarPost | null>(null);
+
+  // Active Calendar Filters
+  const [filterStatus, setFilterStatus] = useState<string>('Todos');
+  const [filterChannel, setFilterChannel] = useState<string>('Todos');
+  const [filterWeek, setFilterWeek] = useState<string>('Todos');
+
+  // Strategy layout tab toggle
+  const [stratTab, setStratTab] = useState<'resume' | 'diagnostic' | 'weekly'>('resume');
 
   // Form states for Strategy generator
   const [generatingStrategy, setGeneratingStrategy] = useState(false);
@@ -189,86 +207,21 @@ export default function Dashboard() {
     }
   };
 
-  const handleGenerateStrategy = async () => {
+  const handleGenerateStrategy = () => {
     if (!activeBusiness) {
       setGenError("Primero selecciona o registra un perfil de negocio activo.");
       return;
     }
-
-    setGeneratingStrategy(true);
-    setGenError(null);
-    setSuccessMsg(null);
-
-    try {
-      const response = await fetch('/api/generate-strategy', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name: activeBusiness.name,
-          niche: activeBusiness.niche,
-          description: activeBusiness.description,
-          targetAudience: activeBusiness.targetAudience,
-          socialHandles: activeBusiness.socialHandles
-        })
-      });
-
-      if (!response.ok) {
-        const errDetails = await response.json();
-        throw new Error(errDetails.error || "Fallo en la llamada de generación con el servidor.");
-      }
-
-      const data = await response.json();
-      
-      // Create Strategy Document in Firestore
-      const stratId = 'strat_' + Math.random().toString(36).substring(2, 9);
-      const stratPath = `users/${userId}/strategies`;
-
-      const newStrategy: MarketingStrategy = {
-        id: stratId,
-        userId,
-        businessId: activeBusiness.id,
-        title: data.title || "Estrategia Automatizada de IA",
-        summary: data.summary || "Resumen estratégico completo.",
-        posts: [], // posts saved separately in subcollection
-        createdAt: new Date().toISOString()
-      };
-
-      await setDoc(doc(db, stratPath, stratId), newStrategy);
-      
-      // Save all posts inside Calendar Subcollection
-      const calPath = `users/${userId}/calendar`;
-      const savedPosts: CalendarPost[] = [];
-
-      for (const item of (data.posts || [])) {
-        const postId = 'post_' + Math.random().toString(36).substring(2, 9);
-        const postObj: CalendarPost = {
-          id: postId,
-          userId,
-          businessId: activeBusiness.id,
-          title: item.title || "Publicación recomendada",
-          copy: item.copy || "",
-          channel: (item.channel === 'TikTok' || item.channel === 'Facebook' || item.channel === 'Twitter' ? item.channel : 'Instagram'),
-          scheduledDate: item.scheduledDate || "Día 1",
-          type: item.type || "Reel",
-          imageUrlPrompt: item.imageUrlPrompt || "",
-          status: 'draft',
-          createdAt: new Date().toISOString()
-        };
-
-        await setDoc(doc(db, calPath, postId), postObj);
-        savedPosts.push(postObj);
-      }
-
-      setStrategies(prev => [newStrategy, ...prev]);
-      setCalendarItems(prev => [...savedPosts, ...prev]);
-      setSuccessMsg("¡Estrategia y calendario de contenidos generados por la IA con éxito!");
-    } catch (err: any) {
-      console.error(err);
-      setGenError(err?.message || "Ocurrió un error consultando a la IA Analista. Reintenta de nuevo.");
-    } finally {
-      setGeneratingStrategy(false);
-    }
+    setShowWizard(true);
   };
+
+  const handleWizardSuccess = (newStrat: MarketingStrategy, newPosts: CalendarPost[]) => {
+    setStrategies(prev => [newStrat, ...prev]);
+    setCalendarItems(prev => [...newPosts, ...prev]);
+    setShowWizard(false);
+    setSuccessMsg("¡Estrategia de 4 semanas y calendario de contenidos guardados con éxito!");
+  };
+
 
   const handleUpdatePostStatus = async (postId: string, currentStatus: 'draft' | 'scheduled' | 'published') => {
     let nextStatus: 'draft' | 'scheduled' | 'published' = 'scheduled';
@@ -370,7 +323,9 @@ export default function Dashboard() {
       scheduledDate: "Planificado",
       type: "Post Estructural",
       imageUrlPrompt: cwResult.imagePrompt || "",
-      status: 'draft',
+      status: 'Borrador',
+      weekNum: 1,
+      priority: 'Media',
       createdAt: new Date().toISOString()
     };
 
@@ -616,36 +571,148 @@ export default function Dashboard() {
                 
                 {/* Left side: Strategic summary from Gemini */}
                 <div className="lg:col-span-4 flex flex-col gap-6">
+                  
+                  {/* Premium Brand Strategy report with Interactive Tabs */}
                   <div className="bg-zinc-900/40 border-2 border-zinc-900 rounded-none p-5 shadow-[4px_4px_0px_0px_rgba(9,9,11,1)]">
                     <div className="flex justify-between items-center pb-3 border-b border-zinc-855 mb-4">
                       <span className="text-[10px] font-mono font-bold tracking-widest text-zinc-400 uppercase flex items-center gap-1.5">
-                        <Target className="w-3.5 h-3.5 text-white" /> RESUMEN ESTRATÉGICO IA
+                        <Target className="w-3.5 h-3.5 text-white" /> PLAN ESTRATÉGICO DIRECTIVO
                       </span>
                     </div>
 
                     {filterStrategiesByBiz(activeBusiness?.id || '').slice(0, 1).map(strat => (
-                      <div key={strat.id} className="relative font-sans text-xs">
-                        <h4 className="font-bold text-sm text-zinc-250 uppercase tracking-wide">{strat.title}</h4>
-                        <p className="text-zinc-450 mt-3 leading-relaxed whitespace-pre-wrap font-light">
-                          {strat.summary}
-                        </p>
-                        
-                        <div className="mt-5 border-t border-zinc-855 pt-3 flex justify-between items-center text-[9px] font-mono text-zinc-500 uppercase tracking-wider">
-                          <span>Generada: {new Date(strat.createdAt).toLocaleDateString()}</span>
+                      <div key={strat.id} className="relative font-sans text-xs space-y-4">
+                        <div className="flex justify-between items-start gap-1">
+                          <h4 className="font-sans font-extrabold text-sm text-zinc-100 uppercase tracking-wide leading-tight">{strat.title}</h4>
                           <button 
                             onClick={() => handleDeleteStrategy(strat.id)}
-                            className="text-rose-500 hover:text-rose-400 font-bold uppercase cursor-pointer"
+                            className="text-[9px] font-mono text-rose-500 hover:text-rose-450 uppercase cursor-pointer"
                           >
                             Eliminar
                           </button>
+                        </div>
+
+                        {/* Strategy Sub-Tabs Navigation */}
+                        <div className="bg-zinc-950 p-1 border border-zinc-850 flex items-center gap-1 text-[9px] font-mono select-none">
+                          <button 
+                            onClick={() => setStratTab('resume')}
+                            className={`flex-1 py-1 text-center uppercase font-bold transition ${stratTab === 'resume' ? 'bg-zinc-800 text-white' : 'text-zinc-500 hover:text-zinc-350'}`}
+                          >
+                            Resumen
+                          </button>
+                          <button 
+                            onClick={() => setStratTab('diagnostic')}
+                            className={`flex-1 py-1 text-center uppercase font-bold transition ${stratTab === 'diagnostic' ? 'bg-zinc-800 text-white' : 'text-zinc-500 hover:text-zinc-350'}`}
+                          >
+                            Dirección
+                          </button>
+                          <button 
+                            onClick={() => setStratTab('weekly')}
+                            className={`flex-1 py-1 text-center uppercase font-bold transition ${stratTab === 'weekly' ? 'bg-zinc-800 text-white' : 'text-zinc-500 hover:text-zinc-350'}`}
+                          >
+                            Semanas
+                          </button>
+                        </div>
+
+                        {/* Interactive Tab Displays */}
+                        {stratTab === 'resume' && (
+                          <div className="space-y-3 pt-2">
+                            <div>
+                              <span className="text-[9px] font-mono text-zinc-500 block uppercase">RESUMEN DEL PLAN</span>
+                              <p className="text-zinc-300 leading-relaxed font-light mt-0.5 whitespace-pre-wrap">{strat.summary}</p>
+                            </div>
+                            {strat.mainGoal && (
+                              <div className="bg-zinc-950/40 p-2.5 border border-zinc-900">
+                                <span className="text-[9px] font-mono text-zinc-400 block uppercase font-bold">OBJETIVO SMART PRINCIPAL</span>
+                                <p className="text-zinc-200 font-medium font-sans mt-0.5 leading-relaxed">{strat.mainGoal}</p>
+                              </div>
+                            )}
+                          </div>
+                        )}
+
+                        {stratTab === 'diagnostic' && (
+                          <div className="space-y-3 pt-2">
+                            {strat.diagnostic && (
+                              <div>
+                                <span className="text-[9px] font-mono text-zinc-500 block uppercase">DIAGNÓSTICO SITUACIONAL IA</span>
+                                <p className="text-zinc-300 font-light mt-0.5 leading-relaxed">{strat.diagnostic}</p>
+                              </div>
+                            )}
+                            {strat.suggestedKPIs && strat.suggestedKPIs.length > 0 && (
+                              <div>
+                                <span className="text-[9px] font-mono text-zinc-500 block uppercase">VALORES KPI RECOMENDADOS</span>
+                                <div className="flex flex-wrap gap-1 mt-1">
+                                  {strat.suggestedKPIs.map((k, i) => (
+                                    <span key={i} className="text-[9px] bg-zinc-950 text-zinc-400 border border-zinc-900 py-0.5 px-2 font-mono uppercase tracking-wide">
+                                      {k}
+                                    </span>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+                            {strat.recommendedTone && (
+                              <div className="bg-zinc-950 p-2.5 border border-zinc-905">
+                                <span className="text-[9px] font-mono text-zinc-500 block uppercase">Tono editorial:</span>
+                                <p className="text-zinc-350 mt-0.5 font-light">{strat.recommendedTone}</p>
+                              </div>
+                            )}
+                          </div>
+                        )}
+
+                        {stratTab === 'weekly' && (
+                          <div className="space-y-2.5 pt-2 max-h-[30vh] overflow-y-auto">
+                            {strat.weeklyPlan && strat.weeklyPlan.map((wk: any, idx: number) => (
+                              <div key={idx} className="bg-zinc-950 p-2.5 border border-zinc-900 relative">
+                                <span className="text-[8px] font-mono font-bold text-zinc-500 uppercase block tracking-wider">SEMANA {idx + 1}</span>
+                                <p className="text-zinc-200 text-xs font-bold mt-0.5 leading-tight">{wk.objective}</p>
+                                <p className="text-[10px] text-zinc-450 font-light mt-1 whitespace-pre-wrap">CTA: "{wk.cta}"</p>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+
+                        <div className="pt-3 border-t border-zinc-855 text-[9px] font-mono text-zinc-500 uppercase tracking-wider flex justify-between">
+                          <span>CREADA: {new Date(strat.createdAt).toLocaleDateString()}</span>
                         </div>
                       </div>
                     ))}
                   </div>
 
+                  {/* Real-time Email Reminders Queue Tracker */}
+                  <div className="bg-zinc-900/10 border-2 border-zinc-900 rounded-none p-5 shadow-[4px_4px_0px_0px_rgba(9,9,11,1)]">
+                    <span className="text-[10px] font-mono font-bold tracking-widest text-zinc-400 uppercase block mb-2">COLA DE ALERTAS DE CORREO</span>
+                    <p className="text-[11px] text-zinc-500 leading-relaxed font-sans font-light mb-3">
+                      Se envían recordatorios automáticamente por email 30 min y 10 min antes de la hora de cada publicación programada para el equipo.
+                    </p>
+
+                    <div className="space-y-2 max-h-40 overflow-y-auto">
+                      {filterCalendarByBiz(activeBusiness?.id || '')
+                        .filter(p => p.status === 'Programado' || p.status === 'Pendiente de aprobación')
+                        .map(post => (
+                          <div key={post.id} className="bg-zinc-950 p-2.5 border border-zinc-900 text-[10px] flex items-center justify-between font-mono">
+                            <div className="overflow-hidden pr-2">
+                              <span className="text-white block font-bold leading-tight truncate uppercase">{post.title}</span>
+                              <span className="text-zinc-500 text-[8px] inline-flex items-center gap-1 mt-0.5">
+                                <Clock className="w-3 h-3 text-zinc-500" /> {post.scheduledDate} a las {post.scheduledTime}
+                              </span>
+                            </div>
+                            <span className="bg-emerald-950/20 text-emerald-400 border border-emerald-900 py-0.5 px-2 flex-shrink-0 uppercase font-bold text-[8px] tracking-widest">
+                              ALERT_OK
+                            </span>
+                          </div>
+                        ))
+                      }
+                      {filterCalendarByBiz(activeBusiness?.id || '').filter(p => p.status === 'Programado' || p.status === 'Pendiente de aprobación').length === 0 && (
+                        <div className="text-center py-2 text-[9px] text-zinc-600 uppercase font-bold italic tracking-wide">
+                          No hay publicaciones programadas activas para alertas.
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
                   {/* Visual helper KPI panel */}
                   <div className="bg-zinc-900/10 border-2 border-zinc-900 rounded-none p-5 shadow-[4px_4px_0px_0px_rgba(9,9,11,1)]">
-                    <span className="text-[10px] font-mono font-bold tracking-widest text-zinc-400 uppercase block mb-3">MÉTRICAS EDITORIALES</span>
+                    <span className="text-[10px] font-mono font-bold tracking-widest text-zinc-400 uppercase block mb-3">MÉTRICAS EDITORIALES (MES)</span>
                     
                     <div className="flex flex-col gap-3 font-sans text-xs">
                       <div className="flex justify-between items-center">
@@ -655,19 +722,19 @@ export default function Dashboard() {
                       <div className="flex justify-between items-center">
                         <span className="text-zinc-450">Borradores (draft):</span>
                         <span className="font-bold text-zinc-400 font-mono">
-                          {filterCalendarByBiz(activeBusiness?.id || '').filter(p => p.status === 'draft').length}
+                          {filterCalendarByBiz(activeBusiness?.id || '').filter(p => p.status === 'Borrador').length}
                         </span>
                       </div>
                       <div className="flex justify-between items-center">
                         <span className="text-zinc-450">Programados:</span>
-                        <span className="font-bold text-zinc-300 font-mono">
-                          {filterCalendarByBiz(activeBusiness?.id || '').filter(p => p.status === 'scheduled').length}
+                        <span className="font-bold text-emerald-400 font-mono">
+                          {filterCalendarByBiz(activeBusiness?.id || '').filter(p => p.status === 'Programado').length}
                         </span>
                       </div>
                       <div className="flex justify-between items-center">
                         <span className="text-zinc-450">Publicados:</span>
                         <span className="font-bold text-white font-mono">
-                          {filterCalendarByBiz(activeBusiness?.id || '').filter(p => p.status === 'published').length}
+                          {filterCalendarByBiz(activeBusiness?.id || '').filter(p => p.status === 'Publicado').length}
                         </span>
                       </div>
                     </div>
@@ -677,103 +744,170 @@ export default function Dashboard() {
                 {/* Right side: Interactive calendar posts proposed */}
                 <div className="lg:col-span-8 flex flex-col gap-6">
                   
-                  <div className="flex justify-between items-center pb-2 border-b-2 border-zinc-900">
-                    <span className="text-[10px] font-mono font-bold tracking-widest text-zinc-400 uppercase">CALENDARIO DE PUBLICACIÓN PROPUESTO</span>
-                    <span className="text-[9px] text-zinc-500 font-mono uppercase tracking-wider">Generado por IA</span>
+                  {/* CALENDAR FILTER HEADER BAR */}
+                  <div className="bg-zinc-900/35 border-2 border-zinc-900 p-4.5 rounded-none flex flex-wrap gap-4 items-center justify-between">
+                    <span className="text-[10px] font-mono font-bold tracking-widest text-zinc-400 uppercase flex items-center gap-1">
+                      <CalendarIcon className="w-4 h-4 text-white" /> TABLA EDITORIAL DE PLANIFICACIÓN
+                    </span>
+
+                    {/* Filter Dropdowns with custom styling */}
+                    <div className="flex flex-wrap gap-2 text-[10px] font-mono">
+                      {/* Network Filter */}
+                      <select 
+                        value={filterChannel} 
+                        onChange={(e) => setFilterChannel(e.target.value)}
+                        className="bg-zinc-950 border border-zinc-805 text-zinc-300 py-1.5 px-3 rounded-none focus:outline-none uppercase text-[9px] font-bold"
+                      >
+                        <option value="Todos">Red social: Todas</option>
+                        <option value="Instagram">Instagram</option>
+                        <option value="Facebook">Facebook</option>
+                        <option value="TikTok">TikTok</option>
+                      </select>
+
+                      {/* Status Filter */}
+                      <select 
+                        value={filterStatus} 
+                        onChange={(e) => setFilterStatus(e.target.value)}
+                        className="bg-zinc-950 border border-zinc-805 text-zinc-300 py-1.5 px-3 rounded-none focus:outline-none uppercase text-[9px] font-bold"
+                      >
+                        <option value="Todos">Estado: Todos</option>
+                        <option value="Borrador">Borradores</option>
+                        <option value="Pendiente de aprobación">Pendientes</option>
+                        <option value="Aprobado">Aprobado</option>
+                        <option value="Programado">Programado</option>
+                        <option value="Publicado">Publicado</option>
+                      </select>
+
+                      {/* Week Filter */}
+                      <select 
+                        value={filterWeek} 
+                        onChange={(e) => setFilterWeek(e.target.value)}
+                        className="bg-zinc-950 border border-zinc-805 text-zinc-300 py-1.5 px-3 rounded-none focus:outline-none uppercase text-[9px] font-bold"
+                      >
+                        <option value="Todos font-bold">Semana: Todas</option>
+                        <option value="1">Semana 1</option>
+                        <option value="2">Semana 2</option>
+                        <option value="3">Semana 3</option>
+                        <option value="4">Semana 4</option>
+                      </select>
+                    </div>
                   </div>
 
-                  {filterCalendarByBiz(activeBusiness?.id || '').length === 0 ? (
-                    <div className="bg-zinc-900/10 border-2 border-zinc-900 rounded-none p-6 text-center text-zinc-500 text-xs italic font-mono uppercase tracking-wider">
-                      No hay publicaciones guardadas en el calendario para este negocio. Genera una estrategia para poblar el calendario.
+                  {/* Filter process lists execution */}
+                  {filterCalendarByBiz(activeBusiness?.id || '')
+                    .filter(p => filterChannel === 'Todos' || p.channel === filterChannel)
+                    .filter(p => filterStatus === 'Todos' || p.status === filterStatus)
+                    .filter(p => filterWeek === 'Todos' || String(p.weekNum) === filterWeek)
+                    .length === 0 ? (
+                    <div className="bg-zinc-900/10 border-2 border-zinc-900 rounded-none p-12 text-center text-zinc-500 text-xs italic font-mono uppercase tracking-wider">
+                      Ningún post del calendario coincide con los filtros aplicados. Intenta de otra forma.
                     </div>
                   ) : (
                     <div className="flex flex-col gap-4 font-sans text-xs">
-                      {filterCalendarByBiz(activeBusiness?.id || '').map(post => {
-                        return (
-                          <div 
-                            key={post.id}
-                            className="bg-zinc-900/20 border-2 border-zinc-900 hover:border-zinc-800 p-5 rounded-none transition flex flex-col justify-between shadow-[3px_3px_0px_0px_rgba(9,9,11,1)]"
-                          >
-                            <div className="flex items-start justify-between gap-3">
-                              <div className="flex items-center gap-2">
-                                <span className="font-mono text-[10px] text-zinc-400 font-bold bg-zinc-950 px-2.5 py-1 rounded-none border border-zinc-850">
-                                  {post.scheduledDate}
-                                </span>
-                                <span className={`text-[9px] font-mono font-bold py-1 px-2.5 rounded-none uppercase tracking-wider border ${
-                                  post.channel === 'Instagram' ? 'bg-zinc-900 text-zinc-350 border-zinc-800' :
-                                  post.channel === 'TikTok' ? 'bg-zinc-900 text-zinc-350 border-zinc-805' :
-                                  'bg-zinc-900 text-zinc-350 border-zinc-810'
-                                }`}>
-                                  {post.channel}
-                                </span>
-                                <span className="text-[9px] bg-zinc-950 font-mono text-zinc-500 px-2 py-0.5 rounded-none uppercase border border-zinc-900">
-                                  {post.type}
-                                </span>
-                              </div>
-
-                              <div className="flex items-center gap-1.5">
-                                <span 
-                                  onClick={() => handleUpdatePostStatus(post.id, post.status)}
-                                  className={`text-[9px] font-mono font-bold py-1 px-2.5 rounded-none cursor-pointer transition uppercase tracking-widest border ${
-                                    post.status === 'published' ? 'bg-zinc-100 text-zinc-950 border-zinc-200 hover:bg-white' :
-                                    post.status === 'scheduled' ? 'bg-zinc-900 text-zinc-300 border-zinc-800 hover:bg-zinc-850' :
-                                    'bg-zinc-950 text-zinc-500 border-zinc-900 hover:bg-zinc-900'
-                                  }`}
-                                  title="Haz clic para cambiar el estado"
-                                >
-                                  {post.status}
-                                </span>
-                                <button 
-                                  onClick={() => handleDeletePost(post.id)}
-                                  className="text-zinc-650 hover:text-white p-1.5 transition cursor-pointer"
-                                  title="Eliminar propuesta"
-                                >
-                                  <Trash2 className="w-4 h-4 text-zinc-500" />
-                                </button>
-                              </div>
-                            </div>
-
-                            <div className="my-3.5">
-                              <h5 className="font-bold text-zinc-200 text-sm mb-1 uppercase tracking-wider">{post.title}</h5>
-                              <div className="bg-zinc-950 p-3.5 rounded-none border border-zinc-900 relative group mt-2.5">
-                                <p className="text-zinc-350 leading-relaxed whitespace-pre-wrap font-sans font-light mt-1 text-[12px]">
-                                  {post.copy}
-                                </p>
-                                <button
-                                  onClick={() => copyToClipboard(post.id, post.copy)}
-                                  className="absolute top-2.5 right-2.5 bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-white p-1.5 rounded-none transition opacity-60 group-hover:opacity-100 flex items-center gap-1 text-[9px] font-mono uppercase tracking-wider cursor-pointer"
-                                  title="Copiar texto listo"
-                                >
-                                  {copiedId === post.id ? (
-                                    <>
-                                      <Check className="w-3.5 h-3.5 text-white" /> <span className="text-white font-bold">COPIADO</span>
-                                    </>
-                                  ) : (
-                                    <>
-                                      <Copy className="w-3.5 h-3.5" /> <span>COPIAR</span>
-                                    </>
+                      {filterCalendarByBiz(activeBusiness?.id || '')
+                        .filter(p => filterChannel === 'Todos' || p.channel === filterChannel)
+                        .filter(p => filterStatus === 'Todos' || p.status === filterStatus)
+                        .filter(p => filterWeek === 'Todos' || String(p.weekNum) === filterWeek)
+                        .map(post => {
+                          return (
+                            <div 
+                              key={post.id}
+                              className="bg-zinc-900/20 border-2 border-zinc-900 hover:border-zinc-700 p-5 rounded-none transition flex flex-col justify-between shadow-[3px_3px_0px_0px_rgba(9,9,11,1)] relative"
+                            >
+                              <div className="flex items-start justify-between gap-3">
+                                <div className="flex items-center gap-2 flex-wrap">
+                                  {post.weekNum && (
+                                    <span className="font-mono text-[9px] text-white font-bold bg-zinc-950/75 px-2 py-0.5 uppercase tracking-wider border border-zinc-800">
+                                      Semana {post.weekNum}
+                                    </span>
                                   )}
-                                </button>
-                              </div>
-                            </div>
+                                  <span className="font-mono text-[10px] text-zinc-400 font-bold bg-zinc-950 px-2.5 py-1 rounded-none border border-zinc-850">
+                                    {post.scheduledDate} @ {post.scheduledTime}
+                                  </span>
+                                  <span className={`text-[9px] font-mono font-bold py-1 px-2.5 rounded-none uppercase tracking-wider border ${
+                                    post.channel === 'Instagram' ? 'bg-zinc-950 text-zinc-350 border-zinc-800' :
+                                    post.channel === 'TikTok' ? 'bg-zinc-950 text-zinc-350 border-zinc-805' :
+                                    'bg-zinc-950 text-zinc-350 border-zinc-810'
+                                  }`}>
+                                    {post.channel}
+                                  </span>
+                                  <span className="text-[9px] bg-zinc-950 font-mono text-zinc-500 px-2 py-0.5 rounded-none uppercase border border-zinc-900">
+                                    {post.type}
+                                  </span>
+                                </div>
 
-                            {post.imageUrlPrompt && (
-                              <div className="bg-zinc-950 border border-zinc-900 p-3 rounded-none text-[9px] mt-1 font-mono">
-                                <span className="font-bold text-zinc-500 block uppercase mb-1">PROMPT DE IMAGEN IA SUGERIDO</span>
-                                <span className="text-zinc-400 font-sans font-light italic leading-normal block">
-                                  {post.imageUrlPrompt}
-                                </span>
+                                <div className="flex items-center gap-1.5 flex-shrink-0">
+                                  <button
+                                    onClick={() => setSelectedPost(post)}
+                                    className="text-[9px] bg-zinc-950 border border-zinc-850 hover:bg-zinc-900 text-zinc-400 hover:text-white py-1 px-2.5 rounded-none uppercase tracking-wider font-mono font-bold flex items-center gap-1"
+                                    title="Editar Post y Contenido"
+                                  >
+                                    <Edit3 className="w-3 h-3 text-white" /> Editar
+                                  </button>
+                                  <span 
+                                    className={`text-[9px] font-mono font-bold py-1 px-2.5 rounded-none uppercase tracking-widest border ${
+                                      post.status === 'Publicado' ? 'bg-zinc-100 text-zinc-950 border-zinc-200' :
+                                      post.status === 'Programado' ? 'bg-zinc-905 border border-emerald-900 text-emerald-400 font-extrabold shadow-sm' :
+                                      post.status === 'Pendiente de aprobación' ? 'bg-zinc-950 text-amber-500 border-amber-950 font-bold' :
+                                      'bg-zinc-950 text-zinc-500 border-zinc-900'
+                                    }`}
+                                  >
+                                    {post.status}
+                                  </span>
+                                  <button 
+                                    onClick={() => handleDeletePost(post.id)}
+                                    className="text-zinc-650 hover:text-white p-1 transition cursor-pointer"
+                                    title="Eliminar Publicación"
+                                  >
+                                    <Trash2 className="w-4 h-4 text-rose-500" />
+                                  </button>
+                                </div>
                               </div>
-                            )}
-                          </div>
-                        );
-                      })}
+
+                              <div className="my-3.5">
+                                <h5 className="font-bold text-zinc-200 text-xs mb-1 uppercase tracking-wider">{post.title}</h5>
+                                <div className="bg-zinc-950 p-3.5 rounded-none border border-zinc-900 relative group mt-2.5">
+                                  <p className="text-zinc-350 leading-relaxed whitespace-pre-wrap font-sans font-light mt-1 text-[12px]">
+                                    {post.copy}
+                                  </p>
+                                  <button
+                                    onClick={() => copyToClipboard(post.id, post.copy)}
+                                    className="absolute top-2.5 right-2.5 bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-white p-1.5 rounded-none transition opacity-60 group-hover:opacity-100 flex items-center gap-1 text-[9px] font-mono uppercase tracking-wider cursor-pointer"
+                                    title="Copiar texto listo"
+                                  >
+                                    {copiedId === post.id ? (
+                                      <>
+                                        <Check className="w-3.5 h-3.5 text-white" /> <span className="text-white font-bold">COPIADO</span>
+                                      </>
+                                    ) : (
+                                      <>
+                                        <Copy className="w-3.5 h-3.5" /> <span>COPIAR</span>
+                                      </>
+                                    )}
+                                  </button>
+                                </div>
+                              </div>
+
+                              {post.imageUrlPrompt && (
+                                <div className="bg-zinc-950 border border-zinc-900 p-3 rounded-none text-[9px] mt-1 font-mono flex justify-between items-center gap-2">
+                                  <div>
+                                    <span className="font-bold text-zinc-500 block uppercase mb-0.5">PROMPT DE IMAGEN IA SUGERIDO</span>
+                                    <span className="text-zinc-450 font-sans font-light italic leading-normal block">
+                                      {post.imageUrlPrompt}
+                                    </span>
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })}
                     </div>
                   )}
 
                 </div>
 
               </div>
+
 
             )}
 
@@ -1075,6 +1209,33 @@ export default function Dashboard() {
           </div>
         )}
       </AnimatePresence>
+
+      {/* STRATEGY WIZARD MODAL WIDGET */}
+      {showWizard && activeBusiness && (
+        <StrategyWizard 
+          userId={userId} 
+          business={activeBusiness} 
+          onClose={() => setShowWizard(false)} 
+          onSuccess={handleWizardSuccess} 
+        />
+      )}
+
+      {/* INDIVIDUAL POST DETAIL DRAWER MODAL */}
+      {selectedPost && (
+        <PostDetailsModal 
+          userId={userId} 
+          post={selectedPost} 
+          onClose={() => setSelectedPost(null)} 
+          onUpdate={(updated) => {
+            setCalendarItems(prev => prev.map(p => p.id === updated.id ? updated : p));
+            setSelectedPost(null);
+          }} 
+          onDelete={(id) => {
+            setCalendarItems(prev => prev.filter(p => p.id !== id));
+            setSelectedPost(null);
+          }} 
+        />
+      )}
 
     </div>
   );

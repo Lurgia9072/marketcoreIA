@@ -1,5 +1,22 @@
 {
   "entities": {
+    "UploadedMaterial": {
+      "title": "Uploaded Material",
+      "description": "An uploaded file (image or video) representing brand material to be analyzed.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "businessId": { "type": "string" },
+        "name": { "type": "string" },
+        "type": { "type": "string", "enum": ["image", "video"] },
+        "url": { "type": "string" },
+        "size": { "type": "number" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "analysis": { "type": "object" }
+      },
+      "required": ["id", "userId", "businessId", "name", "type", "url"]
+    },
     "User": {
       "title": "User Profile",
       "description": "User details including active plan and trial status.",
@@ -84,6 +101,10 @@
     "/users/{userId}/calendar/{calendarId}": {
       "schema": "CalendarItem",
       "description": "Holds actionable copies, dates, visual indicators and scheduling options for selected social publication copies."
+    },
+    "/users/{userId}/materials/{materialId}": {
+      "schema": "UploadedMaterial",
+      "description": "Holds the uploaded brand assets and their AI quality analysis results."
     }
   }
 }
