@@ -108,11 +108,32 @@ export default function StrategyWizard({ userId, business, onClose, onSuccess }:
     for (const file of filesArray) {
       try {
         const fileType: 'image' | 'video' = file.type.startsWith('video/') ? 'video' : 'image';
-        const fileRef = ref(storage, `users/${userId}/material/${Date.now()}_${file.name}`);
         
-        // Upload bytes to Firebase Storage
-        const snapshot = await uploadBytes(fileRef, file);
-        const downloadUrl = await getDownloadURL(snapshot.ref);
+        const reader = new FileReader();
+        const base64Promise = new Promise<string>((resolve, reject) => {
+          reader.onload = () => resolve(reader.result as string);
+          reader.onerror = (error) => reject(error);
+        });
+        reader.readAsDataURL(file);
+        const base64Data = await base64Promise;
+
+        const uploadRes = await fetch('/api/upload', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            base64: base64Data,
+            filename: file.name,
+            mimeType: file.type
+          })
+        });
+
+        if (!uploadRes.ok) {
+          const errData = await uploadRes.json().catch(() => ({}));
+          throw new Error(errData.error || "Fallo en el servidor");
+        }
+
+        const { url: downloadUrl } = await uploadRes.json();
+        const absoluteUrl = downloadUrl.startsWith('http') ? downloadUrl : `${window.location.origin}${downloadUrl}`;
 
         const materialId = 'mat_' + Math.random().toString(36).substring(2, 9);
         const materialObj: UploadedMaterial = {
@@ -121,7 +142,7 @@ export default function StrategyWizard({ userId, business, onClose, onSuccess }:
           businessId: business.id,
           name: file.name,
           type: fileType,
-          url: downloadUrl,
+          url: absoluteUrl,
           size: file.size,
           createdAt: new Date().toISOString()
         };
@@ -129,9 +150,9 @@ export default function StrategyWizard({ userId, business, onClose, onSuccess }:
         // Guardar record indexado en Firestore
         await setDoc(doc(db, `users/${userId}/materials`, materialId), materialObj);
         newUploads.push(materialObj);
-      } catch (err) {
+      } catch (err: any) {
         console.error("Error uploading file: ", err);
-        setError("Error al subir algunos archivos a Firebase Storage. Reintenta.");
+        setError("Error al subir algunos archivos al servidor de marketing. Reintenta.");
       }
     }
 

@@ -3,6 +3,7 @@ import path from "path";
 import { createServer as createViteServer } from "vite";
 import { GoogleGenAI } from "@google/genai";
 import dotenv from "dotenv";
+import fs from "fs";
 
 // Save the system-provided environment variables before dotenv might overwrite them
 const systemGeminiKey = (process.env.GEMINI_API_KEY || "").trim();
@@ -22,7 +23,17 @@ async function startServer() {
   const app = express();
   const PORT = 3000;
 
-  app.use(express.json());
+  app.use(express.json({ limit: "50mb" }));
+  app.use(express.urlencoded({ limit: "50mb", extended: true }));
+
+  // Ensure uploads directory exists
+  const uploadsDir = path.join(process.cwd(), "uploads");
+  if (!fs.existsSync(uploadsDir)) {
+    fs.mkdirSync(uploadsDir, { recursive: true });
+  }
+
+  // Serve static uploaded files
+  app.use("/api/uploads", express.static(uploadsDir));
 
   // Dynamic AI Provider Helper function supporting both Google Gemini and Alibaba Cloud Model Studio (Qwen)
   const getProviderAndKey = (): { provider: "gemini" | "qwen"; apiKey: string } => {
@@ -54,50 +65,50 @@ async function startServer() {
   const callAI = async (prompt: string): Promise<string> => {
     const { provider, apiKey } = getProviderAndKey();
 
-    if (provider === "gemini") {
-      if (!apiKey) {
-        throw new Error("SaaS backend error: GEMINI_API_KEY is not configured in server secrets.");
-      }
-      
-      // Perform validation check on key format to help user debug
-      if (apiKey.startsWith("gen-lang-client-")) {
-        throw new Error(`Clave de API inválida: Has configurado el Project ID ("${apiKey}") en lugar de una Clave de API de Gemini válida. Las claves de API de Google Gemini válidas deben comenzar con "AIzaSy". Obtén una Clave de API real en Google AI Studio.`);
-      }
-      
-      if (!apiKey.startsWith("AIzaSy") && !apiKey.startsWith("AQ.")) {
-        throw new Error(`La clave de API provista ("${apiKey.substring(0, 8)}...") no es válida para Google Gemini. Las claves válidas de Gemini deben comenzar estrictamente con el prefijo "AIzaSy" o "AQ.". Por favor verifica tu pestaña de Secrets o archivo .env.`);
-      }
+    try {
+      if (provider === "gemini") {
+        if (!apiKey) {
+          throw new Error("SaaS backend error: GEMINI_API_KEY is not configured in server secrets.");
+        }
+        
+        // Perform validation check on key format to help user debug
+        if (apiKey.startsWith("gen-lang-client-")) {
+          throw new Error(`Clave de API inválida: Has configurado el Project ID ("${apiKey}") en lugar de una Clave de API de Gemini válida. Las claves de API de Google Gemini válidas deben comenzar con "AIzaSy". Obtén una Clave de API real en Google AI Studio.`);
+        }
+        
+        if (!apiKey.startsWith("AIzaSy") && !apiKey.startsWith("AQ.")) {
+          throw new Error(`La clave de API provista ("${apiKey.substring(0, 8)}...") no es válida para Google Gemini. Las claves válidas de Gemini deben comenzar estrictamente con el prefijo "AIzaSy" o "AQ.". Por favor verifica tu pestaña de Secrets o archivo .env.`);
+        }
 
-      const ai = new GoogleGenAI({
-        apiKey: apiKey,
-        httpOptions: {
-          headers: {
-            'User-Agent': 'aistudio-build',
+        const ai = new GoogleGenAI({
+          apiKey: apiKey,
+          httpOptions: {
+            headers: {
+              'User-Agent': 'aistudio-build',
+            }
           }
+        });
+
+        const response = await ai.models.generateContent({
+          model: "gemini-3.5-flash",
+          contents: prompt,
+          config: {
+            responseMimeType: "application/json",
+            temperature: 0.7,
+          }
+        });
+
+        const responseText = response.text;
+        if (!responseText) {
+          throw new Error("No se pudo obtener una respuesta de Gemini");
         }
-      });
-
-      const response = await ai.models.generateContent({
-        model: "gemini-3.5-flash",
-        contents: prompt,
-        config: {
-          responseMimeType: "application/json",
-          temperature: 0.7,
+        return responseText.trim();
+      } else {
+        // Qwen / Dashscope (Alibaba Cloud Model Studio)
+        if (!apiKey) {
+          throw new Error("SaaS backend error: DASHSCOPE_API_KEY or Qwen key is not configured.");
         }
-      });
 
-      const responseText = response.text;
-      if (!responseText) {
-        throw new Error("No se pudo obtener una respuesta de Gemini");
-      }
-      return responseText.trim();
-    } else {
-      // Qwen / Dashscope (Alibaba Cloud Model Studio)
-      if (!apiKey) {
-        throw new Error("SaaS backend error: DASHSCOPE_API_KEY or Qwen key is not configured.");
-      }
-
-      try {
         const response = await fetch("https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions", {
           method: "POST",
           headers: {
@@ -130,11 +141,58 @@ async function startServer() {
           throw new Error("No se pudo obtener una respuesta de Qwen");
         }
         return responseText.trim();
-      } catch (error: any) {
-        if (error.message && error.message.includes("Alibaba")) {
-          throw error;
+      }
+    } catch (primaryError: any) {
+      console.warn("=== FALLBACK ACTIVADO: El Socio IA principal falló ===");
+      console.warn("Razón:", primaryError.message || primaryError);
+      console.warn("Iniciando generación con Motor de Texto Libre (Pollinations AI)...");
+
+      try {
+        const fallbackResponse = await fetch("https://text.pollinations.ai/", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            messages: [
+              {
+                role: "system",
+                content: "Eres un analista de marketing experto. Generas respuestas en español. Importante: si el usuario o la instrucción solicita un formato JSON estructurado, devuelve únicamente el JSON válido, sin delimitadores ```json, sin explicaciones, sin texto adicional."
+              },
+              {
+                role: "user",
+                content: prompt
+              }
+            ],
+            jsonMode: true
+          })
+        });
+
+        if (!fallbackResponse.ok) {
+          throw new Error(`Error en el motor de texto libre (HTTP ${fallbackResponse.status})`);
         }
-        throw new Error(`Error de comunicación con Qwen: ${error.message || error}`);
+
+        let fallbackText = await fallbackResponse.text();
+        fallbackText = fallbackText.trim();
+
+        // Robust cleansing of markdown wrappers if the free model added them
+        if (fallbackText.startsWith("```json")) {
+          fallbackText = fallbackText.split("```json")[1];
+        } else if (fallbackText.startsWith("```")) {
+          fallbackText = fallbackText.split("```")[1];
+        }
+        if (fallbackText.endsWith("```")) {
+          fallbackText = fallbackText.substring(0, fallbackText.lastIndexOf("```"));
+        }
+        fallbackText = fallbackText.trim();
+
+        console.info("=== FALLBACK EXITOSO: El Motor de Texto Libre respondió de forma correcta ===");
+        return fallbackText;
+      } catch (fallbackError: any) {
+        console.error("=== CONTROL DE CRASH: Ambos motores de IA fallaron ===");
+        console.error("Error original:", primaryError);
+        console.error("Error fallback:", fallbackError);
+        throw new Error(`Servicios de IA no disponibles. Error original: ${primaryError.message || "Quota/Conexión"}`);
       }
     }
   };
@@ -480,6 +538,161 @@ Devuelve un JSON con la estructura:
     } catch (error: any) {
       console.error("Error in copywriter api:", error);
       res.status(500).json({ error: error.message || "Error interno" });
+    }
+  });
+
+  // New endpoint to generate image with Gemini and automatic free fallback (Pollinations AI)
+  app.post("/api/generate-image", async (req, res) => {
+    const { prompt, aspectRatio, engine } = req.body;
+    if (!prompt) {
+      return res.status(400).json({ error: "Falta el campo prompt para la generación de imagen" });
+    }
+
+    const browserHeaders = {
+      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
+      'Accept': 'image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8',
+      'Accept-Language': 'es-ES,es;q=0.9,en;q=0.8'
+    };
+
+    try {
+      // If client requests "free" engine explicitly
+      if (engine === "free") {
+        console.log("Generador: Usando Motor Libre (Pollinations AI) de forma explícita...");
+        const seed = Math.floor(Math.random() * 10000000);
+        const pollUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt.trim())}?width=1024&height=1024&nologo=true&seed=${seed}`;
+        
+        const imgRes = await fetch(pollUrl, { headers: browserHeaders });
+        if (!imgRes.ok) {
+          const textErr = await imgRes.text().catch(() => "");
+          throw new Error(`El motor libre alternativo falló con estado ${imgRes.status}: ${textErr.substring(0, 100)}`);
+        }
+        
+        const arrayBuffer = await imgRes.arrayBuffer();
+        const buffer = Buffer.from(arrayBuffer);
+        const base64Image = buffer.toString('base64');
+        return res.json({ base64Image, source: "pollinations" });
+      }
+
+      const { provider, apiKey } = getProviderAndKey();
+
+      if (provider === "gemini" && apiKey) {
+        // Validation check on key format (same as in other routes)
+        if (apiKey.startsWith("gen-lang-client-")) {
+          throw new Error(`Clave de API inválida: Has configurado el Project ID ("${apiKey}") en lugar de una Clave de API de Gemini válida. Las claves de API de Google Gemini válidas deben comenzar con "AIzaSy". Obtén una Clave de API real en Google AI Studio.`);
+        }
+        
+        if (!apiKey.startsWith("AIzaSy") && !apiKey.startsWith("AQ.")) {
+          throw new Error(`La clave de API provista ("${apiKey.substring(0, 8)}...") no es válida para Google Gemini. Las claves válidas de Gemini deben comenzar estrictamente con el prefijo "AIzaSy" o "AQ.". Por favor verifica tu pestaña de Secrets o archivo .env.`);
+        }
+
+        const ai = new GoogleGenAI({
+          apiKey,
+          httpOptions: {
+            headers: {
+              'User-Agent': 'aistudio-build',
+            }
+          }
+        });
+
+        const response = await ai.models.generateContent({
+          model: 'gemini-2.5-flash-image',
+          contents: {
+            parts: [
+              {
+                text: prompt,
+              },
+            ],
+          },
+          config: {
+            imageConfig: {
+              aspectRatio: aspectRatio || "1:1",
+            },
+          },
+        });
+
+        let base64Image = "";
+        const parts = response.candidates?.[0]?.content?.parts || [];
+        for (const part of parts) {
+          if (part.inlineData) {
+            base64Image = part.inlineData.data;
+            break;
+          }
+        }
+
+        if (!base64Image) {
+          throw new Error("El modelo de Gemini no retornó ninguna imagen en su respuesta.");
+        }
+
+        return res.json({ base64Image, source: "gemini" });
+      } else {
+        // Fallback or Qwen: auto generate for free using Pollinations
+        console.log("Generador: No se encontró clave válida de Gemini. Usando Motor Libre (Pollinations AI) como fallback...");
+        const seed = Math.floor(Math.random() * 10000000);
+        const pollUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt.trim())}?width=1024&height=1024&nologo=true&seed=${seed}`;
+        
+        const imgRes = await fetch(pollUrl, { headers: browserHeaders });
+        if (!imgRes.ok) {
+          const textErr = await imgRes.text().catch(() => "");
+          throw new Error(`El motor libre alternativo falló con estado ${imgRes.status}: ${textErr.substring(0, 100)}`);
+        }
+        
+        const arrayBuffer = await imgRes.arrayBuffer();
+        const buffer = Buffer.from(arrayBuffer);
+        const base64Image = buffer.toString('base64');
+        return res.json({ base64Image, source: "pollinations" });
+      }
+    } catch (error: any) {
+      console.error("Error in generate-image api:", error);
+      
+      // If we got any quota limit error or auth issue from Gemini, immediately attempt fallback in backend
+      const errMsg = error?.message || "";
+      if (errMsg.includes("quota") || errMsg.includes("limit") || errMsg.includes("429") || errMsg.includes("RESOURCE_EXHAUSTED") || errMsg.includes("Key") || errMsg.includes("Clave") || errMsg.includes("no es válida")) {
+        try {
+          console.log("Generador: Detectado error o límite en Gemini. Activando Motor Libre de respaldo en backend...");
+          const seed = Math.floor(Math.random() * 10000000);
+          const pollUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt.trim())}?width=1024&height=1024&nologo=true&seed=${seed}`;
+          
+          const imgRes = await fetch(pollUrl, { headers: browserHeaders });
+          if (imgRes.ok) {
+            const arrayBuffer = await imgRes.arrayBuffer();
+            const buffer = Buffer.from(arrayBuffer);
+            const base64Image = buffer.toString('base64');
+            return res.json({ base64Image, source: "fallback-pollinations" });
+          }
+        } catch (fbError: any) {
+          console.error("Generador: Falló también el motor de respaldo libre:", fbError);
+        }
+      }
+
+      res.status(500).json({ error: error.message || "Error al generar la imagen" });
+    }
+  });
+
+  // API Route to handle image/video file uploads as base64 securely
+  app.post("/api/upload", (req, res) => {
+    try {
+      const { base64, filename, mimeType } = req.body;
+      if (!base64) {
+        return res.status(400).json({ error: "Falta el contenido base64 del archivo" });
+      }
+
+      let base64Data = base64;
+      if (base64.includes(";base64,")) {
+        base64Data = base64.split(";base64,")[1];
+      }
+
+      const buffer = Buffer.from(base64Data, "base64");
+      const cleanFilename = (filename || "file").replace(/[^a-zA-Z0-9.\-_]/g, "_");
+      const uniqueFilename = `${Date.now()}_${Math.floor(Math.random() * 1000)}_${cleanFilename}`;
+      const filePath = path.join(uploadsDir, uniqueFilename);
+
+      fs.writeFileSync(filePath, buffer);
+
+      const fileUrl = `/api/uploads/${uniqueFilename}`;
+      return res.json({ url: fileUrl });
+    } catch (err: any) {
+      console.error("Error saving upload server-side:", err);
+      return res.status(500).json({ error: err.message || "Error al decodificar y guardar el archivo." });
     }
   });
 
