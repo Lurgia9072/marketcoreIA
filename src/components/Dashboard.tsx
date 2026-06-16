@@ -96,6 +96,7 @@ export default function Dashboard() {
 
   // Form states for adding business
   const [showAddBusiness, setShowAddBusiness] = useState(false);
+  const [isEditMode, setIsEditMode] = useState(false);
   const [newBizName, setNewBizName] = useState('');
   const [newBizNiche, setNewBizNiche] = useState('');
   const [newBizDesc, setNewBizDesc] = useState('');
@@ -214,6 +215,33 @@ export default function Dashboard() {
     }
   };
 
+  const handleOpenNewBusinessModal = () => {
+    setNewBizName('');
+    setNewBizNiche('');
+    setNewBizDesc('');
+    setNewBizAudience('');
+    setNewBizInsta('');
+    setNewBizTikTok('');
+    setNewBizFb('');
+    setIsEditMode(false);
+    setShowAddBusiness(true);
+    setFormError(null);
+  };
+
+  const handleStartEditBusiness = () => {
+    if (!activeBusiness) return;
+    setNewBizName(activeBusiness.name);
+    setNewBizNiche(activeBusiness.niche);
+    setNewBizDesc(activeBusiness.description);
+    setNewBizAudience(activeBusiness.targetAudience || '');
+    setNewBizInsta(activeBusiness.socialHandles?.instagram || '');
+    setNewBizTikTok(activeBusiness.socialHandles?.tiktok || '');
+    setNewBizFb(activeBusiness.socialHandles?.facebook || '');
+    setIsEditMode(true);
+    setShowAddBusiness(true);
+    setFormError(null);
+  };
+
   const handleRegisterBusiness = async (e: React.FormEvent) => {
     e.preventDefault();
     setFormError(null);
@@ -223,44 +251,82 @@ export default function Dashboard() {
     }
 
     setAddingBiz(true);
-    const newId = 'biz_' + Math.random().toString(36).substring(2, 9);
     const path = `users/${userId}/businesses`;
 
-    const newBiz: BusinessProfile = {
-      id: newId,
-      userId,
-      name: newBizName,
-      niche: newBizNiche,
-      description: newBizDesc,
-      targetAudience: newBizAudience || 'Emprendedores y consumidores con interés directo',
-      socialHandles: {
-        instagram: newBizInsta || '',
-        tiktok: newBizTikTok || '',
-        facebook: newBizFb || '',
-      },
-      createdAt: new Date().toISOString()
-    };
+    if (isEditMode && activeBusiness) {
+      const updatedBiz: BusinessProfile = {
+        ...activeBusiness,
+        name: newBizName,
+        niche: newBizNiche,
+        description: newBizDesc,
+        targetAudience: newBizAudience || 'Emprendedores y consumidores con interés directo',
+        socialHandles: {
+          instagram: newBizInsta || '',
+          tiktok: newBizTikTok || '',
+          facebook: newBizFb || '',
+        }
+      };
 
-    try {
-      await setDoc(doc(db, path, newId), newBiz);
-      setBusinesses(prev => [...prev, newBiz]);
-      setActiveBusiness(newBiz);
-      
-      // Reset form
-      setNewBizName('');
-      setNewBizNiche('');
-      setNewBizDesc('');
-      setNewBizAudience('');
-      setNewBizInsta('');
-      setNewBizTikTok('');
-      setNewBizFb('');
-      setShowAddBusiness(false);
-      setSuccessMsg("¡Negocio registrado con éxito! Ahora puedes generar tu estrategia.");
-    } catch (err) {
-      setFormError("Error al guardar en base de datos. Verifica tu conexión.");
-      handleFirestoreError(err, OperationType.WRITE, `${path}/${newId}`);
-    } finally {
-      setAddingBiz(false);
+      try {
+        await setDoc(doc(db, path, activeBusiness.id), updatedBiz);
+        setBusinesses(prev => prev.map(biz => biz.id === activeBusiness.id ? updatedBiz : biz));
+        setActiveBusiness(updatedBiz);
+
+        // Reset form
+        setNewBizName('');
+        setNewBizNiche('');
+        setNewBizDesc('');
+        setNewBizAudience('');
+        setNewBizInsta('');
+        setNewBizTikTok('');
+        setNewBizFb('');
+        setShowAddBusiness(false);
+        setIsEditMode(false);
+        setSuccessMsg("¡Los cambios en el perfil de tu negocio han sido guardados con éxito!");
+      } catch (err) {
+        setFormError("Error al guardar los cambios en la base de datos.");
+        handleFirestoreError(err, OperationType.WRITE, `${path}/${activeBusiness.id}`);
+      } finally {
+        setAddingBiz(false);
+      }
+    } else {
+      const newId = 'biz_' + Math.random().toString(36).substring(2, 9);
+      const newBiz: BusinessProfile = {
+        id: newId,
+        userId,
+        name: newBizName,
+        niche: newBizNiche,
+        description: newBizDesc,
+        targetAudience: newBizAudience || 'Emprendedores y consumidores con interés directo',
+        socialHandles: {
+          instagram: newBizInsta || '',
+          tiktok: newBizTikTok || '',
+          facebook: newBizFb || '',
+        },
+        createdAt: new Date().toISOString()
+      };
+
+      try {
+        await setDoc(doc(db, path, newId), newBiz);
+        setBusinesses(prev => [...prev, newBiz]);
+        setActiveBusiness(newBiz);
+
+        // Reset form
+        setNewBizName('');
+        setNewBizNiche('');
+        setNewBizDesc('');
+        setNewBizAudience('');
+        setNewBizInsta('');
+        setNewBizTikTok('');
+        setNewBizFb('');
+        setShowAddBusiness(false);
+        setSuccessMsg("¡Negocio registrado con éxito! Ahora puedes generar tu estrategia.");
+      } catch (err) {
+        setFormError("Error al guardar en base de datos. Verifica tu conexión.");
+        handleFirestoreError(err, OperationType.WRITE, `${path}/${newId}`);
+      } finally {
+        setAddingBiz(false);
+      }
     }
   };
 
@@ -476,7 +542,7 @@ export default function Dashboard() {
             <div className="flex justify-between items-center text-[10px] font-mono font-bold text-zinc-500 tracking-widest">
               <span>MIS NEGOCIOS</span>
               <button 
-                onClick={() => setShowAddBusiness(true)}
+                onClick={handleOpenNewBusinessModal}
                 className="text-zinc-800 hover:text-zinc-600 transition"
                 title="Registrar nuevo negocio"
               >
@@ -588,7 +654,7 @@ export default function Dashboard() {
               </div>
 
               <button
-                onClick={() => setShowAddBusiness(true)}
+                onClick={handleOpenNewBusinessModal}
                 className="bg-zinc-900 hover:bg-zinc-950 text-white font-mono font-bold py-4 px-6 rounded-none text-xs uppercase tracking-widest border-r-4 border-b-4 border-zinc-600 active:translate-y-0.5 inline-flex items-center gap-2 cursor-pointer shadow-md"
               >
                 Comenzar Registro Ahora <ChevronRight className="w-4 h-4 text-white" />
@@ -612,6 +678,15 @@ export default function Dashboard() {
                   </span>
                 </h1>
                 <p className="text-xs text-zinc-600 mt-2 max-w-xl truncate leading-normal italic font-sans font-light">{activeBusiness?.description}</p>
+                <div className="mt-3.5">
+                  <button
+                    onClick={handleStartEditBusiness}
+                    className="text-[10px] font-mono font-bold text-zinc-700 hover:text-zinc-950 flex items-center gap-1.5 uppercase tracking-wider py-1.5 px-3 border border-zinc-200 bg-zinc-50 drop-shadow-xs transition duration-200 hover:bg-zinc-100 cursor-pointer w-max"
+                    id="btn-edit-business-data"
+                  >
+                    <Edit3 className="w-3.5 h-3.5 text-zinc-800" /> Editar Datos de Marca
+                  </button>
+                </div>
               </div>
 
               <div className="flex items-center gap-2">
@@ -1158,7 +1233,7 @@ export default function Dashboard() {
             >
               <div className="px-6 py-5 border-b-2 border-zinc-200 flex justify-between items-center">
                 <span className="font-sans font-bold text-sm text-zinc-900 flex items-center gap-2 uppercase tracking-wider">
-                  <Building2 className="w-5 h-5 text-zinc-900" /> REGISTRAR PERFIL DE NEGOCIO
+                  <Building2 className="w-5 h-5 text-zinc-900" /> {isEditMode ? "EDITAR PERFIL DE MARCA / NEGOCIO" : "REGISTRAR PERFIL DE NEGOCIO"}
                 </span>
                 <button 
                   onClick={() => setShowAddBusiness(false)}
@@ -1276,7 +1351,7 @@ export default function Dashboard() {
                       <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-none animate-spin"></div>
                     ) : (
                       <>
-                        <Check className="w-4 h-4" /> Registrar Marca
+                        <Check className="w-4 h-4" /> {isEditMode ? "Guardar Cambios" : "Registrar Marca"}
                       </>
                     )}
                   </button>
