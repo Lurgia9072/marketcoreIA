@@ -36,6 +36,7 @@ import {
   Twitter,
   MessageCircle,
   Clock,
+  History,
   AlertCircle,
   Eye,
   ArrowRight,
@@ -93,6 +94,8 @@ export default function Dashboard() {
 
   // Active workspace states
   const [activeBusiness, setActiveBusiness] = useState<BusinessProfile | null>(null);
+  const [selectedStrategyId, setSelectedStrategyId] = useState<string | null>(null);
+  const [showAllCalendarPosts, setShowAllCalendarPosts] = useState(false);
 
   // Form states for adding business
   const [showAddBusiness, setShowAddBusiness] = useState(false);
@@ -341,8 +344,9 @@ export default function Dashboard() {
   const handleWizardSuccess = (newStrat: MarketingStrategy, newPosts: CalendarPost[]) => {
     setStrategies(prev => [newStrat, ...prev]);
     setCalendarItems(prev => [...newPosts, ...prev]);
+    setSelectedStrategyId(newStrat.id);
     setShowWizard(false);
-    setSuccessMsg("¡Estrategia de 4 semanas y calendario de contenidos guardados con éxito!");
+    setSuccessMsg("¡Estrategia y calendario de contenidos guardados con éxito!");
   };
 
 
@@ -381,6 +385,9 @@ export default function Dashboard() {
     try {
       await deleteDoc(doc(db, `users/${userId}/strategies`, stratId));
       setStrategies(prev => prev.filter(item => item.id !== stratId));
+      if (selectedStrategyId === stratId) {
+        setSelectedStrategyId(null);
+      }
       setSuccessMsg("Estrategia eliminada.");
     } catch (err) {
       handleFirestoreError(err, OperationType.DELETE, path);
@@ -479,12 +486,29 @@ export default function Dashboard() {
   };
 
   const filterCalendarByBiz = (bizId: string) => {
-    return calendarItems.filter(item => item.businessId === bizId);
+    const bizPosts = calendarItems.filter(item => item.businessId === bizId);
+    if (showAllCalendarPosts) {
+      return bizPosts;
+    }
+    if (activeStrategy) {
+      const isLatestStrategy = businessStrats[0]?.id === activeStrategy.id;
+      return bizPosts.filter(item => {
+        if (item.strategyId) {
+          return item.strategyId === activeStrategy.id;
+        }
+        return isLatestStrategy;
+      });
+    }
+    return bizPosts;
   };
 
   const filterStrategiesByBiz = (bizId: string) => {
     return strategies.filter(item => item.businessId === bizId);
   };
+
+  const businessStrats = filterStrategiesByBiz(activeBusiness?.id || '')
+    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+  const activeStrategy = businessStrats.find(s => s.id === selectedStrategyId) || businessStrats[0];
 
   return (
     <div className="min-h-screen bg-[#fafafc] text-zinc-800 flex flex-col md:flex-row font-sans selection:bg-zinc-200 selection:text-zinc-900">
@@ -557,7 +581,10 @@ export default function Dashboard() {
                 {businesses.map(biz => (
                   <button
                     key={biz.id}
-                    onClick={() => setActiveBusiness(biz)}
+                    onClick={() => {
+                      setActiveBusiness(biz);
+                      setSelectedStrategyId(null);
+                    }}
                     className={`w-full text-left px-3 py-2.5 rounded-none text-xs font-bold flex items-center gap-2.5 transition font-sans ${
                       activeBusiness?.id === biz.id 
                         ? 'bg-zinc-900 border border-zinc-900 text-white shadow-[2px_2px_0px_0px_rgba(24,24,27,0.15)]' 
@@ -739,7 +766,29 @@ export default function Dashboard() {
                       </span>
                     </div>
 
-                    {filterStrategiesByBiz(activeBusiness?.id || '').slice(0, 1).map(strat => (
+                    {/* Selector de Historial de Estrategias y Título */}
+                    {businessStrats.length > 1 && (
+                      <div className="mb-4 pb-4 border-b border-zinc-200">
+                        <label className="text-[9px] font-mono font-bold text-zinc-500 block mb-1.5 uppercase tracking-widest">VER OTRA ESTRATEGIA (HISTORIAL)</label>
+                        <select
+                          value={activeStrategy?.id || ''}
+                          onChange={(e) => {
+                            setSelectedStrategyId(e.target.value);
+                            setStratTab('resume');
+                          }}
+                          className="w-full text-[10px] bg-zinc-50 border border-zinc-200 p-2 font-mono font-bold tracking-wide uppercase focus:outline-hidden focus:border-zinc-400 cursor-pointer rounded-none text-zinc-800"
+                          id="select-strategy-history"
+                        >
+                          {businessStrats.map((strat) => (
+                            <option key={strat.id} value={strat.id}>
+                              {strat.title} ({new Date(strat.createdAt).toLocaleDateString('es-ES', { month: 'short', day: 'numeric', year: 'numeric' })})
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    )}
+
+                    {[activeStrategy].filter(Boolean).map(strat => (
                       <div key={strat.id} className="relative font-sans text-xs space-y-4">
                         <div className="flex justify-between items-start gap-1">
                           <h4 className="font-sans font-extrabold text-sm text-zinc-900 uppercase tracking-wide leading-tight">{strat.title}</h4>
@@ -904,10 +953,41 @@ export default function Dashboard() {
                 <div className="lg:col-span-8 flex flex-col gap-6">
                   
                   {/* CALENDAR FILTER HEADER BAR */}
-                  <div className="bg-white border-2 border-zinc-200 p-4.5 rounded-none flex flex-wrap gap-4 items-center justify-between shadow-[4px_4px_0px_0px_rgba(24,24,27,1)]">
-                    <span className="text-[10px] font-mono font-bold tracking-widest text-zinc-500 uppercase flex items-center gap-1.5">
-                      <CalendarIcon className="w-4 h-4 text-zinc-900" /> PLANIFICACIÓN EDITORIAL DE CONTENIDOS
-                    </span>
+                  <div className="bg-white border-2 border-zinc-200 p-4.5 rounded-none flex flex-col gap-4 shadow-[4px_4px_0px_0px_rgba(24,24,27,1)]">
+                    <div className="flex flex-wrap gap-4 items-center justify-between pb-3 border-b border-zinc-150">
+                      <div className="flex flex-col gap-1">
+                        <span className="text-[10px] font-mono font-bold tracking-widest text-zinc-500 uppercase flex items-center gap-1.5">
+                          <CalendarIcon className="w-4 h-4 text-zinc-900" /> PLANIFICACIÓN EDITORIAL DE CONTENIDOS
+                        </span>
+                        {activeStrategy && (
+                          <div className="text-[11px] text-zinc-650 font-medium">
+                            Calendario activo de: <strong className="text-zinc-900">{activeStrategy.title}</strong>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Dropdown de Historial mensual en el mismo calendario */}
+                      {businessStrats.length > 0 && (
+                        <div className="flex items-center gap-2 text-xs font-mono bg-zinc-100 hover:bg-zinc-200/60 transition duration-150 border border-zinc-200 px-3 py-1.5">
+                          <span className="text-zinc-500 font-bold uppercase text-[9px] tracking-wider">MES / ESTRATEGIA:</span>
+                          <select
+                            value={activeStrategy?.id || ''}
+                            onChange={(e) => {
+                              setSelectedStrategyId(e.target.value);
+                              setShowAllCalendarPosts(false);
+                            }}
+                            className="bg-transparent border-none text-[10px] font-mono font-bold tracking-tight text-zinc-950 focus:outline-none cursor-pointer uppercase py-0.5"
+                            id="select-calendar-strategy-header"
+                          >
+                            {businessStrats.map((strat) => (
+                              <option key={strat.id} value={strat.id}>
+                                {strat.title} ({new Date(strat.createdAt).toLocaleDateString('es-ES', { month: 'short', year: 'numeric' })})
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                      )}
+                    </div>
 
                     {/* View Switcher Toggle & Filters */}
                     <div className="flex flex-wrap gap-3 items-center text-[10px] font-mono">
@@ -928,6 +1008,20 @@ export default function Dashboard() {
                           Lista Completa
                         </button>
                       </div>
+
+                      {/* Botón de Historial de Publicaciones */}
+                      <button
+                        type="button"
+                        onClick={() => setShowAllCalendarPosts(!showAllCalendarPosts)}
+                        className={`px-3 py-1.5 border uppercase text-[9px] font-mono font-bold tracking-wider rounded-none cursor-pointer transition-all flex items-center gap-1.5 ${
+                          showAllCalendarPosts 
+                            ? 'bg-zinc-900 border-zinc-900 w-fit text-white shadow-xs' 
+                            : 'bg-zinc-50 border-zinc-200 text-zinc-700 hover:border-zinc-400 hover:text-zinc-900'
+                        }`}
+                        title="Alternar entre ver las publicaciones del plan seleccionado, o todo el historial."
+                      >
+                        <History className="w-3.5 h-3.5" /> {showAllCalendarPosts ? "Ver: Todo el Historial" : "Ver: Sólo Plan Seleccionado"}
+                      </button>
 
                       {/* Network Filter */}
                       <select 

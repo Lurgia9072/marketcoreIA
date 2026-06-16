@@ -85,6 +85,7 @@ export interface CalendarPost {
   id: string;
   userId: string;
   businessId: string;
+  strategyId?: string;
   title: string;
   copy: string;
   cta?: string;

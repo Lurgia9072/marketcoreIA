@@ -371,6 +371,7 @@ export default function StrategyWizard({ userId, business, onClose, onSuccess, o
           id: postId,
           userId,
           businessId: business.id,
+          strategyId: stratId,
           title: item.title || `Publicación ${i + 1}`,
           copy: item.copy || '',
           cta: item.cta || '',
