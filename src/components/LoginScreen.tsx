@@ -49,7 +49,7 @@ export default function LoginScreen() {
         </Link>
         <div className="flex items-center gap-2">
           <Sparkles className="w-4 h-4 text-zinc-650 text-zinc-600" />
-          <span className="text-xs font-mono text-zinc-500 tracking-wider">MERCADEA_SECURE_AUTH_v1.0</span>
+          <span className="text-xs font-mono text-zinc-500 tracking-wider">MARKETCORE_SECURE_AUTH_v1.0</span>
         </div>
       </header>
 
@@ -70,7 +70,7 @@ export default function LoginScreen() {
           </div>
 
           <h1 className="font-sans font-bold text-2xl md:text-3xl text-zinc-900 tracking-tight uppercase">
-            Mercadea<span className="text-zinc-550 bg-zinc-100 px-1.5 py-0.5 ml-1 border border-zinc-200 rounded-none text-xs font-mono font-bold">_IA</span>
+            MARKETCORE<span className="text-zinc-550 bg-zinc-100 px-1.5 py-0.5 ml-1 border border-zinc-200 rounded-none text-xs font-mono font-bold">_IA</span>
           </h1>
           <p className="text-zinc-600 font-light text-xs mt-3 leading-relaxed">
             Tu consultor de marketing con IA. Diseñado para estructurar estrategias, calendarios de publicación y textos persuasivos optimizados para tu sector.
@@ -128,7 +128,7 @@ export default function LoginScreen() {
 
       {/* Footer minimal */}
       <footer className="py-6 border-t border-zinc-200 text-center text-[10px] font-mono uppercase tracking-widest text-[#5c5c64] relative z-10 w-full bg-zinc-100/50">
-        <p>&copy; {new Date().getFullYear()} MercadeaIA · Todos los derechos reservados.</p>
+        <p>&copy; {new Date().getFullYear()} MARKETCOREIA · Todos los derechos reservados.</p>
       </footer>
     </div>
   );

@@ -41,6 +41,7 @@ interface StrategyWizardProps {
   };
   onClose: () => void;
   onSuccess: (newStrategy: MarketingStrategy, posts: CalendarPost[]) => void;
+  onLimitExceeded?: (type: string) => void;
 }
 
 const OBJ_OPTIONS = [
@@ -57,7 +58,7 @@ const OBJ_OPTIONS = [
   "Incrementar pedidos online"
 ];
 
-export default function StrategyWizard({ userId, business, onClose, onSuccess }: StrategyWizardProps) {
+export default function StrategyWizard({ userId, business, onClose, onSuccess, onLimitExceeded }: StrategyWizardProps) {
   const [step, setStep] = useState(1);
   const [error, setError] = useState<string | null>(null);
 
@@ -248,6 +249,7 @@ export default function StrategyWizard({ userId, business, onClose, onSuccess }:
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          userId,
           name: business.name,
           niche: business.niche,
           description: business.description,
@@ -262,6 +264,12 @@ export default function StrategyWizard({ userId, business, onClose, onSuccess }:
 
       if (!res.ok) {
         const errorData = await res.json().catch(() => ({}));
+        if (errorData.error === "LIMIT_EXCEEDED") {
+          if (onLimitExceeded) {
+            onLimitExceeded(errorData.type || "strategies");
+          }
+          throw new Error("Socio IA: Has superado el límite de Estrategias en tu Plan Gratuito. Por favor actualiza para continuar.");
+        }
         throw new Error(errorData.error || "El Analista IA no pudo finalizar la estrategia de marketing. Verifica tu Clave API.");
       }
 

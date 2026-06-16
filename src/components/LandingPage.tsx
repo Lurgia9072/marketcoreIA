@@ -85,7 +85,7 @@ export default function LandingPage() {
               <Sparkles className="w-5 h-5 text-white" />
             </div>
             <span className="font-sans font-bold text-xl tracking-wide text-white uppercase">
-              Mercadea<span className="text-zinc-450 bg-zinc-800 text-zinc-350 border border-zinc-700 px-1.5 py-0.5 ml-1.5 text-xs font-mono font-normal">_IA</span>
+              MARKETCORE<span className="text-zinc-450 bg-zinc-800 text-zinc-350 border border-zinc-700 px-1.5 py-0.5 ml-1.5 text-xs font-mono font-normal">_IA</span>
             </span>
           </Link>
 
@@ -195,7 +195,7 @@ export default function LandingPage() {
                   <span className="text-[10px] font-mono text-zinc-400 uppercase tracking-widest ml-1">SISTEMA_ACTIVO_LIVEv3_ONLINE</span>
                 </div>
                 <div className="bg-zinc-900 px-3.5 py-1 text-[9px] font-mono text-zinc-500 tracking-widest border border-zinc-800">
-                  MERCADEA_DASHBOARD_STABLE
+                  MARKETCORE_DASHBOARD_STABLE
                 </div>
               </div>
 
@@ -638,7 +638,7 @@ export default function LandingPage() {
                 <div className="bg-zinc-950 hover:bg-zinc-900 border border-zinc-850 p-2.5 rounded-none">
                   <XCircle className="w-5 h-5 text-zinc-400" />
                 </div>
-                <h4 className="font-bold text-lg text-zinc-200 uppercase tracking-wide">Antes de MercadeaIA</h4>
+                <h4 className="font-bold text-lg text-zinc-200 uppercase tracking-wide">Antes de MARKETCOREIA</h4>
               </div>
 
               <ul className="flex flex-col gap-4 text-zinc-400 text-xs font-light leading-relaxed">
@@ -671,7 +671,7 @@ export default function LandingPage() {
                 <div className="bg-zinc-950 border border-zinc-800 p-2.5 rounded-none">
                   <CheckCircle2 className="w-5 h-5 text-white" />
                 </div>
-                <h4 className="font-bold text-lg text-zinc-200 uppercase tracking-wide">Después de MercadeaIA</h4>
+                <h4 className="font-bold text-lg text-zinc-200 uppercase tracking-wide">Después de MARKETCOREIA</h4>
               </div>
 
               <ul className="flex flex-col gap-4 text-zinc-300 text-xs font-light leading-relaxed">
@@ -1010,7 +1010,7 @@ export default function LandingPage() {
               <Sparkles className="w-4 h-4 text-zinc-450" />
             </div>
             <span className="font-sans font-bold text-lg text-white uppercase tracking-wider">
-              Mercadea<span className="text-zinc-400 font-mono text-xs">_IA</span>
+              MARKETCORE<span className="text-zinc-400 font-mono text-xs">_IA</span>
             </span>
           </div>
 
@@ -1020,7 +1020,7 @@ export default function LandingPage() {
             <a href="#bento" className="hover:text-white transition">Funcionalidades</a>
             <a href="#precios" className="hover:text-white transition">Precios</a>
             <span className="text-zinc-800">|</span>
-            <span className="text-zinc-500 hover:text-zinc-400 cursor-pointer tracking-normal">info@mercadeaia.com</span>
+            <span className="text-zinc-500 hover:text-zinc-400 cursor-pointer tracking-normal">info@MARKETCOREia.com</span>
           </div>
 
           <div className="flex items-center gap-4">
@@ -1038,7 +1038,7 @@ export default function LandingPage() {
         </div>
 
         <div className="max-w-7xl mx-auto text-center md:text-left mt-8 pt-6 border-t border-zinc-900 text-[10px] text-zinc-600 flex flex-col md:flex-row justify-between gap-4 uppercase tracking-widest">
-          <span>&copy; {new Date().getFullYear()} MercadeaIA · Todos los derechos reservados · Diseñado para emprendedores de forma transparente.</span>
+          <span>&copy; {new Date().getFullYear()} MARKETCOREIA · Todos los derechos reservados · Diseñado para emprendedores de forma transparente.</span>
           <div className="flex justify-center gap-4">
             <span className="hover:text-zinc-500 cursor-pointer">Términos de servicio</span>
             <span>·</span>

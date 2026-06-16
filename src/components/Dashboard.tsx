@@ -3,6 +3,7 @@ import { useAuth } from '../context/AuthContext';
 import { 
   collection, 
   getDocs, 
+  getDoc,
   addDoc, 
   doc, 
   setDoc,
@@ -14,6 +15,7 @@ import {
 import { db } from '../lib/firebase';
 import { handleFirestoreError, OperationType } from '../lib/firestore-helpers';
 import { BusinessProfile, MarketingStrategy, CalendarPost } from '../types';
+import PremiumUpgradeModal from './PremiumUpgradeModal';
 import { 
   Sparkles, 
   LogOut, 
@@ -71,6 +73,24 @@ export default function Dashboard() {
   const [calendarItems, setCalendarItems] = useState<CalendarPost[]>([]);
   const [loadingData, setLoadingData] = useState(true);
 
+  // Live Firebase-Synchronized Subscription and Paywall States
+  const [showPaywall, setShowPaywall] = useState(false);
+  const [subscription, setSubscription] = useState<{
+    plan: string;
+    status: string;
+    copiesUsed: number;
+    imagesUsed: number;
+    strategiesUsed: number;
+    weeklyPlansUsed: number;
+  }>({
+    plan: 'FREE',
+    status: 'ACTIVE',
+    copiesUsed: 0,
+    imagesUsed: 0,
+    strategiesUsed: 0,
+    weeklyPlansUsed: 0
+  });
+
   // Active workspace states
   const [activeBusiness, setActiveBusiness] = useState<BusinessProfile | null>(null);
 
@@ -127,6 +147,30 @@ export default function Dashboard() {
   const fetchUserContent = async () => {
     setLoadingData(true);
     try {
+      // 0. Fetch/Initialize subscription
+      try {
+        const subRef = doc(db, "subscriptions", userId);
+        const subSnap = await getDoc(subRef);
+        if (subSnap.exists()) {
+          setSubscription(subSnap.data() as any);
+        } else {
+          const defaultSub = {
+            plan: 'FREE',
+            status: 'ACTIVE',
+            copiesUsed: 0,
+            imagesUsed: 0,
+            strategiesUsed: 0,
+            weeklyPlansUsed: 0,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString()
+          };
+          await setDoc(subRef, defaultSub);
+          setSubscription(defaultSub);
+        }
+      } catch (err) {
+        console.error("Error loading subscription from Firestore:", err);
+      }
+
       // 1. Fetch businesses
       const bizPath = `users/${userId}/businesses`;
       let bizList: BusinessProfile[] = [];
@@ -293,6 +337,7 @@ export default function Dashboard() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          userId,
           topic: cwTopic,
           channel: cwChannel,
           tone: cwTone,
@@ -305,7 +350,12 @@ export default function Dashboard() {
       });
 
       if (!response.ok) {
-        throw new Error("Socio IA no disponible. Comprueba conexión.");
+        const errorData = await response.json().catch(() => ({}));
+        if (errorData.error === 'LIMIT_EXCEEDED') {
+          setShowPaywall(true);
+          throw new Error("LÍMITE ALCANZADO: Has agotado tus créditos de redacción en el Plan Gratuito. ¡Por favor actualízate para desbloquear copias e imágenes ilimitadas!");
+        }
+        throw new Error(errorData.error || "Socio IA no disponible. Comprueba conexión.");
       }
 
       const data = await response.json();
@@ -382,7 +432,7 @@ export default function Dashboard() {
                 <Sparkles className="w-5 h-5 text-white" />
               </div>
               <span className="font-sans font-bold text-base text-zinc-900 uppercase tracking-wider">
-                Mercadea<span className="text-zinc-650 bg-zinc-100 text-zinc-600 border border-zinc-205 px-1.5 py-0.5 ml-1.5 text-[10px] font-mono font-bold rounded-none">_IA</span>
+                MARKETCORE<span className="text-zinc-650 bg-zinc-100 text-zinc-600 border border-zinc-205 px-1.5 py-0.5 ml-1.5 text-[10px] font-mono font-bold rounded-none">_IA</span>
               </span>
             </Link>
           </div>
@@ -397,7 +447,27 @@ export default function Dashboard() {
             )}
             <div className="overflow-hidden">
               <p className="text-xs font-bold text-zinc-900 truncate uppercase tracking-wide">{user?.displayName}</p>
-              <span className="text-[9px] bg-zinc-200/50 text-zinc-700 font-mono font-bold px-1.5 py-0.5 rounded-none block w-max uppercase mt-0.5 tracking-wider border border-zinc-200">TRIAL ACTIVO</span>
+              <div className="flex gap-1 items-center mt-1 flex-wrap">
+                <span className={`text-[8px] font-mono font-bold px-1 py-0.5 rounded-none block w-max uppercase tracking-wider border ${
+                  subscription.plan === 'FREE' 
+                    ? 'bg-zinc-100 text-zinc-600 border-zinc-200' 
+                    : subscription.plan === 'PRO'
+                      ? 'bg-indigo-50 text-indigo-700 border-indigo-200 shadow-[0_0_8px_rgba(99,102,241,0.1)]'
+                      : subscription.plan === 'EMPRENDEDOR'
+                        ? 'bg-zinc-900 text-white border-zinc-950'
+                        : 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                }`}>
+                  {subscription.plan}
+                </span>
+                {subscription.plan === 'FREE' && (
+                  <button 
+                    onClick={() => setShowPaywall(true)}
+                    className="text-[8px] font-mono font-bold text-indigo-600 hover:text-indigo-850 transition underline underline-offset-1 uppercase tracking-wider cursor-pointer"
+                  >
+                    UPGRADE
+                  </button>
+                )}
+              </div>
             </div>
           </div>
 
@@ -501,17 +571,17 @@ export default function Dashboard() {
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 my-8 text-left text-xs font-mono">
                 <div className="bg-zinc-50 p-4 rounded-none border border-zinc-200">
-                  <span className="font-bold text-zinc-900 text-sm block mb-1">STEP_01</span>
+                  <span className="font-bold text-zinc-900 text-sm block mb-1">paso 1</span>
                   <span className="font-bold text-zinc-700 block mb-1 uppercase text-[10px] tracking-wide">Registras tu marca</span>
                   <p className="text-zinc-650 text-[11px] leading-normal font-sans font-light">Nos describes tus productos y target ideal.</p>
                 </div>
                 <div className="bg-zinc-50 p-4 rounded-none border border-zinc-200">
-                  <span className="font-bold text-zinc-900 text-sm block mb-1">STEP_02</span>
+                  <span className="font-bold text-zinc-900 text-sm block mb-1">paso 2</span>
                   <span className="font-bold text-zinc-700 block mb-1 uppercase text-[10px] tracking-wide">Generas estrategia</span>
-                  <p className="text-zinc-650 text-[11px] leading-normal font-sans font-light">El Analista IA de Gemini armará tu plan de copy.</p>
+                  <p className="text-zinc-650 text-[11px] leading-normal font-sans font-light">El Analista IA de marketcore armará tu plan de copy.</p>
                 </div>
                 <div className="bg-zinc-50 p-4 rounded-none border border-zinc-200">
-                  <span className="font-bold text-zinc-900 text-sm block mb-1">STEP_03</span>
+                  <span className="font-bold text-zinc-900 text-sm block mb-1">paso 3</span>
                   <span className="font-bold text-zinc-700 block mb-1 uppercase text-[10px] tracking-wide">Calendario Listo</span>
                   <p className="text-zinc-650 text-[11px] leading-normal font-sans font-light">Copias tus posts listos con 1-click al portapapeles.</p>
                 </div>
@@ -553,7 +623,7 @@ export default function Dashboard() {
                   {generatingStrategy ? (
                     <>
                       <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-none animate-spin"></div>
-                      <span>ARMANDO PLAN ESTRELLA CON GEMINI...</span>
+                      <span>ARMANDO PLAN ESTRELLA CON marketcore...</span>
                     </>
                   ) : (
                     <>
@@ -583,7 +653,7 @@ export default function Dashboard() {
               /* DATA BOARDS: STRATEGIES SUMMARY & EDITORIAL CALENDAR FILTERED BY ACT_BIZ */
               <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
                 
-                {/* Left side: Strategic summary from Gemini */}
+                {/* Left side: Strategic summary from marketcore */}
                 <div className="lg:col-span-4 flex flex-col gap-6">
                   
                   {/* Premium Brand Strategy report with Interactive Tabs */}
@@ -1325,7 +1395,7 @@ export default function Dashboard() {
                     className="bg-zinc-50 p-5 rounded-none border border-zinc-200 mt-2 relative group shadow-[3px_3px_0px_0px_rgba(24,24,27,1)]"
                   >
                     <span className="text-[9px] bg-zinc-100 text-zinc-700 font-mono px-2 py-0.5 rounded-none font-bold uppercase tracking-widest block w-max mb-3 border border-zinc-200">
-                      PROPUESTA LOGRADA CON GEMINI
+                      PROPUESTA LOGRADA CON marketcore
                     </span>
                     
                     <h5 className="font-sans font-bold text-sm text-zinc-900 uppercase tracking-wide">{cwResult.title}</h5>
@@ -1362,7 +1432,7 @@ export default function Dashboard() {
 
               {/* Drawer footer */}
               <div className="px-6 py-4 border-t-2 border-zinc-200 text-center text-[9px] text-zinc-500 font-mono uppercase tracking-widest bg-zinc-50">
-                Acceso bajo motor LLM de Gemini en Español
+                Acceso bajo motor LLM de marketcore en Español
               </div>
             </motion.div>
           </div>
@@ -1376,6 +1446,7 @@ export default function Dashboard() {
           business={activeBusiness} 
           onClose={() => setShowWizard(false)} 
           onSuccess={handleWizardSuccess} 
+          onLimitExceeded={() => setShowPaywall(true)}
         />
       )}
 
@@ -1393,8 +1464,18 @@ export default function Dashboard() {
             setCalendarItems(prev => prev.filter(p => p.id !== id));
             setSelectedPost(null);
           }} 
+          onLimitExceeded={() => setShowPaywall(true)}
         />
       )}
+
+      {/* GLOBAL HIGH-CONVERTING MONETIZATION PAYWALL */}
+      <PremiumUpgradeModal 
+        userId={userId}
+        isOpen={showPaywall}
+        onClose={() => setShowPaywall(false)}
+        onUpgradeSuccess={fetchUserContent}
+        currentUsage={subscription}
+      />
 
     </div>
   );

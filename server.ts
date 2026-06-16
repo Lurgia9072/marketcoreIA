@@ -4,6 +4,86 @@ import { createServer as createViteServer } from "vite";
 import { GoogleGenAI } from "@google/genai";
 import dotenv from "dotenv";
 import fs from "fs";
+import { initializeApp as initializeFirebaseApp } from "firebase/app";
+import { getFirestore, doc, getDoc, setDoc, updateDoc } from "firebase/firestore";
+import firebaseConfig from "./firebase-applet-config.json";
+
+// Initialize Firebase App for server-side limits tracking
+const firebaseApp = initializeFirebaseApp(firebaseConfig);
+const db = getFirestore(firebaseApp, firebaseConfig.firestoreDatabaseId);
+
+// Limits definitions for each subscription tier
+const PLAN_LIMITS = {
+  FREE: {
+    strategies: 2,
+    weeklyPlans: 4,
+    copies: 5,
+    images: 1,
+  },
+  EMPRENDEDOR: {
+    strategies: Infinity,
+    weeklyPlans: Infinity,
+    copies: 60,
+    images: 20,
+  },
+  PRO: {
+    strategies: Infinity,
+    weeklyPlans: Infinity,
+    copies: 200,
+    images: 80,
+  },
+  BUSINESS: {
+    strategies: Infinity,
+    weeklyPlans: Infinity,
+    copies: Infinity,
+    images: Infinity,
+  }
+};
+
+interface SubscriptionDoc {
+  plan: string;
+  status: string;
+  copiesUsed: number;
+  imagesUsed: number;
+  strategiesUsed: number;
+  weeklyPlansUsed: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+// Ensure user has a subscription document and return it
+async function getOrCreateUserSubscription(userId: string): Promise<SubscriptionDoc> {
+  const subRef = doc(db, "subscriptions", userId);
+  const subSnap = await getDoc(subRef);
+  const now = new Date().toISOString();
+
+  if (subSnap.exists()) {
+    const data = subSnap.data();
+    return {
+      plan: (data.plan || "FREE").toUpperCase(),
+      status: data.status || "ACTIVE",
+      copiesUsed: Number(data.copiesUsed || 0),
+      imagesUsed: Number(data.imagesUsed || 0),
+      strategiesUsed: Number(data.strategiesUsed || 0),
+      weeklyPlansUsed: Number(data.weeklyPlansUsed || 0),
+      createdAt: data.createdAt || now,
+      updatedAt: data.updatedAt || now,
+    };
+  } else {
+    const newSub: SubscriptionDoc = {
+      plan: "FREE",
+      status: "ACTIVE",
+      copiesUsed: 0,
+      imagesUsed: 0,
+      strategiesUsed: 0,
+      weeklyPlansUsed: 0,
+      createdAt: now,
+      updatedAt: now,
+    };
+    await setDoc(subRef, newSub);
+    return newSub;
+  }
+}
 
 // Save the system-provided environment variables before dotenv might overwrite them
 const systemGeminiKey = (process.env.GEMINI_API_KEY || "").trim();
@@ -201,6 +281,7 @@ async function startServer() {
   app.post("/api/generate-complete-strategy", async (req, res) => {
     try {
       const { 
+        userId,
         name, 
         niche, 
         description, 
@@ -212,8 +293,33 @@ async function startServer() {
         uploadedAnalysisSummary
       } = req.body;
 
+      if (!userId) {
+        return res.status(400).json({ error: "Falta el identificador de usuario 'userId' para verificar créditos" });
+      }
+
       if (!name || !niche || !description) {
         return res.status(400).json({ error: "Faltan campos obligatorios: name, niche, description" });
+      }
+
+      // Live subscription check and limits validation
+      const sub = await getOrCreateUserSubscription(userId);
+      const userPlan = sub.plan.toUpperCase() as keyof typeof PLAN_LIMITS;
+      const limits = PLAN_LIMITS[userPlan] || PLAN_LIMITS.FREE;
+
+      if (sub.strategiesUsed >= limits.strategies) {
+        return res.status(403).json({ 
+          error: "LIMIT_EXCEEDED", 
+          message: "Has alcanzado el límite de Estrategias IA de tu plan.",
+          type: "strategies"
+        });
+      }
+
+      if (sub.weeklyPlansUsed >= limits.weeklyPlans) {
+        return res.status(403).json({ 
+          error: "LIMIT_EXCEEDED", 
+          message: "Has alcanzado el límite de Cronogramas Semanales IA de tu plan.",
+          type: "weeklyPlans"
+        });
       }
 
       const prompt = `Actúa como un Consultor de Marketing Digital de Elite y Director Creativo para marcas de emprendedores en Latinoamérica.
@@ -318,6 +424,15 @@ Devuelve de manera EXCLUSIVA un objeto JSON estructurado con el siguiente format
 
       const responseText = await callAI(prompt);
       const parsedData = JSON.parse(responseText);
+
+      // Increment limits on successful plan creation
+      const subRef = doc(db, "subscriptions", userId);
+      await updateDoc(subRef, {
+        strategiesUsed: sub.strategiesUsed + 1,
+        weeklyPlansUsed: sub.weeklyPlansUsed + 2, // Consumes the 2 weekly plans allowed in Free subscription
+        updatedAt: new Date().toISOString()
+      });
+
       res.json(parsedData);
     } catch (error: any) {
       console.error("Error generating strategy:", error);
@@ -472,9 +587,25 @@ Devuelve un JSON estrictamente estructurado en español con el formato:
   // Post items elements regenerator & Variations helper (step 7)
   app.post("/api/generate-post-variants", async (req, res) => {
     try {
-      const { title, currentCopy } = req.body;
+      const { userId, title, currentCopy } = req.body;
+      if (!userId) {
+        return res.status(400).json({ error: "Falta el identificador de usuario 'userId' para verificar créditos" });
+      }
       if (!title || !currentCopy) {
         return res.status(400).json({ error: "Faltan campos title y currentCopy" });
+      }
+
+      // Check user subscription limits for copies
+      const sub = await getOrCreateUserSubscription(userId);
+      const userPlan = sub.plan.toUpperCase() as keyof typeof PLAN_LIMITS;
+      const limits = PLAN_LIMITS[userPlan] || PLAN_LIMITS.FREE;
+
+      if (sub.copiesUsed >= limits.copies) {
+        return res.status(403).json({ 
+          error: "LIMIT_EXCEEDED", 
+          message: "Has alcanzado el límite de Copies IA de tu plan.",
+          type: "copies"
+        });
       }
 
       const prompt = `Tienes la siguiente propuesta de publicación en revisión:
@@ -507,6 +638,14 @@ Devuelve de manera exclusiva un JSON estructurado con el formato:
 }`;
 
       const responseText = await callAI(prompt);
+
+      // Increment copies count in database
+      const subRef = doc(db, "subscriptions", userId);
+      await updateDoc(subRef, {
+        copiesUsed: sub.copiesUsed + 1,
+        updatedAt: new Date().toISOString()
+      });
+
       res.json(JSON.parse(responseText));
     } catch (error: any) {
       console.error("Error generating post variants:", error);
@@ -517,9 +656,25 @@ Devuelve de manera exclusiva un JSON estructurado con el formato:
   // Supporting endpoint: copywriting generator
   app.post("/api/generate-copywriter", async (req, res) => {
     try {
-      const { topic, channel, tone, businessInfo } = req.body;
+      const { userId, topic, channel, tone, businessInfo } = req.body;
+      if (!userId) {
+        return res.status(400).json({ error: "Falta el identificador de usuario 'userId' para verificar créditos" });
+      }
       if (!topic || !channel) {
         return res.status(400).json({ error: "Faltan campos obligatorios: topic, channel" });
+      }
+
+      // Check user subscription limits for copies
+      const sub = await getOrCreateUserSubscription(userId);
+      const userPlan = sub.plan.toUpperCase() as keyof typeof PLAN_LIMITS;
+      const limits = PLAN_LIMITS[userPlan] || PLAN_LIMITS.FREE;
+
+      if (sub.copiesUsed >= limits.copies) {
+        return res.status(403).json({ 
+          error: "LIMIT_EXCEEDED", 
+          message: "Has alcanzado el límite de Copies IA de tu plan.",
+          type: "copies"
+        });
       }
 
       const prompt = `Genera un post persuasivo y profesional en español para ${channel} con un tono ${tone || "profesional y de confianza"}.
@@ -534,6 +689,14 @@ Devuelve un JSON con la estructura:
 }`;
 
       const responseText = await callAI(prompt);
+
+      // Increment copies count in database
+      const subRef = doc(db, "subscriptions", userId);
+      await updateDoc(subRef, {
+        copiesUsed: sub.copiesUsed + 1,
+        updatedAt: new Date().toISOString()
+      });
+
       res.json(JSON.parse(responseText));
     } catch (error: any) {
       console.error("Error in copywriter api:", error);
@@ -543,15 +706,49 @@ Devuelve un JSON con la estructura:
 
   // New endpoint to generate image with Gemini and automatic free fallback (Pollinations AI)
   app.post("/api/generate-image", async (req, res) => {
-    const { prompt, aspectRatio, engine } = req.body;
+    const { userId, prompt, aspectRatio, engine } = req.body;
+    if (!userId) {
+      return res.status(400).json({ error: "Falta el identificador de usuario 'userId' para verificar créditos" });
+    }
     if (!prompt) {
       return res.status(400).json({ error: "Falta el campo prompt para la generación de imagen" });
+    }
+
+    // Load and validate user subscription limits
+    let sub;
+    try {
+      sub = await getOrCreateUserSubscription(userId);
+      const userPlan = sub.plan.toUpperCase() as keyof typeof PLAN_LIMITS;
+      const limits = PLAN_LIMITS[userPlan] || PLAN_LIMITS.FREE;
+
+      if (sub.imagesUsed >= limits.images) {
+        return res.status(403).json({ 
+          error: "LIMIT_EXCEEDED", 
+          message: "Has alcanzado el límite de Imágenes IA de tu plan.",
+          type: "images"
+        });
+      }
+    } catch (dbErr) {
+      console.error("Firestore limits validation failed in generate-image:", dbErr);
     }
 
     const browserHeaders = {
       'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
       'Accept': 'image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8',
       'Accept-Language': 'es-ES,es;q=0.9,en;q=0.8'
+    };
+
+    const incrementImageCount = async () => {
+      try {
+        const subRef = doc(db, "subscriptions", userId);
+        const currentSub = await getOrCreateUserSubscription(userId);
+        await updateDoc(subRef, {
+          imagesUsed: currentSub.imagesUsed + 1,
+          updatedAt: new Date().toISOString()
+        });
+      } catch (err) {
+        console.error("Error updating image credits count:", err);
+      }
     };
 
     try {
@@ -570,6 +767,8 @@ Devuelve un JSON con la estructura:
         const arrayBuffer = await imgRes.arrayBuffer();
         const buffer = Buffer.from(arrayBuffer);
         const base64Image = buffer.toString('base64');
+        
+        await incrementImageCount();
         return res.json({ base64Image, source: "pollinations" });
       }
 
@@ -623,6 +822,7 @@ Devuelve un JSON con la estructura:
           throw new Error("El modelo de Gemini no retornó ninguna imagen en su respuesta.");
         }
 
+        await incrementImageCount();
         return res.json({ base64Image, source: "gemini" });
       } else {
         // Fallback or Qwen: auto generate for free using Pollinations
@@ -639,6 +839,8 @@ Devuelve un JSON con la estructura:
         const arrayBuffer = await imgRes.arrayBuffer();
         const buffer = Buffer.from(arrayBuffer);
         const base64Image = buffer.toString('base64');
+        
+        await incrementImageCount();
         return res.json({ base64Image, source: "pollinations" });
       }
     } catch (error: any) {
@@ -657,6 +859,8 @@ Devuelve un JSON con la estructura:
             const arrayBuffer = await imgRes.arrayBuffer();
             const buffer = Buffer.from(arrayBuffer);
             const base64Image = buffer.toString('base64');
+            
+            await incrementImageCount();
             return res.json({ base64Image, source: "fallback-pollinations" });
           }
         } catch (fbError: any) {

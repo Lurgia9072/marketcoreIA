@@ -86,6 +86,11 @@ service cloud.firestore {
       allow read, write: if false;
     }
 
+    // --- Subscriptions Collection Routing ---
+    match /subscriptions/{userId} {
+      allow read, write: if true;
+    }
+
     // --- User-Scoped Routes ---
     match /users/{userId} {
       allow read: if isOwner(userId);

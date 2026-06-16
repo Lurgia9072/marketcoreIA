@@ -28,9 +28,10 @@
     onClose: () => void;
     onUpdate: (updatedPost: CalendarPost) => void;
     onDelete: (postId: string) => void;
+    onLimitExceeded?: (type: string) => void;
   }
 
-  export default function PostDetailsModal({ userId, post, onClose, onUpdate, onDelete }: PostDetailsModalProps) {
+  export default function PostDetailsModal({ userId, post, onClose, onUpdate, onDelete, onLimitExceeded }: PostDetailsModalProps) {
     const [activeTab, setActiveTab] = useState<'edit' | 'ai-variations' | 'multimedia'>('edit');
     const [error, setError] = useState<string | null>(null);
     const [saving, setSaving] = useState(false);
@@ -146,13 +147,19 @@
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
+            userId,
             title: title,
             currentCopy: copy
           })
         });
 
         if (!res.ok) {
-          throw new Error("Socio IA no disponible. Comprueba tu conexión o clave de API.");
+          const errData = await res.json().catch(() => ({}));
+          if (errData.error === 'LIMIT_EXCEEDED') {
+            if (onLimitExceeded) onLimitExceeded('copies');
+            throw new Error("LÍMITE EXCEDIDO: Has agotado los créditos de redacción de tu plan actual. Por favor actualiza tu membresía.");
+          }
+          throw new Error(errData.error || "Socio IA no disponible. Comprueba tu conexión o clave de API.");
         }
 
         const data = await res.json();
@@ -242,12 +249,22 @@
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
+              userId,
               topic: `Venta y promoción de producto: ${analysisData.productShown}. Recomendaciones estéticas a destacar: ${analysisData.recommendations?.slice(0, 2).join('; ')}`,
               channel,
               tone: 'persuasivo y emocional',
               businessInfo: { name: post.title }
             })
           });
+
+          if (!copyRes.ok) {
+            const errData = await copyRes.json().catch(() => ({}));
+            if (errData.error === 'LIMIT_EXCEEDED') {
+              if (onLimitExceeded) onLimitExceeded('copies');
+              throw new Error("LÍMITE EXCEDIDO: Has agotado tus créditos de Copies de tu plan actual. Por favor actualiza tu membresía.");
+            }
+            throw new Error(errData.error || "No se pudo autogenerar la redacción.");
+          }
 
           if (copyRes.ok) {
             const copyData = await copyRes.json();
@@ -287,50 +304,60 @@
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
+            userId,
             prompt: imageUrlPrompt.trim(),
             aspectRatio: '1:1',
             engine: imageEngine
           })
         });
 
-        if (res.ok) {
-          const { base64Image, source } = await res.json();
-          setImageGenerationLog('Guardando la imagen en el servidor...');
-          
-          const uploadRes = await fetch('/api/upload', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              base64: base64Image,
-              filename: `generated_${post.id}_${Date.now()}.png`,
-              mimeType: 'image/png'
-            })
-          });
-
-          if (!uploadRes.ok) {
-            throw new Error("No se pudo guardar la imagen en el servidor de marketing.");
+        if (!res.ok) {
+          const errData = await res.json().catch(() => ({}));
+          if (errData.error === 'LIMIT_EXCEEDED') {
+            if (onLimitExceeded) onLimitExceeded('images');
+            throw new Error("LÍMITE EXCEDIDO: Has agotado tus créditos de generación de imágenes. Por favor actualiza tu membresía.");
           }
+          throw new Error(errData.error || "No se pudo generar la imagen.");
+        }
 
-          const { url: downloadUrl } = await uploadRes.json();
-          const absoluteUrl = downloadUrl.startsWith('http') ? downloadUrl : `${window.location.origin}${downloadUrl}`;
+        const { base64Image, source } = await res.json();
+        setImageGenerationLog('Guardando la imagen en el servidor...');
+        
+        const uploadRes = await fetch('/api/upload', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            base64: base64Image,
+            filename: `generated_${post.id}_${Date.now()}.png`,
+            mimeType: 'image/png'
+          })
+        });
 
-          setImageUrl(absoluteUrl);
-          setVideoUrl('');
-          setType('Imagen');
+        if (!uploadRes.ok) {
+          throw new Error("No se pudo guardar la imagen en el servidor de marketing.");
+        }
 
-          if (source === 'gemini') {
-            setImageGenerationLog('¡Imagen generada exitosamente con Gemini 2.5!');
-          } else {
-            setImageGenerationLog('¡Imagen generada exitosamente con el Motor Libre!');
-          }
+        const { url: downloadUrl } = await uploadRes.json();
+        const absoluteUrl = downloadUrl.startsWith('http') ? downloadUrl : `${window.location.origin}${downloadUrl}`;
+
+        setImageUrl(absoluteUrl);
+        setVideoUrl('');
+        setType('Imagen');
+
+        if (source === 'gemini') {
+          setImageGenerationLog('¡Imagen generada exitosamente con Gemini 2.5!');
+        } else {
+          setImageGenerationLog('¡Imagen generada exitosamente con el Motor Libre!');
+        }
+        setGeneratingImage(false);
+        return;
+      } catch (err: any) {
+        console.warn("Backend image request failed/blocked:", err);
+        if (err.message && err.message.includes("LÍMITE EXCEDIDO")) {
+          setError(err.message);
           setGeneratingImage(false);
           return;
         }
-
-        const errorData = await res.json().catch(() => ({}));
-        console.warn("Backend image generation failed, calling client-side fallback:", errorData.error);
-      } catch (err: any) {
-        console.warn("Backend request error, calling client-side fallback:", err);
       }
 
       // Client direct fetch (runs fully on browser, bypassing any server-side restrictions or proxy blocks)

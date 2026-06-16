@@ -83,9 +83,29 @@
         "createdAt": { "type": "string", "format": "date-time" }
       },
       "required": ["id", "userId", "businessId", "title", "copy", "scheduledDate", "status"]
+    },
+    "Subscription": {
+      "title": "User Subscription Plan",
+      "description": "Details about subscription plan level and usage limits tracking.",
+      "type": "object",
+      "properties": {
+        "plan": { "type": "string", "enum": ["FREE", "EMPRENDEDOR", "PRO", "BUSINESS"] },
+        "status": { "type": "string" },
+        "copiesUsed": { "type": "number" },
+        "imagesUsed": { "type": "number" },
+        "strategiesUsed": { "type": "number" },
+        "weeklyPlansUsed": { "type": "number" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["plan", "status", "copiesUsed", "imagesUsed", "strategiesUsed", "weeklyPlansUsed"]
     }
   },
   "firestore": {
+    "/subscriptions/{userId}": {
+      "schema": "Subscription",
+      "description": "User subscription level and usage logs tracking across server AI capabilities."
+    },
     "/users/{userId}": {
       "schema": "User",
       "description": "Stores user demographic details, active access tier (plan) and trial flags."
