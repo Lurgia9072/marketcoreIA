@@ -453,6 +453,7 @@ export default function Dashboard() {
       id: postId,
       userId,
       businessId: activeBusiness.id,
+      strategyId: activeStrategy?.id || '',
       title: cwResult.title || "Post Alternativo",
       copy: cwResult.copy || "",
       channel: cwChannel,
@@ -522,7 +523,7 @@ export default function Dashboard() {
                 <Sparkles className="w-5 h-5 text-white" />
               </div>
               <span className="font-sans font-bold text-base text-zinc-900 uppercase tracking-wider">
-                Mercadea<span className="text-zinc-650 bg-zinc-100 text-zinc-600 border border-zinc-205 px-1.5 py-0.5 ml-1.5 text-[10px] font-mono font-bold rounded-none">_IA</span>
+                MARKETCORE<span className="text-zinc-650 bg-zinc-100 text-zinc-600 border border-zinc-205 px-1.5 py-0.5 ml-1.5 text-[10px] font-mono font-bold rounded-none">_IA</span>
               </span>
             </Link>
           </div>
@@ -1174,6 +1175,7 @@ export default function Dashboard() {
                                           id: newPostId,
                                           userId,
                                           businessId: activeBusiness?.id || '',
+                                          strategyId: activeStrategy?.id || '',
                                           title: 'Nueva Publicación ' + day,
                                           copy: 'Escribe el copy persuasivo de tu publicación aquí...',
                                           channel: filterChannel !== 'Todos' ? (filterChannel as any) : 'Instagram',
@@ -1626,7 +1628,14 @@ export default function Dashboard() {
           post={selectedPost} 
           onClose={() => setSelectedPost(null)} 
           onUpdate={(updated) => {
-            setCalendarItems(prev => prev.map(p => p.id === updated.id ? updated : p));
+            setCalendarItems(prev => {
+              const exists = prev.some(p => p.id === updated.id);
+              if (exists) {
+                return prev.map(p => p.id === updated.id ? updated : p);
+              } else {
+                return [updated, ...prev];
+              }
+            });
             setSelectedPost(null);
           }} 
           onDelete={(id) => {

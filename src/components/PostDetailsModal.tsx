@@ -120,6 +120,7 @@
           id: post.id,
           userId: userId,
           businessId: post.businessId,
+          strategyId: post.strategyId || '',
           priority: post.priority || 'Media',
           createdAt: post.createdAt || new Date().toISOString(),
           ...updatedObj
