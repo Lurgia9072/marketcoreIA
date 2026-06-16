@@ -432,7 +432,7 @@ export default function Dashboard() {
                 <Sparkles className="w-5 h-5 text-white" />
               </div>
               <span className="font-sans font-bold text-base text-zinc-900 uppercase tracking-wider">
-                MARKETCORE<span className="text-zinc-650 bg-zinc-100 text-zinc-600 border border-zinc-205 px-1.5 py-0.5 ml-1.5 text-[10px] font-mono font-bold rounded-none">_IA</span>
+                Mercadea<span className="text-zinc-650 bg-zinc-100 text-zinc-600 border border-zinc-205 px-1.5 py-0.5 ml-1.5 text-[10px] font-mono font-bold rounded-none">_IA</span>
               </span>
             </Link>
           </div>
@@ -571,17 +571,17 @@ export default function Dashboard() {
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 my-8 text-left text-xs font-mono">
                 <div className="bg-zinc-50 p-4 rounded-none border border-zinc-200">
-                  <span className="font-bold text-zinc-900 text-sm block mb-1">paso 1</span>
+                  <span className="font-bold text-zinc-900 text-sm block mb-1">STEP_01</span>
                   <span className="font-bold text-zinc-700 block mb-1 uppercase text-[10px] tracking-wide">Registras tu marca</span>
                   <p className="text-zinc-650 text-[11px] leading-normal font-sans font-light">Nos describes tus productos y target ideal.</p>
                 </div>
                 <div className="bg-zinc-50 p-4 rounded-none border border-zinc-200">
-                  <span className="font-bold text-zinc-900 text-sm block mb-1">paso 2</span>
+                  <span className="font-bold text-zinc-900 text-sm block mb-1">STEP_02</span>
                   <span className="font-bold text-zinc-700 block mb-1 uppercase text-[10px] tracking-wide">Generas estrategia</span>
-                  <p className="text-zinc-650 text-[11px] leading-normal font-sans font-light">El Analista IA de marketcore armará tu plan de copy.</p>
+                  <p className="text-zinc-650 text-[11px] leading-normal font-sans font-light">El Analista IA de Gemini armará tu plan de copy.</p>
                 </div>
                 <div className="bg-zinc-50 p-4 rounded-none border border-zinc-200">
-                  <span className="font-bold text-zinc-900 text-sm block mb-1">paso 3</span>
+                  <span className="font-bold text-zinc-900 text-sm block mb-1">STEP_03</span>
                   <span className="font-bold text-zinc-700 block mb-1 uppercase text-[10px] tracking-wide">Calendario Listo</span>
                   <p className="text-zinc-650 text-[11px] leading-normal font-sans font-light">Copias tus posts listos con 1-click al portapapeles.</p>
                 </div>
@@ -623,12 +623,12 @@ export default function Dashboard() {
                   {generatingStrategy ? (
                     <>
                       <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-none animate-spin"></div>
-                      <span>ARMANDO PLAN ESTRELLA CON marketcore...</span>
+                      <span>ARMANDO PLAN ESTRELLA CON GEMINI...</span>
                     </>
                   ) : (
                     <>
                       <Sparkles className="w-4 h-4" />
-                      <span>CREAR NUEVA ESTRATEGIA MENSUAL</span>
+                      <span>CREAR NUEVA ESTRATEGIA IA</span>
                     </>
                   )}
                 </button>
@@ -644,7 +644,7 @@ export default function Dashboard() {
                 </div>
                 <h3 className="text-sm font-mono font-bold text-zinc-900 uppercase tracking-wider mb-2">No hay estrategia para {activeBusiness?.name}</h3>
                 <p className="text-xs text-zinc-650 max-w-md mx-auto leading-relaxed font-sans font-light">
-                  Haz clic en el botón de la esquina superior derecha <strong>"CREAR NUEVA ESTRATEGIA MENSUAL"</strong>. Nuestra IA analizará tu nicho en tiempo real y te programará 6 posts optimizados en español con copies persuasivos y prompts ilustrativos listos para redes.
+                  Haz clic en el botón de la esquina superior derecha <strong>"CREAR NUEVA ESTRATEGIA IA"</strong>. Nuestra IA analizará tu nicho en tiempo real y te programará publicaciones optimizadas (diarias, semanales, quincenales o mensuales) con copies persuasivos y prompts ilustrativos listos para redes.
                 </p>
               </div>
 
@@ -653,7 +653,7 @@ export default function Dashboard() {
               /* DATA BOARDS: STRATEGIES SUMMARY & EDITORIAL CALENDAR FILTERED BY ACT_BIZ */
               <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
                 
-                {/* Left side: Strategic summary from marketcore */}
+                {/* Left side: Strategic summary from Gemini */}
                 <div className="lg:col-span-4 flex flex-col gap-6">
                   
                   {/* Premium Brand Strategy report with Interactive Tabs */}
@@ -1395,7 +1395,7 @@ export default function Dashboard() {
                     className="bg-zinc-50 p-5 rounded-none border border-zinc-200 mt-2 relative group shadow-[3px_3px_0px_0px_rgba(24,24,27,1)]"
                   >
                     <span className="text-[9px] bg-zinc-100 text-zinc-700 font-mono px-2 py-0.5 rounded-none font-bold uppercase tracking-widest block w-max mb-3 border border-zinc-200">
-                      PROPUESTA LOGRADA CON marketcore
+                      PROPUESTA LOGRADA CON GEMINI
                     </span>
                     
                     <h5 className="font-sans font-bold text-sm text-zinc-900 uppercase tracking-wide">{cwResult.title}</h5>
@@ -1432,7 +1432,7 @@ export default function Dashboard() {
 
               {/* Drawer footer */}
               <div className="px-6 py-4 border-t-2 border-zinc-200 text-center text-[9px] text-zinc-500 font-mono uppercase tracking-widest bg-zinc-50">
-                Acceso bajo motor LLM de marketcore en Español
+                Acceso bajo motor LLM de Gemini en Español
               </div>
             </motion.div>
           </div>

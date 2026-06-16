@@ -65,6 +65,7 @@ export default function StrategyWizard({ userId, business, onClose, onSuccess, o
   // Paso 1 State
   const [objectives, setObjectives] = useState<string[]>([]);
   const [customObjective, setCustomObjective] = useState('');
+  const [duration, setDuration] = useState<'mensual' | 'quincenal' | 'semanal' | 'diario'>('mensual');
 
   // Paso 2 State
   const [networks, setNetworks] = useState<string[]>(['Instagram']);
@@ -242,7 +243,17 @@ export default function StrategyWizard({ userId, business, onClose, onSuccess, o
     try {
       setTimeout(() => setGenStepMessage('Redactando diagnóstico inicial...'), 2000);
       setTimeout(() => setGenStepMessage('Estructurando objetivos y sugerencia de KPI...'), 4000);
-      setTimeout(() => setGenStepMessage('Diseñando 4 semanas de cronograma editorial...'), 6000);
+      setTimeout(() => {
+        if (duration === 'diario') {
+          setGenStepMessage('Diseñando propuesta de publicación de alto impacto para hoy...');
+        } else if (duration === 'semanal') {
+          setGenStepMessage('Diseñando 1 semana de cronograma editorial progresivo...');
+        } else if (duration === 'quincenal') {
+          setGenStepMessage('Diseñando 15 días de contenido comercial estructurado...');
+        } else {
+          setGenStepMessage('Diseñando 4 semanas de cronograma editorial completo...');
+        }
+      }, 6000);
       setTimeout(() => setGenStepMessage('Redactando copies premium con IA...'), 8500);
 
       const res = await fetch('/api/generate-complete-strategy', {
@@ -258,7 +269,8 @@ export default function StrategyWizard({ userId, business, onClose, onSuccess, o
           objectivesSelected: finalGoalsList,
           socialNetworksSelected: networks,
           materialType,
-          uploadedAnalysisSummary: uploadsSummary || null
+          uploadedAnalysisSummary: uploadsSummary || null,
+          duration
         })
       });
 
@@ -404,7 +416,15 @@ export default function StrategyWizard({ userId, business, onClose, onSuccess, o
             <div>
               <span className="text-[9px] font-mono font-bold tracking-widest uppercase block text-zinc-505">PLANIFICADOR ESTRATÉGICO IA</span>
               <h2 className="font-sans font-extrabold text-base text-zinc-900 uppercase tracking-wide">
-                NUEVO FLUJO MENSUAL: {business.name}
+                NUEVO FLUJO {
+                  duration === 'diario' 
+                    ? 'DIARIO (1 DÍA)' 
+                    : duration === 'semanal' 
+                      ? 'SEMANAL (1 SEMANA)' 
+                      : duration === 'quincenal' 
+                        ? 'QUINCENAL (15 DÍAS)' 
+                        : 'MENSUAL (30 DÍAS)'
+                }: {business.name}
               </h2>
             </div>
           </div>
@@ -460,12 +480,39 @@ export default function StrategyWizard({ userId, business, onClose, onSuccess, o
             </div>
           ) : (
             <>
-              {/* PASO 1 - OBJETIVOS */}
+              {/* PASO 1 - DURACIÓN Y OBJETIVOS */}
               {step === 1 && (
                 <div className="flex flex-col gap-6">
+                  {/* Select Duration */}
+                  <div className="border-b border-zinc-200 pb-6 mb-2">
+                    <label className="text-[10px] font-mono font-bold text-zinc-500 block mb-3 uppercase tracking-widest">DURACIÓN DEL PLAN / CRONOGRAMA</label>
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                      {[
+                        { key: 'mensual', label: 'Mensual (30 días)', desc: 'Plan de 4 semanas (8 publicaciones)' },
+                        { key: 'quincenal', label: 'Quincenal (15 días)', desc: 'Plan de 2 semanas (4 publicaciones)' },
+                        { key: 'semanal', label: 'Semanal (7 días)', desc: 'Plan de 1 semana (2 publicaciones)' },
+                        { key: 'diario', label: 'Diario (1 día)', desc: 'Publicación única de alto impacto' }
+                      ].map((opt) => (
+                        <button
+                          key={opt.key}
+                          type="button"
+                          onClick={() => setDuration(opt.key as any)}
+                          className={`text-left p-3.5 border transition cursor-pointer flex flex-col justify-between ${
+                            duration === opt.key 
+                              ? 'bg-zinc-900 border-zinc-900 text-white shadow-[3px_3px_0px_0px_rgba(113,113,122,1)]' 
+                              : 'bg-zinc-50 border-zinc-200 text-zinc-700 hover:border-zinc-400 hover:bg-zinc-100 hover:text-zinc-900'
+                          }`}
+                        >
+                          <span className="text-xs font-bold uppercase tracking-wide">{opt.label}</span>
+                          <span className={`text-[9.5px] mt-1 font-sans font-light ${duration === opt.key ? 'text-zinc-300' : 'text-zinc-500'}`}>{opt.desc}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
                   <div>
                     <h3 className="font-sans font-extrabold text-zinc-900 text-lg uppercase tracking-tight mb-1">
-                      ¿Qué deseas lograr este mes con {business.name}?
+                      ¿Qué deseas lograr con {business.name}?
                     </h3>
                     <p className="text-xs text-zinc-500 font-light leading-relaxed">
                       Selecciona una o varias metas importantes para que nuestra IA pueda sugerir copys y llamados a la acción bien encauzados de forma realista.
@@ -740,10 +787,26 @@ export default function StrategyWizard({ userId, business, onClose, onSuccess, o
                   
                   <div className="max-w-md mx-auto">
                     <h3 className="font-sans font-extrabold text-zinc-900 text-2xl uppercase tracking-tight mb-2">
-                      ¡Todo listo para estructurar tu mes comercial!
+                      ¡Todo listo para estructurar tu contenido {
+                        duration === 'diario' 
+                          ? 'diario' 
+                          : duration === 'semanal' 
+                            ? 'semanal' 
+                            : duration === 'quincenal' 
+                              ? 'quincenal' 
+                              : 'mensual'
+                      }!
                     </h3>
                     <p className="text-zinc-550 text-xs font-sans font-light leading-relaxed">
-                      Nuestra Inteligencia Artificial de Gemini integrará tu diagnóstico, metas elegidas y el material indexado para planificar una estrategia comercial sólida distribuida en 4 semanas.
+                      Nuestra Inteligencia Artificial de Gemini integrará tu diagnóstico, metas elegidas y el material indexado para planificar {
+                        duration === 'diario' 
+                          ? 'una publicación comercial única de alto impacto optimizada.' 
+                          : duration === 'semanal'
+                            ? 'una campaña comercial de 1 semana (2 publicaciones).'
+                            : duration === 'quincenal'
+                              ? 'una campaña comercial de 15 días (4 publicaciones).'
+                              : 'una estrategia comercial sólida distribuida en 4 semanas (8 publicaciones).'
+                      }
                     </p>
                   </div>
 
@@ -753,7 +816,15 @@ export default function StrategyWizard({ userId, business, onClose, onSuccess, o
                       onClick={triggerStrategyAI}
                       className="bg-zinc-900 hover:bg-zinc-800 text-white font-mono font-bold py-4.5 px-8 rounded-none text-xs uppercase tracking-widest border-r-4 border-b-4 border-zinc-500 active:translate-y-0.5 cursor-pointer flex items-center gap-2 shadow-lg"
                     >
-                      <Sparkles className="w-5 h-5" /> GENERAR NUEVA ESTRATEGIA MENSUAL IA
+                      <Sparkles className="w-5 h-5" /> GENERAR {
+                        duration === 'diario' 
+                          ? 'PUBLICACIÓN DIARIA' 
+                          : duration === 'semanal' 
+                            ? 'CRONOGRAMA SEMANAL' 
+                            : duration === 'quincenal' 
+                              ? 'CRONOGRAMA QUINCENAL' 
+                              : 'ESTRATEGIA MENSUAL'
+                      } IA
                     </button>
                   </div>
                 </div>
@@ -827,7 +898,15 @@ export default function StrategyWizard({ userId, business, onClose, onSuccess, o
                   {/* Weekly Plan detailed */}
                   <div className="border-t border-zinc-200 pt-6">
                     <div className="flex items-center gap-2 pb-3 border-b border-zinc-200 mb-4 text-zinc-500 font-mono font-bold uppercase text-[10px]">
-                      <Layers className="w-4 h-4 text-zinc-900" /> 2. PLAN DE PUBLICACIÓN MENSUAL (4 SEMANAS)
+                      <Layers className="w-4 h-4 text-zinc-900" /> 2. PLAN DE PUBLICACIÓN {
+                        duration === 'diario' 
+                          ? 'DIARIO (1 DÍA)' 
+                          : duration === 'semanal' 
+                            ? 'SEMANAL (1 SEMANA)' 
+                            : duration === 'quincenal' 
+                              ? 'QUINCENAL (15 DÍAS)' 
+                              : 'MENSUAL (4 SEMANAS)'
+                      }
                     </div>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">

@@ -275,10 +275,7 @@ async function startServer() {
         throw new Error(`Servicios de IA no disponibles. Error original: ${primaryError.message || "Quota/Conexión"}`);
       }
     }
-  };
-
-  // API routes
-  app.post("/api/generate-complete-strategy", async (req, res) => {
+  };  app.post("/api/generate-complete-strategy", async (req, res) => {
     try {
       const { 
         userId,
@@ -290,7 +287,8 @@ async function startServer() {
         objectivesSelected,
         socialNetworksSelected,
         materialType,
-        uploadedAnalysisSummary
+        uploadedAnalysisSummary,
+        duration = 'mensual'
       } = req.body;
 
       if (!userId) {
@@ -322,54 +320,10 @@ async function startServer() {
         });
       }
 
-      const prompt = `Actúa como un Consultor de Marketing Digital de Elite y Director Creativo para marcas de emprendedores en Latinoamérica.
-Quiero que generes un plan de marketing estratégico completo y un calendario editorial para un mes completo (4 semanas de contenidos) para el siguiente negocio, basado estrictamente en sus objetivos, redes sociales elegidas y recursos de video/foto disponibles.
-
-INFORMACIÓN DEL NEGOCIO:
-- Nombre: "${name}"
-- Nicho/Sector: "${niche}"
-- Descripción: "${description}"
-- Audiencia Objetivo: "${targetAudience || 'Público general e interesados en el nicho'}"
-- Identidad en Redes: ${JSON.stringify(socialHandles || {})}
-
-PASO 1 - OBJETIVOS SELECCIONADOS POR EL CLIENTE PARA ESTE MES:
-${(objectivesSelected || []).map((o: string) => `- ${o}`).join("\n")}
-
-PASO 2 - REDES SOCIALES SELECCIONADAS PARA PUBLICAR:
-${(socialNetworksSelected || []).map((n: string) => `- ${n}`).join("\n")}
-
-PASO 3 Y 4 - MATERIAL Y ANÁLISIS PREVIO DE ARCHIVOS DISPONIBLES:
-- Tipo de material con el que cuenta: ${materialType || 'Ninguno'}
-- Análisis/Recomendaciones previas extraídas de sus fotos/videos:
-${uploadedAnalysisSummary || 'Sin materiales cargados. Diseñar propuestas basadas en imágenes ilustrativas/promocionales sugeridas o grabaciones guiadas.'}
-
-Instrucciones de Redacción y Formulación Estratégica:
-1. El canal de todos los posts generados DEBE coincidir ESTRICTAMENTE con alguno de las redes seleccionadas (${(socialNetworksSelected || []).join(", ") || "Instagram"}).
-2. Genera exactamente 8 publicaciones distribuidas de forma balanceada a lo largo de las 4 semanas (es decir, 2 posts por semana).
-3. Asegúrate de que los tipos de publicaciones correspondan y aprovechen el material disponible. Si tienen videos, propón Reels/TikToks dinámicos. Si tienen fotos, propón carruseles o fotos estéticas del producto. Si no tienen material, propón diseños gráficos o infografías que puedan crear fácilmente.
-4. Los copies deben de ser Premium: Completos, listos para usar, persuasivos, en español latinoamericano, usando emojis, disparadores mentales y ganchos impactantes.
-
-Devuelve de manera EXCLUSIVA un objeto JSON estructurado con el siguiente formato exacto:
-{
-  "title": "Estrategia integral de marketing - [Mes Actual]",
-  "summary": "Un resumen ejecutivo detallado y persuasivo de 3-4 párrafos estructurado con metas claras para el posicionamiento de marca.",
-  "diagnostic": "Un análisis profundo del estado actual del negocio según su descripción, indicando debilidades detectadas en su comunicación y cómo corregirlas con esta estrategia.",
-  "mainGoal": "Objetivo principal SMART formulado específicamente para este mes basado en los objetivos seleccionados.",
-  "secondaryGoals": [
-    "Objetivo secundario 1",
-    "Objetivo secundario 2"
-  ],
-  "suggestedKPIs": [
-    "KPI 1 (ej: +20% mensajes de WhatsApp)",
-    "KPI 2 (ej: Aumento del 15% de alcance orgánico)"
-  ],
-  "targetAudience": "Descripción muy específica del perfil de usuario y dolores o necesidades que el negocio resuelve.",
-  "recommendedTone": "Tono de voz de la marca recomendado para este mes (ej: Amistoso pero profesional, artesanal y cálido, directo y persuasivo). Explicar por qué.",
-  "recommendedContentType": "Tipo de formatos y contenidos específicos a privilegiar (ej: Reels educativos, historias diarias de detrás de escena, memes de dolor).",
-  "recommendedFrequency": "Frecuencia de publicación por red social y mejores horarios sugeridos.",
-  "socialDistribution": "Distribución estratégica sugerida entre las redes elegidas (ej: TikTok 60% para captación, Instagram 40% para fidelización y venta).",
-  
-  "weeklyPlan": [
+      // Dynamic variables depending on duration selected
+      let durationHeadline = "para un mes completo (4 semanas de contenidos)";
+      let numPostsText = "Genera exactamente 8 publicaciones distribuidas de forma balanceada a lo largo de las 4 semanas (es decir, 2 posts por semana).";
+      let weeklyPlanFormat = `[
     {
       "week": "Semana 1",
       "objective": "Objetivo específico de la Semana 1",
@@ -402,7 +356,105 @@ Devuelve de manera EXCLUSIVA un objeto JSON estructurado con el siguiente format
       "cta": "Llamado a la acción",
       "expectedKPI": "KPI"
     }
+  ]`;
+
+      if (duration === 'quincenal') {
+        durationHeadline = "para una quincena (15 días de contenidos - 2 semanas)";
+        numPostsText = "Genera exactamente 4 publicaciones distribuidas de forma balanceada a lo largo de las 2 semanas (es decir, 2 posts por semana).";
+        weeklyPlanFormat = `[
+    {
+      "week": "Semana 1",
+      "objective": "Objetivo específico de la Semana 1",
+      "contentType": "Formatos sugeridos principales",
+      "socialNetwork": "Red social recomendada",
+      "cta": "Llamado a la acción dominante para la semana",
+      "expectedKPI": "KPI de medición de la semana"
+    },
+    {
+      "week": "Semana 2",
+      "objective": "Objetivo específico de la Semana 2",
+      "contentType": "Formatos sugeridos principales",
+      "socialNetwork": "Red social recomendada",
+      "cta": "Llamado a la acción dominante",
+      "expectedKPI": "KPI de medición"
+    }
+  ]`;
+      } else if (duration === 'semanal') {
+        durationHeadline = "para una semana completa (7 días de contenidos)";
+        numPostsText = "Genera exactamente 2 publicaciones óptimas distribuidas a lo largo de la semana.";
+        weeklyPlanFormat = `[
+    {
+      "week": "Semana 1",
+      "objective": "Objetivo específico de la Semana 1",
+      "contentType": "Formatos sugeridos principales",
+      "socialNetwork": "Red social recomendada",
+      "cta": "Llamado a la acción dominante para la semana",
+      "expectedKPI": "KPI de medición de la semana"
+    }
+  ]`;
+      } else if (duration === 'diario') {
+        durationHeadline = "para un único día (1 publicación de altísimo impacto inmediato)";
+        numPostsText = "Genera exactamente 1 publicación única altamente persuasiva diseñada para lanzarse el primer día.";
+        weeklyPlanFormat = `[
+    {
+      "week": "Día 1",
+      "objective": "Objetivo específico del Día",
+      "contentType": "Formato sugerido principal",
+      "socialNetwork": "Red social de enfoque",
+      "cta": "Llamado a la acción directo",
+      "expectedKPI": "KPI de medición del post"
+    }
+  ]`;
+      }
+
+      const prompt = `Actúa como un Consultor de Marketing Digital de Elite y Director Creativo para marcas de emprendedores en Latinoamérica.
+Quiero que generes un plan de marketing estratégico completo y un calendario editorial ${durationHeadline} para el siguiente negocio, basado estrictamente en sus objetivos, redes sociales elegidas y recursos de video/foto disponibles.
+
+INFORMACIÓN DEL NEGOCIO:
+- Nombre: "${name}"
+- Nicho/Sector: "${niche}"
+- Descripción: "${description}"
+- Audiencia Objetivo: "${targetAudience || 'Público general e interesados en el nicho'}"
+- Identidad en Redes: ${JSON.stringify(socialHandles || {})}
+
+PASO 1 - OBJETIVOS SELECCIONADOS POR EL CLIENTE PARA EL PERIODO:
+${(objectivesSelected || []).map((o: string) => `- ${o}`).join("\n")}
+
+PASO 2 - REDES SOCIALES SELECCIONADAS PARA PUBLICAR:
+${(socialNetworksSelected || []).map((n: string) => `- ${n}`).join("\n")}
+
+PASO 3 Y 4 - MATERIAL Y ANÁLISIS PREVIO DE ARCHIVOS DISPONIBLES:
+- Tipo de material con el que cuenta: ${materialType || 'Ninguno'}
+- Análisis/Recomendaciones previas extraídas de sus fotos/videos:
+${uploadedAnalysisSummary || 'Sin materiales cargados. Diseñar propuestas basadas en imágenes ilustrativas/promocionales sugeridas o grabaciones guiadas.'}
+
+Instrucciones de Redacción y Formulación Estratégica:
+1. El canal de todos los posts generados DEBE coincidir ESTRICTAMENTE con alguno de las redes seleccionadas (${(socialNetworksSelected || []).join(", ") || "Instagram"}).
+2. ${numPostsText}
+3. Asegúrate de que los tipos de publicaciones correspondan y aprovechen el material disponible. Si tienen videos, propón Reels/TikToks dinámicos. Si tienen fotos, propón carruseles o fotos estéticas del producto. Si no tienen material, propón diseños gráficos o infografías que puedan crear fácilmente.
+4. Los copies deben de ser Premium: Completos, listos para usar, persuasivos, en español latinoamericano, usando emojis, disparadores mentales y ganchos impactantes.
+
+Devuelve de manera EXCLUSIVA un objeto JSON estructurado con el siguiente formato exacto:
+{
+  "title": "Estrategia de marketing personalizada - [Periodo Actual]",
+  "summary": "Un resumen ejecutivo detallado y persuasivo de 2-4 párrafos estructurado con metas claras para el posicionamiento de marca.",
+  "diagnostic": "Un análisis profundo del estado actual del negocio según su descripción, indicando debilidades detectadas en su comunicación y cómo corregirlas con esta estrategia.",
+  "mainGoal": "Objetivo principal SMART formulado específicamente para este periodo de campaña.",
+  "secondaryGoals": [
+    "Objetivo secundario 1",
+    "Objetivo secundario 2"
   ],
+  "suggestedKPIs": [
+    "KPI 1 (ej: +20% mensajes de WhatsApp)",
+    "KPI 2 (ej: Aumento del 15% de alcance orgánico)"
+  ],
+  "targetAudience": "Descripción muy específica del perfil de usuario y dolores o necesidades que el negocio resuelve.",
+  "recommendedTone": "Tono de voz de la marca recomendado para este periodo. Explicar por qué.",
+  "recommendedContentType": "Tipo de formatos y contenidos específicos a privilegiar (ej: Reels educativos, historias diarias de detrás de escena, memes de dolor).",
+  "recommendedFrequency": "Frecuencia de publicación por red social y mejores horarios sugeridos.",
+  "socialDistribution": "Distribución estratégica sugerida entre las redes elegidas.",
+  
+  "weeklyPlan": ${weeklyPlanFormat},
   
   "posts": [
     {
@@ -411,7 +463,7 @@ Devuelve de manera EXCLUSIVA un objeto JSON estructurado con el siguiente format
       "cta": "Llamado a la acción principal del post (ej: Escribe un mensaje por WhatsApp para reservar)",
       "hashtags": ["hashtag1", "hashtag2", "hashtag3"],
       "channel": "Instagram", 
-      "scheduledDate": "Lunes de la Semana 1",
+      "scheduledDate": "${duration === 'diario' ? 'Día 1' : 'Lunes de la Semana 1'}",
       "scheduledTime": "18:30",
       "type": "Reel",
       "imageUrlPrompt": "A highly detailed aesthetic instruction for AI Image generator to represent the visual aspect of this post (in English)",
