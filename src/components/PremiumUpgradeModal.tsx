@@ -45,6 +45,7 @@ export default function PremiumUpgradeModal({
   const [cardName, setCardName] = useState('');
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   // Rotating quotes timer
   useEffect(() => {
@@ -118,12 +119,13 @@ export default function PremiumUpgradeModal({
   };
 
   const triggerUpgrade = async () => {
+    setError(null);
     if (!cardName.trim()) {
-      alert("Por favor introduce el nombre en la tarjeta.");
+      setError("Por favor introduce el nombre en la tarjeta.");
       return;
     }
     if (cardNumber.replace(/\s/g, '').length < 15) {
-      alert("Por favor introduce un número de tarjeta válido.");
+      setError("Por favor introduce un número de tarjeta válido.");
       return;
     }
 
@@ -154,8 +156,7 @@ export default function PremiumUpgradeModal({
       }, 2500);
 
     } catch (err: any) {
-      console.error("Firestore upgrade failure:", err);
-      alert("Ocurrió un error al procesar el alta de suscripción: " + (err.message || "Por favor intente nuevamente."));
+      setError("Ocurrió un error al procesar el alta de suscripción: " + (err.message || "Por favor intente nuevamente."));
     } finally {
       setLoading(false);
     }
@@ -329,6 +330,19 @@ export default function PremiumUpgradeModal({
                     <CreditCard className="w-4 h-4 text-zinc-500" />
                     <span>MÉTODO DE PAGO ESTABLECIDO</span>
                   </h3>
+                  
+                  {error && (
+                    <div className="bg-red-950/40 border border-red-800 text-red-200 text-xs font-mono p-3 mb-4 rounded-none flex items-center justify-between gap-2">
+                      <span>⚠️ {error}</span>
+                      <button 
+                        type="button" 
+                        onClick={() => setError(null)}
+                        className="text-red-400 hover:text-red-100 font-bold"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  )}
                   
                   <div className="space-y-4">
                     {/* card holder */}

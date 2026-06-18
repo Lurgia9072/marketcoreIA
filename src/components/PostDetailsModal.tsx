@@ -35,6 +35,7 @@
     const [activeTab, setActiveTab] = useState<'edit' | 'ai-variations' | 'multimedia'>('edit');
     const [error, setError] = useState<string | null>(null);
     const [saving, setSaving] = useState(false);
+    const [successFeedback, setSuccessFeedback] = useState<string | null>(null);
 
     // Form Fields
     const [title, setTitle] = useState(post.title || '');
@@ -87,6 +88,74 @@
     const [generatingImage, setGeneratingImage] = useState(false);
     const [imageGenerationLog, setImageGenerationLog] = useState('');
     const [imageEngine, setImageEngine] = useState<'free' | 'gemini'>('free');
+
+    // Copy and Publish Confirmation Overlay States
+    const [copiedText, setCopiedText] = useState(false);
+    const [showPublishConfirmation, setShowPublishConfirmation] = useState(false);
+    const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+
+    const handleCopyAndPublish = () => {
+      const formattedHashtags = hashtags
+        .split(',')
+        .map(h => h.trim())
+        .filter(Boolean)
+        .map(h => h.startsWith('#') ? h : `#${h}`)
+        .join(' ');
+      const fullText = `${copy}\n\n${cta ? `🔗 ${cta}\n\n` : ''}${formattedHashtags}`;
+      
+      navigator.clipboard.writeText(fullText);
+      setCopiedText(true);
+      setTimeout(() => setCopiedText(false), 2500);
+      setShowPublishConfirmation(true);
+    };
+
+    const confirmAsPublished = async () => {
+      setSaving(true);
+      setError(null);
+      try {
+        const hashtagsArray = hashtags
+          .split(',')
+          .map(h => h.trim().replace(/^#/, ''))
+          .filter(Boolean);
+
+        const updatedObj = {
+          title,
+          copy,
+          cta,
+          hashtags: hashtagsArray,
+          scheduledDate,
+          scheduledTime,
+          channel,
+          status: 'Publicado' as const,
+          type,
+          imageUrlPrompt,
+          imageUrl,
+          videoUrl,
+          weekNum: Number(selectedWeek)
+        };
+
+        const docRef = doc(db, `users/${userId}/calendar`, post.id);
+        const fullObj = {
+          id: post.id,
+          userId: userId,
+          businessId: post.businessId,
+          strategyId: post.strategyId || '',
+          priority: post.priority || 'Media',
+          createdAt: post.createdAt || new Date().toISOString(),
+          ...updatedObj
+        };
+
+        await setDoc(docRef, fullObj, { merge: true });
+        setStatus('Publicado');
+        onUpdate(fullObj as CalendarPost);
+        setShowPublishConfirmation(false);
+      } catch (err) {
+        console.error(err);
+        setError("Error al marcar la publicación como publicada.");
+      } finally {
+        setSaving(false);
+      }
+    };
 
     // Handle direct single edits saving
     const handleSaveChanges = async () => {
@@ -175,9 +244,20 @@
 
     // 1-Click apply variaton helper
     const applyVariation = (field: 'title' | 'copy' | 'cta', value: string) => {
-      if (field === 'title') setTitle(value);
-      if (field === 'copy') setCopy(value);
-      if (field === 'cta') setCta(value);
+      setSuccessFeedback(null);
+      if (field === 'title') {
+        setTitle(value);
+        setSuccessFeedback("✓ ¡Título alternativo aplicado con éxito al borrador!");
+      }
+      if (field === 'copy') {
+        setCopy(value);
+        setSuccessFeedback("✓ ¡Copy alternativo aplicado con éxito al borrador!");
+      }
+      if (field === 'cta') {
+        setCta(value);
+        setSuccessFeedback("✓ ¡Llamado a la Acción (CTA) aplicado con éxito!");
+      }
+      setTimeout(() => setSuccessFeedback(null), 3000);
     };
 
     // Replace image/video in local backend and do AI Auto-Reanalysis + Copy adjustment
@@ -414,14 +494,21 @@
     };
 
     const handlePostDelete = async () => {
-      if (!window.confirm("¿Estás absolutamente seguro de eliminar esta publicación del calendario?")) return;
+      if (!showDeleteConfirm) {
+        setShowDeleteConfirm(true);
+        setError("⚠️ ¿Estás absolutamente seguro de querer eliminar esta publicación? Pulsa de nuevo el botón de borrar para confirmar de manera definitiva.");
+        return;
+      }
+      setSaving(true);
+      setError(null);
       try {
         await deleteDoc(doc(db, `users/${userId}/calendar`, post.id));
         onDelete(post.id);
         onClose();
-      } catch (err) {
-        console.error(err);
-        setError("Fallo al eliminar documento del calendario.");
+      } catch (err: any) {
+        setError("Fallo al eliminar documento del calendario: " + (err.message || err));
+      } finally {
+        setSaving(false);
       }
     };
 
@@ -472,6 +559,19 @@
             </button>
           </div>
 
+          {successFeedback && (
+            <div className="bg-emerald-50 border-b border-emerald-200 px-6 py-2.5 text-emerald-800 text-xs font-mono flex items-center justify-between gap-2">
+              <span className="font-bold flex-1">{successFeedback}</span>
+              <button 
+                type="button" 
+                onClick={() => setSuccessFeedback(null)}
+                className="text-emerald-600 hover:text-emerald-900 font-bold px-1"
+              >
+                ✕
+              </button>
+            </div>
+          )}
+
           {error && (
             <div className="bg-rose-50 border-b border-rose-200 px-6 py-3 text-rose-800 text-xs font-mono flex items-center gap-2">
               <AlertCircle className="w-4 h-4 text-rose-500 flex-shrink-0" />
@@ -502,6 +602,16 @@
                     rows={8}
                     className="w-full bg-zinc-50 border border-zinc-200 rounded-none py-2 px-3.5 text-xs text-zinc-900 focus:border-zinc-500 focus:outline-none resize-none font-sans font-light leading-relaxed whitespace-pre-wrap"
                   />
+                  <button
+                    type="button"
+                    onClick={handleCopyAndPublish}
+                    className="mt-2.5 w-full bg-emerald-700 hover:bg-emerald-600 text-white font-mono text-[9px] tracking-widest font-bold py-2.5 px-3 rounded-none uppercase flex items-center justify-center gap-2 border-r-4 border-b-4 border-emerald-900 active:translate-y-0.5 active:translate-x-0.5 transition-all cursor-pointer"
+                  >
+                    <Copy className="w-3.5 h-3.5" /> COPIAR COPY E INICIAR PUBLICACIÓN EN {channel.toUpperCase()}
+                  </button>
+                  {copiedText && (
+                    <span className="text-[9px] text-emerald-600 font-mono font-bold block mt-1 uppercase tracking-wider text-right animate-pulse">✓ ¡Copiado al portapapeles!</span>
+                  )}
                 </div>
 
                 <div className="grid grid-cols-2 gap-3">
@@ -616,7 +726,7 @@
                           <p className="text-[11px] text-zinc-700 leading-relaxed font-light whitespace-pre-wrap">{val}</p>
                           <button
                             type="button"
-                            onClick={() => { applyVariation('copy', val); alert('¡Copy alternativo aplicado!'); }}
+                            onClick={() => applyVariation('copy', val)}
                             className="bg-zinc-900 border border-zinc-750 text-white text-[9px] font-mono py-1 px-2.5 uppercase font-bold self-end hover:bg-zinc-800 transition mt-1.5"
                           >
                             Aplicar este copy
@@ -633,7 +743,7 @@
                           <div key={idx} className="bg-zinc-50 py-2.5 px-3.5 border border-zinc-200 flex items-center justify-between gap-3 text-[11px] hover:border-zinc-350 transition shadow-2xs">
                             <span className="text-zinc-600 italic font-mono">"{val}"</span>
                             <button
-                              onClick={() => { applyVariation('cta', val); alert('¡CTA aplicada!'); }}
+                              onClick={() => applyVariation('cta', val)}
                               className="bg-zinc-900 border border-zinc-750 text-[9px] font-mono px-2 py-1 uppercase text-white hover:bg-zinc-800"
                             >
                               Aplicar
@@ -651,7 +761,7 @@
                           <div key={idx} className="bg-zinc-50 py-2.5 px-3.5 border border-zinc-200 flex items-center justify-between gap-3 text-[11px] hover:border-zinc-350 transition shadow-2xs">
                             <span className="text-zinc-800 font-bold uppercase">{val}</span>
                             <button
-                              onClick={() => { applyVariation('title', val); alert('¡Título aplicado!'); }}
+                              onClick={() => applyVariation('title', val)}
                               className="bg-zinc-900 border border-zinc-750 text-[9px] font-mono px-2 py-1 uppercase text-white hover:bg-zinc-800"
                             >
                               Aplicar
@@ -780,9 +890,13 @@
             <button
               type="button"
               onClick={handlePostDelete}
-              className="text-rose-600 border border-transparent hover:border-rose-200 hover:bg-rose-50/40 px-4 py-2.5 rounded-none font-bold uppercase tracking-wider transition cursor-pointer flex items-center gap-1.5"
+              className={`px-4 py-2.5 rounded-none font-bold uppercase tracking-wider transition cursor-pointer flex items-center gap-1.5 border ${
+                showDeleteConfirm 
+                  ? 'text-white bg-red-600 border-red-705 shadow-sm animate-pulse' 
+                  : 'text-rose-600 border-transparent hover:border-rose-200 hover:bg-rose-50/40'
+              }`}
             >
-              <Trash2 className="w-4 h-4" /> Eliminar Publicación
+              <Trash2 className="w-4 h-4" /> {showDeleteConfirm ? "⚠️ CONFIRMAR BORRADO" : "Eliminar Publicación"}
             </button>
 
             <div className="flex gap-2.5">
@@ -801,6 +915,55 @@
               </button>
             </div>
           </div>
+
+          {showPublishConfirmation && (
+            <div className="absolute inset-0 bg-zinc-950/90 flex flex-col justify-center p-6 z-50 animate-fade-in font-sans">
+              <div className="border-4 border-emerald-500 bg-white p-6 max-h-[90%] overflow-y-auto space-y-5 text-zinc-900 shadow-2xl">
+                <div className="flex items-center gap-3 border-b-2 border-emerald-200 pb-3">
+                  <div className="bg-emerald-100 p-2 border border-emerald-400 rounded-none text-emerald-800">
+                    <Sparkles className="w-6 h-6 animate-pulse" />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-mono font-bold uppercase tracking-wider text-emerald-800">🚀 ¡Copiado con éxito!</h3>
+                    <p className="text-[10px] text-zinc-500 font-mono tracking-tight uppercase">SaaS MarkeCore Redes Integridad</p>
+                  </div>
+                </div>
+
+                <div className="text-xs space-y-3 leading-relaxed font-light">
+                  <p>
+                    El copy de tu publicación, hashtags y llamados a la acción optimizados han sido copiados en el portapapeles de tu dispositivo.
+                  </p>
+                  <div className="bg-zinc-50 border border-zinc-200 p-3 font-mono text-[9.5px] max-h-24 overflow-y-auto rounded-none text-zinc-650 block">
+                    {copy}
+                  </div>
+                  <p className="font-bold text-zinc-950">
+                    Paso siguiente: Abre tu cuenta de {channel} y publica tu contenido en este momento perfecto para capturar el mayor alcance orgánico.
+                  </p>
+                </div>
+
+                <div className="pt-3 border-t border-zinc-200 space-y-3">
+                  <span className="text-[9px] font-mono font-bold text-zinc-400 block uppercase tracking-wider text-center">CONFIRMACIÓN DE ESTADO</span>
+                  
+                  <div className="flex flex-col gap-2 font-mono">
+                    <button
+                      type="button"
+                      onClick={confirmAsPublished}
+                      className="w-full bg-emerald-700 hover:bg-emerald-600 text-white font-bold py-3 px-4 rounded-none text-xs tracking-widest uppercase cursor-pointer border-b-4 border-emerald-950 shadow-xs text-center"
+                    >
+                      ✓ ¡SÍ, YA ESTÁ PUBLICADO!
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setShowPublishConfirmation(false)}
+                      className="w-full bg-zinc-100 hover:bg-zinc-200 text-zinc-850 border border-zinc-350 py-2 px-4 rounded-none text-xs tracking-wider uppercase cursor-pointer text-center"
+                    >
+                      Aún no / Publicar después
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
 
         </div>
       </div>

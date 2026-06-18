@@ -138,6 +138,14 @@ export default function Dashboard() {
 
   // Email Alert queue simulation states
   const [simulatingAlertId, setSimulatingAlertId] = useState<string | null>(null);
+
+  // Unified custom interactive confirmation/alert dialog state
+  const [confirmDialog, setConfirmDialog] = useState<{
+    title: string;
+    message: string;
+    type: 'danger' | 'warning' | 'info' | 'success';
+    onConfirm: () => void;
+  } | null>(null);
   const [selectedInboxEmail, setSelectedInboxEmail] = useState<any | null>(null);
   const [inboxEmails, setInboxEmails] = useState<any[]>(() => {
     try {
@@ -523,58 +531,78 @@ export default function Dashboard() {
     }
   };
 
-  const handleDeletePost = async (postId: string) => {
-    const path = `users/${userId}/calendar/${postId}`;
-    if (!window.confirm("¿Seguro que deseas eliminar esta propuesta del calendario?")) return;
-    try {
-      await deleteDoc(doc(db, `users/${userId}/calendar`, postId));
-      setCalendarItems(prev => prev.filter(item => item.id !== postId));
-      setSuccessMsg("Publicación eliminada correctamente.");
-    } catch (err) {
-      handleFirestoreError(err, OperationType.DELETE, path);
-    }
-  };
-
-  const handleDeleteStrategy = async (stratId: string) => {
-    const path = `users/${userId}/strategies/${stratId}`;
-    if (!window.confirm("¿Seguro que deseas eliminar esta estrategia completa de tu historial?")) return;
-    try {
-      await deleteDoc(doc(db, `users/${userId}/strategies`, stratId));
-      setStrategies(prev => prev.filter(item => item.id !== stratId));
-      if (selectedStrategyId === stratId) {
-        setSelectedStrategyId(null);
+  const handleDeletePost = (postId: string) => {
+    setConfirmDialog({
+      title: "Eliminar Publicación",
+      message: "¿Seguro que deseas desechar esta propuesta del calendario? Se eliminará definitivamente de tu historial.",
+      type: "danger",
+      onConfirm: async () => {
+        const path = `users/${userId}/calendar/${postId}`;
+        try {
+          await deleteDoc(doc(db, `users/${userId}/calendar`, postId));
+          setCalendarItems(prev => prev.filter(item => item.id !== postId));
+          setSuccessMsg("Publicación eliminada correctamente.");
+        } catch (err) {
+          handleFirestoreError(err, OperationType.DELETE, path);
+        }
+        setConfirmDialog(null);
       }
-      setSuccessMsg("Estrategia eliminada.");
-    } catch (err) {
-      handleFirestoreError(err, OperationType.DELETE, path);
-    }
+    });
   };
 
-  const handleDeleteBusiness = async (bizId: string) => {
+  const handleDeleteStrategy = (stratId: string) => {
+    setConfirmDialog({
+      title: "Eliminar Estrategia",
+      message: "¿Seguro que deseas eliminar esta estrategia de marketing permanente junto con sus sugerencias?",
+      type: "danger",
+      onConfirm: async () => {
+        const path = `users/${userId}/strategies/${stratId}`;
+        try {
+          await deleteDoc(doc(db, `users/${userId}/strategies`, stratId));
+          setStrategies(prev => prev.filter(item => item.id !== stratId));
+          if (selectedStrategyId === stratId) {
+            setSelectedStrategyId(null);
+          }
+          setSuccessMsg("Estrategia eliminada con éxito.");
+        } catch (err) {
+          handleFirestoreError(err, OperationType.DELETE, path);
+        }
+        setConfirmDialog(null);
+      }
+    });
+  };
+
+  const handleDeleteBusiness = (bizId: string) => {
     const targetBiz = businesses.find(b => b.id === bizId);
     if (!targetBiz) return;
-    if (!window.confirm(`¿Seguro que deseas eliminar el emprendimiento "${targetBiz.name}"? Se borrarán sus datos asociados de tu lista.`)) return;
+    setConfirmDialog({
+      title: "Eliminar Emprendimiento",
+      message: `¿Seguro que deseas eliminar el emprendimiento "${targetBiz.name}"? Se borrarán todos sus registros asociados de la base de datos de manera definitiva.`,
+      type: "danger",
+      onConfirm: async () => {
+        const path = `users/${userId}/businesses/${bizId}`;
+        try {
+          await deleteDoc(doc(db, `users/${userId}/businesses`, bizId));
+          
+          const updatedList = businesses.filter(b => b.id !== bizId);
+          setBusinesses(updatedList);
 
-    const path = `users/${userId}/businesses/${bizId}`;
-    try {
-      await deleteDoc(doc(db, `users/${userId}/businesses`, bizId));
-      
-      const updatedList = businesses.filter(b => b.id !== bizId);
-      setBusinesses(updatedList);
+          if (activeBusiness?.id === bizId) {
+            if (updatedList.length > 0) {
+              setActiveBusiness(updatedList[0]);
+            } else {
+              setActiveBusiness(null);
+            }
+            setSelectedStrategyId(null);
+          }
 
-      if (activeBusiness?.id === bizId) {
-        if (updatedList.length > 0) {
-          setActiveBusiness(updatedList[0]);
-        } else {
-          setActiveBusiness(null);
+          setSuccessMsg(`✓ Emprendimiento "${targetBiz.name}" eliminado correctamente.`);
+        } catch (err) {
+          handleFirestoreError(err, OperationType.DELETE, path);
         }
-        setSelectedStrategyId(null);
+        setConfirmDialog(null);
       }
-
-      setSuccessMsg(`✓ Emprendimiento "${targetBiz.name}" eliminado correctamente.`);
-    } catch (err) {
-      handleFirestoreError(err, OperationType.DELETE, path);
-    }
+    });
   };
 
   const handleGenerateCustomCopy = async (e: React.FormEvent) => {
@@ -2193,6 +2221,60 @@ export default function Dashboard() {
         onUpgradeSuccess={fetchUserContent}
         currentUsage={subscription}
       />
+
+      {/* CUSTOM CLASSIFIED CONFIRMATION MODAL OVERLAY */}
+      <AnimatePresence>
+        {confirmDialog && (
+          <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4 bg-zinc-950/80 backdrop-blur-sm">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="bg-zinc-90 w-full max-w-sm bg-zinc-900 border border-zinc-800 text-white p-6 shadow-2xl relative"
+            >
+              <div className="flex items-center gap-3 mb-4">
+                <div className={`p-2 ${
+                  confirmDialog.type === 'danger' 
+                    ? 'bg-rose-500/20 text-rose-450 text-rose-400' 
+                    : confirmDialog.type === 'warning' 
+                    ? 'bg-amber-500/20 text-amber-400' 
+                    : 'bg-indigo-500/20 text-indigo-400'
+                }`}>
+                  <AlertCircle className="w-6 h-6" />
+                </div>
+                <h3 className="text-sm font-mono font-bold uppercase tracking-wider">
+                  {confirmDialog.title}
+                </h3>
+              </div>
+
+              <p className="text-xs font-sans text-zinc-300 leading-relaxed font-light mb-6">
+                {confirmDialog.message}
+              </p>
+
+              <div className="flex justify-end gap-3 font-mono text-xs">
+                <button
+                  type="button"
+                  onClick={() => setConfirmDialog(null)}
+                  className="bg-zinc-800 hover:bg-zinc-750 border border-zinc-700 px-4 py-2.5 uppercase tracking-wide cursor-pointer text-zinc-400 hover:text-white"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="button"
+                  onClick={confirmDialog.onConfirm}
+                  className={`px-4 py-2.5 uppercase tracking-wide cursor-pointer font-bold ${
+                    confirmDialog.type === 'danger'
+                      ? 'bg-rose-700 hover:bg-rose-600 text-white border border-rose-800'
+                      : 'bg-indigo-600 hover:bg-indigo-400 text-white border border-indigo-750'
+                  }`}
+                >
+                  Confirmar
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
 
 
 
