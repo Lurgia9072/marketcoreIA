@@ -2,8 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
   Sparkles, Check, AlertTriangle, ShieldCheck, Zap, 
-  CreditCard, ArrowRight, UserCheck, X, RefreshCw, 
-  Rocket
+  CreditCard, ArrowRight, UserCheck, X, RefreshCw 
 } from 'lucide-react';
 import { doc, updateDoc, getDoc } from 'firebase/firestore';
 import { db } from '../lib/firebase';
@@ -48,6 +47,29 @@ export default function PremiumUpgradeModal({
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const getLimitValue = (key: 'strategies' | 'copies' | 'images', plan: string) => {
+    const p = (plan || 'FREE').toUpperCase();
+    if (key === 'strategies') {
+      if (p === 'BUSINESS') return 'Ilimitados';
+      if (p === 'PRO') return '6';
+      if (p === 'EMPRENDEDOR') return '3';
+      return '2';
+    }
+    if (key === 'copies') {
+      if (p === 'BUSINESS') return 'Ilimitados';
+      if (p === 'PRO') return 'Ilimitados';
+      if (p === 'EMPRENDEDOR') return '20';
+      return '5';
+    }
+    if (key === 'images') {
+      if (p === 'BUSINESS') return 'Ilimitados';
+      if (p === 'PRO') return '40';
+      if (p === 'EMPRENDEDOR') return '10';
+      return '1';
+    }
+    return 'Ilimitados';
+  };
+
   // Rotating quotes timer
   useEffect(() => {
     const timer = setInterval(() => {
@@ -73,48 +95,53 @@ export default function PremiumUpgradeModal({
 
   const planDetails = {
     EMPRENDEDOR: {
-      name: "Emprendedor",
-      price: "19",
-      subtitle: "Para marcas independientes listas para brillar",
+      name: "Básico",
+      price: "10",
+      subtitle: "Ideal para emprendedores locales que desean comenzar a estructurar sus redes de manera consciente.",
       color: "from-zinc-900 to-zinc-950",
       accent: "zinc-900",
       features: [
-        "Estrategias Mensuales IA: Ilimitadas",
-        "Planes de Cronograma Semanales: Ilimitados",
-        "Copies y Redacciones IA: 60/mes",
-        "Imágenes IA de alta densidad: 20/mes",
-        "Soporte rápido vía Email",
+        "Hasta 3 emprendimientos activos",
+        "Hasta 3 estrategias mensuales",
+        "Up to 20 copies persuasivos al mes",
+        "Prompts optimizados para imágenes IA",
+        "Generación de hasta 10 imágenes al mes",
+        "Calendario básico de contenidos",
+        "Historial de publicaciones persistente",
       ]
     },
     PRO: {
       name: "Profesional",
-      price: "39",
-      subtitle: "El estándar dorado de crecimiento acelerado",
+      price: "29",
+      subtitle: "Excelente para negocios digitales o tiendas en línea en etapa de tracción comercial que requieren constancia total.",
       color: "from-indigo-950 to-slate-900",
       accent: "indigo-600",
       badge: "Más Recomendado",
       features: [
-        "Estrategias Mensuales IA: Ilimitadas",
-        "Planes de Cronograma Semanales: Ilimitados",
-        "Copies y Redacciones IA: 200/mes",
-        "Imágenes IA de alta densidad: 80/mes",
-        "Análisis IA Avanzado de Fotos y Videos",
-        "Soporte Prioritario VIP",
+        "Hasta 6 emprendimientos activos",
+        "Hasta 6 estrategias mensuales",
+        "Planificación de publicaciones ILIMITADAS",
+        "Generación de hasta 40 imágenes al mes",
+        "Estrategia IA Multidireccional",
+        "Control de agendación integrada",
+        "Soporte prioritario 24/7",
       ]
     },
     BUSINESS: {
-      name: "Agencia y Negocios",
-      price: "89",
-      subtitle: "Máximo volumen sin límites de operación",
+      name: "Premium",
+      price: "69",
+      subtitle: "Para agencias, marcas consolidadas o agencias de marketing con múltiples cuentas empresariales que manejar.",
       color: "from-emerald-950 to-cyan-950",
       accent: "emerald-600",
       features: [
-        "Estrategias Mensuales IA: Ilimitadas",
-        "Planes de Cronograma Semanales: Ilimitados",
-        "Copies y Redacciones IA: Ilimitados",
-        "Imágenes IA de alta densidad: Ilimitados",
-        "Análisis IA ilimitado de Contenido Multimedia",
-        "Acompañamiento Estratégico 1-a-1",
+        "Emprendimientos ILIMITADOS",
+        "Estrategias IA ILIMITADAS",
+        "Copies y Redacciones IA ILIMITADOS",
+        "Generación de imágenes IA ILIMITADA",
+        "Multiempresa (Soporte ilimitado)",
+        "Multiusuario para tu equipo",
+        "Reportes de tendencias avanzadas",
+        "Acceso antes que nadie a nuevas funciones",
       ]
     }
   };
@@ -185,7 +212,7 @@ export default function PremiumUpgradeModal({
             <div>
               <div className="flex items-center gap-2 mb-6">
                 <div className="p-2 bg-indigo-600/20 text-indigo-400">
-                 <Rocket className="w-4 h-4 text-zinc-700" />
+                  <Sparkles className="w-5 h-5 animate-pulse" />
                 </div>
                 <span className="text-xs font-mono font-bold tracking-widest text-indigo-400 uppercase">MEMBRESÍA MARKETING IA</span>
               </div>
@@ -199,34 +226,33 @@ export default function PremiumUpgradeModal({
 
               {/* Real-time Usage status check visualization */}
               <div className="bg-zinc-900 border border-zinc-800 p-4 mt-6">
-                <span className="text-[10px] font-mono text-zinc-500 uppercase tracking-widest block mb-2">CONSUMO DE TU PLAN ACTUAL ({currentUsage.plan})</span>
+                <span className="text-[10px] font-mono text-zinc-500 uppercase tracking-widest block mb-2">CONSUMO DE TU PLAN ACTUAL ({currentUsage.plan === 'FREE' ? 'GRATUITO' : currentUsage.plan === 'EMPRENDEDOR' ? 'BÁSICO' : currentUsage.plan === 'PRO' ? 'PROFESIONAL' : 'PREMIUM'})</span>
                 <div className="space-y-3 font-mono text-xs text-zinc-300">
                   <div className="flex justify-between items-center bg-zinc-950/50 p-2 border border-zinc-850">
                     <span className="text-zinc-400">ESTRATEGIAS:</span>
                     <span className="font-bold flex items-center gap-1.5">
-                      {currentUsage.strategiesUsed} / {currentUsage.plan === 'FREE' ? '2' : 'Ilimitados'}
-                      {currentUsage.plan === 'FREE' && currentUsage.strategiesUsed >= 2 && <span className="text-rose-500 text-[10px]">● ALCANZADO</span>}
-                    </span>
-                  </div>
-                  <div className="flex justify-between items-center bg-zinc-950/50 p-2 border border-zinc-850">
-                    <span className="text-zinc-400 font-mono">PLANES SEMANALES:</span>
-                    <span className="font-bold flex items-center gap-1.5">
-                      {currentUsage.weeklyPlansUsed} / {currentUsage.plan === 'FREE' ? '4' : 'Ilimitados'}
-                      {currentUsage.plan === 'FREE' && currentUsage.weeklyPlansUsed >= 4 && <span className="text-rose-500 text-[10px]">● ALCANZADO</span>}
+                      {currentUsage.strategiesUsed} / {getLimitValue('strategies', currentUsage.plan)}
+                      {getLimitValue('strategies', currentUsage.plan) !== 'Ilimitados' && currentUsage.strategiesUsed >= Number(getLimitValue('strategies', currentUsage.plan)) && (
+                        <span className="text-rose-500 text-[10px]">● ALCANZADO</span>
+                      )}
                     </span>
                   </div>
                   <div className="flex justify-between items-center bg-zinc-950/50 p-2 border border-zinc-850">
                     <span className="text-zinc-400">COPIES GEN:</span>
                     <span className="font-bold flex items-center gap-1.5">
-                      {currentUsage.copiesUsed} / {currentUsage.plan === 'FREE' ? '5' : currentUsage.plan === 'EMPRENDEDOR' ? '60' : currentUsage.plan === 'PRO' ? '200' : 'Ilimitados'}
-                      {currentUsage.plan === 'FREE' && currentUsage.copiesUsed >= 5 && <span className="text-rose-500 text-[10px]">● ALCANZADO</span>}
+                      {currentUsage.copiesUsed} / {getLimitValue('copies', currentUsage.plan)}
+                      {getLimitValue('copies', currentUsage.plan) !== 'Ilimitados' && currentUsage.copiesUsed >= Number(getLimitValue('copies', currentUsage.plan)) && (
+                        <span className="text-rose-500 text-[10px]">● ALCANZADO</span>
+                      )}
                     </span>
                   </div>
                   <div className="flex justify-between items-center bg-zinc-950/50 p-2 border border-zinc-850">
                     <span className="text-zinc-400">IMÁGENES GEN:</span>
                     <span className="font-bold flex items-center gap-1.5">
-                      {currentUsage.imagesUsed} / {currentUsage.plan === 'FREE' ? '1' : currentUsage.plan === 'EMPRENDEDOR' ? '20' : currentUsage.plan === 'PRO' ? '80' : 'Ilimitados'}
-                      {currentUsage.plan === 'FREE' && currentUsage.imagesUsed >= 1 && <span className="text-rose-500 text-[10px]">● ALCANZADO</span>}
+                      {currentUsage.imagesUsed} / {getLimitValue('images', currentUsage.plan)}
+                      {getLimitValue('images', currentUsage.plan) !== 'Ilimitados' && currentUsage.imagesUsed >= Number(getLimitValue('images', currentUsage.plan)) && (
+                        <span className="text-rose-500 text-[10px]">● ALCANZADO</span>
+                      )}
                     </span>
                   </div>
                 </div>

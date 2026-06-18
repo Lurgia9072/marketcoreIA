@@ -17,6 +17,7 @@ import { handleFirestoreError, OperationType } from '../lib/firestore-helpers';
 import { BusinessProfile, MarketingStrategy, CalendarPost } from '../types';
 import PremiumUpgradeModal from './PremiumUpgradeModal';
 import { 
+  Rocket,
   Sparkles, 
   LogOut, 
   Plus, 
@@ -45,8 +46,7 @@ import {
   Layers,
   CheckSquare,
   HelpCircle,
-  Edit3,
-  Rocket
+  Edit3
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Link } from 'react-router-dom';
@@ -159,6 +159,26 @@ export default function Dashboard() {
 
   const [alertTab, setAlertTab] = useState<'sim' | 'inbox'>('sim');
   const [appToasts, setAppToasts] = useState<any[]>([]);
+
+  // Real metrics states from Firestore
+  const [metrics, setMetrics] = useState<{
+    followers: number;
+    followersGrowth: string;
+    engagement: number;
+    engagementGrowth: string;
+    history: Array<{ name: string; followers: number; engagement: number }>;
+  } | null>(null);
+  const [loadingMetrics, setLoadingMetrics] = useState(false);
+  const [showMetricsForm, setShowMetricsForm] = useState(false);
+  
+  // Form input states
+  const [inputFollowers, setInputFollowers] = useState('');
+  const [inputFollowersGrowth, setInputFollowersGrowth] = useState('');
+  const [inputEngagement, setInputEngagement] = useState('');
+  const [inputEngagementGrowth, setInputEngagementGrowth] = useState('');
+  const [inputNewHistoryMonth, setInputNewHistoryMonth] = useState('');
+  const [inputNewHistoryFollowers, setInputNewHistoryFollowers] = useState('');
+  const [inputNewHistoryEngagement, setInputNewHistoryEngagement] = useState('');
 
   // Real-time and simulated test variables for dynamic notification checkups
   const [useRealTime, setUseRealTime] = useState<boolean>(true);
@@ -301,6 +321,172 @@ export default function Dashboard() {
     }
   }, [userId]);
 
+  // Sync real-time and historical impact metrics for the active business
+  useEffect(() => {
+    if (!userId || !activeBusiness?.id) {
+      setMetrics(null);
+      return;
+    }
+
+    const fetchBusinessMetrics = async () => {
+      setLoadingMetrics(true);
+      try {
+        const docRef = doc(db, `users/${userId}/businesses/${activeBusiness.id}/metrics`, 'current');
+        const docSnap = await getDoc(docRef);
+        if (docSnap.exists()) {
+          const fetchedData = docSnap.data() as any;
+          setMetrics(fetchedData);
+          setInputFollowers(String(fetchedData.followers || '14200'));
+          setInputFollowersGrowth(fetchedData.followersGrowth || '+11.8% mes');
+          setInputEngagement(String(fetchedData.engagement || '9.4'));
+          setInputEngagementGrowth(fetchedData.engagementGrowth || '+4.2% prom.');
+        } else {
+          // Initialize standard fallback matching the landing page context so it works automatically
+          const defaultMetrics = {
+            followers: 14200,
+            followersGrowth: '+11.8% mes',
+            engagement: 9.4,
+            engagementGrowth: '+4.2% prom.',
+            history: [
+              { name: 'Mes 1', followers: 1200, engagement: 2.1 },
+              { name: 'Mes 2', followers: 2100, engagement: 3.5 },
+              { name: 'Mes 3', followers: 4300, engagement: 5.8 },
+              { name: 'Mes 4', followers: 7900, engagement: 7.2 },
+              { name: 'Mes 5', followers: 14200, engagement: 9.4 },
+            ]
+          };
+          await setDoc(docRef, defaultMetrics);
+          setMetrics(defaultMetrics);
+          setInputFollowers('14200');
+          setInputFollowersGrowth('+11.8% mes');
+          setInputEngagement('9.4');
+          setInputEngagementGrowth('+4.2% prom.');
+        }
+      } catch (err) {
+        console.error("Error loading metrics:", err);
+      } finally {
+        setLoadingMetrics(false);
+      }
+    };
+
+    fetchBusinessMetrics();
+  }, [userId, activeBusiness?.id]);
+
+  const handleSaveMetrics = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!userId || !activeBusiness?.id || !metrics) return;
+
+    const parsedFollowers = parseInt(inputFollowers, 10);
+    const parsedEngagement = parseFloat(inputEngagement);
+
+    if (isNaN(parsedFollowers) || isNaN(parsedEngagement)) {
+      setAlertMsg("Por favor, ingresa valores numéricos válidos.");
+      return;
+    }
+
+    const updatedMetrics = {
+      ...metrics,
+      followers: parsedFollowers,
+      followersGrowth: inputFollowersGrowth,
+      engagement: parsedEngagement,
+      engagementGrowth: inputEngagementGrowth,
+    };
+
+    try {
+      const docRef = doc(db, `users/${userId}/businesses/${activeBusiness.id}/metrics`, 'current');
+      await setDoc(docRef, updatedMetrics);
+      setMetrics(updatedMetrics);
+      setShowMetricsForm(false);
+      setSuccessMsg("¡Estadísticas de impacto real actualizadas con éxito!");
+    } catch (err) {
+      console.error("Error saving metrics:", err);
+      setAlertMsg("Fallo al guardar tus métricas de panel.");
+    }
+  };
+
+  const handleAddMetricHistory = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!userId || !activeBusiness?.id || !metrics) return;
+    if (!inputNewHistoryMonth.trim() || !inputNewHistoryFollowers.trim() || !inputNewHistoryEngagement.trim()) {
+      setAlertMsg("Por favor, completa todos los campos del nuevo hito histórico.");
+      return;
+    }
+
+    const newFollowers = parseInt(inputNewHistoryFollowers, 10);
+    const newEngagement = parseFloat(inputNewHistoryEngagement);
+
+    if (isNaN(newFollowers) || isNaN(newEngagement)) {
+      setAlertMsg("Por favor, ingresa números válidos.");
+      return;
+    }
+
+    const newHistoryPoint = {
+      name: inputNewHistoryMonth.trim(),
+      followers: newFollowers,
+      engagement: newEngagement
+    };
+
+    const updatedHistory = [...metrics.history, newHistoryPoint];
+    const updatedMetrics = {
+      ...metrics,
+      followers: newFollowers,
+      engagement: newEngagement,
+      history: updatedHistory
+    };
+
+    try {
+      const docRef = doc(db, `users/${userId}/businesses/${activeBusiness.id}/metrics`, 'current');
+      await setDoc(docRef, updatedMetrics);
+      setMetrics(updatedMetrics);
+      setInputFollowers(String(newFollowers));
+      setInputEngagement(String(newEngagement));
+      setInputNewHistoryMonth('');
+      setInputNewHistoryFollowers('');
+      setInputNewHistoryEngagement('');
+      setSuccessMsg("¡Nuevo punto de historial registrado y acumulado con éxito!");
+    } catch (err) {
+      console.error("Error appending history:", err);
+      setAlertMsg("Error al guardar este avance histórico.");
+    }
+  };
+
+  const handleResetMetricsToDefault = async () => {
+    if (!userId || !activeBusiness?.id) return;
+    setConfirmDialog({
+      title: "Restablecer Estadísticas de Impacto",
+      message: "¿Seguro que deseas restablecer los datos de seguidores e impacto al demo de inicio?",
+      type: "info",
+      onConfirm: async () => {
+        try {
+          const docRef = doc(db, `users/${userId}/businesses/${activeBusiness.id}/metrics`, 'current');
+          const defaultMetrics = {
+            followers: 14200,
+            followersGrowth: '+11.8% mes',
+            engagement: 9.4,
+            engagementGrowth: '+4.2% prom.',
+            history: [
+              { name: 'Mes 1', followers: 1200, engagement: 2.1 },
+              { name: 'Mes 2', followers: 2100, engagement: 3.5 },
+              { name: 'Mes 3', followers: 4300, engagement: 5.8 },
+              { name: 'Mes 4', followers: 7900, engagement: 7.2 },
+              { name: 'Mes 5', followers: 14200, engagement: 9.4 },
+            ]
+          };
+          await setDoc(docRef, defaultMetrics);
+          setMetrics(defaultMetrics);
+          setInputFollowers('14200');
+          setInputFollowersGrowth('+11.8% mes');
+          setInputEngagement('9.4');
+          setInputEngagementGrowth('+4.2% prom.');
+          setSuccessMsg("Se han restablecido las estadísticas.");
+        } catch (err) {
+          console.error(err);
+        }
+        setConfirmDialog(null);
+      }
+    });
+  };
+
   // Fetch business, strategist, and calendars from firestore
   const fetchUserContent = async () => {
     setLoadingData(true);
@@ -372,9 +558,19 @@ export default function Dashboard() {
     }
   };
 
+  const getPlanBusinessLimit = (planName: string) => {
+    const uppercasePlan = (planName || 'FREE').toUpperCase();
+    if (uppercasePlan === 'BUSINESS') return Infinity;
+    if (uppercasePlan === 'PRO') return 6;
+    if (uppercasePlan === 'EMPRENDEDOR') return 3;
+    return 2; // FREE
+  };
+
   const handleOpenNewBusinessModal = () => {
-    if (subscription.plan === 'FREE' && businesses.length >= 3) {
-      setGenError("LÍMITE ALCANZADO: El plan GRATUITO permite registrar hasta 3 emprendimientos. Por favor, actualízate a PRO para marcas ilimitadas.");
+    const limit = getPlanBusinessLimit(subscription.plan);
+    if (businesses.length >= limit) {
+      const planLabel = subscription.plan === 'FREE' ? 'Gratuito' : subscription.plan === 'EMPRENDEDOR' ? 'Básico' : 'Profesional';
+      setGenError(`LÍMITE ALCANZADO: Tu plan ${planLabel} permite registrar hasta ${limit} emprendimientos. Por favor, actualízate para registrar más.`);
       setShowPaywall(true);
       return;
     }
@@ -412,8 +608,10 @@ export default function Dashboard() {
       return;
     }
 
-    if (!isEditMode && subscription.plan === 'FREE' && businesses.length >= 3) {
-      setFormError("LÍMITE ALCANZADO: El plan GRATUITO permite registrar hasta 3 emprendimientos. Por favor, actualízate a PRO para marcas ilimitadas.");
+    const limit = getPlanBusinessLimit(subscription.plan);
+    if (!isEditMode && businesses.length >= limit) {
+      const planLabel = subscription.plan === 'FREE' ? 'Gratuito' : subscription.plan === 'EMPRENDEDOR' ? 'Básico' : 'Profesional';
+      setFormError(`LÍMITE ALCANZADO: Tu plan ${planLabel} permite registrar hasta ${limit} emprendimientos. Por favor, actualízate para registrar más.`);
       setShowPaywall(true);
       return;
     }
@@ -881,8 +1079,8 @@ export default function Dashboard() {
         <div className="flex flex-col gap-6">
           <div className="flex items-center justify-between">
             <Link to="/" className="flex items-center gap-2.5">
-              <div className="p-2.5 rounded-none ">
-                  <Rocket className="w-4 h-4 text-zinc-700" />
+              <div className="bg-zinc-900 p-2.5 rounded-none border border-zinc-900">
+                <Rocket className="w-5 h-5 text-white" />
               </div>
               <span className="font-sans font-bold text-base text-zinc-900 uppercase tracking-wider">
                 Mercadea<span className="text-zinc-650 bg-zinc-100 text-zinc-600 border border-zinc-205 px-1.5 py-0.5 ml-1.5 text-[10px] font-mono font-bold rounded-none">_IA</span>
@@ -927,7 +1125,7 @@ export default function Dashboard() {
           {/* Business Select Section */}
           <div className="flex flex-col gap-2 pt-4 border-t border-zinc-200">
             <div className="flex justify-between items-center text-[10px] font-mono font-bold text-zinc-500 tracking-widest">
-              <span>MIS NEGOCIOS {subscription.plan === 'FREE' && `(${businesses.length}/3)`}</span>
+              <span>MIS NEGOCIOS {subscription.plan !== 'BUSINESS' && `(${businesses.length}/${getPlanBusinessLimit(subscription.plan)})`}</span>
               <button 
                 onClick={handleOpenNewBusinessModal}
                 className="text-zinc-800 hover:text-zinc-600 transition"
@@ -987,7 +1185,7 @@ export default function Dashboard() {
             onClick={() => setShowCopywriterDrawer(true)}
             className="w-full bg-zinc-900 border border-zinc-900 text-white hover:bg-zinc-800 px-4 py-3 rounded-none text-xs font-mono font-bold uppercase tracking-wider transition flex items-center justify-center gap-2 cursor-pointer shadow-[2px_2px_0px_0px_rgba(24,24,27,0.15)]"
           >
-            <Rocket className="w-4 h-4 text-zinc-700" /> REDACTOR COPY IA
+            <Sparkles className="w-4 h-4 text-white" /> REDACTOR COPY IA
           </button>
           
           <button 
@@ -1111,7 +1309,7 @@ export default function Dashboard() {
                     </>
                   ) : (
                     <>
-                       <Rocket className="w-4 h-4 text-zinc-700" />
+                      <Sparkles className="w-4 h-4" />
                       <span>CREAR NUEVA ESTRATEGIA IA</span>
                     </>
                   )}
@@ -1124,7 +1322,7 @@ export default function Dashboard() {
               
               <div className="bg-white border-2 border-zinc-200 rounded-none p-8 text-center max-w-xl mx-auto my-6 shadow-[4px_4px_0px_0px_rgba(24,24,27,1)]">
                 <div className="bg-zinc-50 border border-zinc-200 p-3 rounded-none inline-block mb-4">
-                  <Rocket className="w-4 h-4 text-zinc-700" />
+                  <Sparkles className="w-8 h-8 text-zinc-900" />
                 </div>
                 <h3 className="text-sm font-mono font-bold text-zinc-900 uppercase tracking-wider mb-2">No hay estrategia para {activeBusiness?.name}</h3>
                 <p className="text-xs text-zinc-650 max-w-md mx-auto leading-relaxed font-sans font-light">
@@ -2044,7 +2242,7 @@ export default function Dashboard() {
               {/* Drawer header */}
               <div className="px-6 py-5 border-b-2 border-zinc-200 flex justify-between items-center bg-zinc-50">
                 <span className="font-sans font-bold text-sm text-zinc-900 flex items-center gap-2 uppercase tracking-wider">
-                   <Rocket className="w-4 h-4 text-zinc-700" /> REDACTOR DE COPYWRITING IA
+                  <Sparkles className="w-5 h-5 text-zinc-900 animate-pulse" /> REDACTOR DE COPYWRITING IA
                 </span>
                 <button 
                   onClick={() => setShowCopywriterDrawer(false)}
@@ -2119,7 +2317,7 @@ export default function Dashboard() {
                       </>
                     ) : (
                       <>
-                        <Rocket className="w-4 h-4 text-zinc-700" />
+                        <Sparkles className="w-4 h-4" />
                         <span>GENERAR PROPUESTA DE COPY CON IA</span>
                       </>
                     )}

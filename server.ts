@@ -16,24 +16,28 @@ const db = getFirestore(firebaseApp, firebaseConfig.firestoreDatabaseId);
 // Limits definitions for each subscription tier
 const PLAN_LIMITS = {
   FREE: {
+    businesses: 2,
     strategies: 2,
     weeklyPlans: 4,
     copies: 5,
     images: 1,
   },
   EMPRENDEDOR: {
-    strategies: Infinity,
+    businesses: 3,
+    strategies: 3,
     weeklyPlans: Infinity,
-    copies: 60,
-    images: 20,
+    copies: 20,
+    images: 10,
   },
   PRO: {
-    strategies: Infinity,
+    businesses: 6,
+    strategies: 6,
     weeklyPlans: Infinity,
-    copies: 200,
-    images: 80,
+    copies: Infinity,
+    images: 40,
   },
   BUSINESS: {
+    businesses: Infinity,
     strategies: Infinity,
     weeklyPlans: Infinity,
     copies: Infinity,
@@ -224,9 +228,8 @@ async function startServer() {
         return responseText.trim();
       }
     } catch (primaryError: any) {
-      console.warn("=== FALLBACK ACTIVADO: El Socio IA principal falló ===");
-      console.warn("Razón:", primaryError.message || primaryError);
-      console.warn("Iniciando generación con Motor de Texto Libre (Pollinations AI)...");
+      // Quiet logger for production
+      console.log(`[AI-Fallback] Primary generator failure: ${primaryError?.message || primaryError}. Activating free text provider list...`);
 
       try {
         const fallbackResponse = await fetch("https://text.pollinations.ai/", {
@@ -267,12 +270,9 @@ async function startServer() {
         }
         fallbackText = fallbackText.trim();
 
-        console.info("=== FALLBACK EXITOSO: El Motor de Texto Libre respondió de forma correcta ===");
         return fallbackText;
       } catch (fallbackError: any) {
-        console.error("=== CONTROL DE CRASH: Ambos motores de IA fallaron ===");
-        console.error("Error original:", primaryError);
-        console.error("Error fallback:", fallbackError);
+        console.error(`[AI-Fallback] Both text engines failed to generate. Err: ${fallbackError?.message}`);
         throw new Error(`Servicios de IA no disponibles. Error original: ${primaryError.message || "Quota/Conexión"}`);
       }
     }

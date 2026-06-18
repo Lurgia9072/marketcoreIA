@@ -49,7 +49,7 @@ export default function LoginScreen() {
         </Link>
         <div className="flex items-center gap-2">
           <Rocket className="w-4 h-4 text-zinc-700" />
-          <span className="text-xs font-mono text-zinc-500 tracking-wider">MARKETCORE_SECURE_AUTH_v1.0</span>
+          <span className="text-xs font-mono text-zinc-500 tracking-wider">MARKETCOREIA</span>
         </div>
       </header>
 
@@ -121,7 +121,7 @@ export default function LoginScreen() {
           {/* Secure disclaimer */}
           <div className="flex items-center justify-center gap-2 mt-6 text-zinc-500 font-mono text-[10px] uppercase font-bold tracking-wider">
             <Shield className="w-3.5 h-3.5 text-zinc-400" />
-            <span>Servidor seguro · OAuth SSL</span>
+        {/*     <span>Servidor seguro · OAuth SSL</span> */}
           </div>
         </motion.div>
       </main>

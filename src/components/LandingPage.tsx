@@ -720,7 +720,7 @@ export default function LandingPage() {
             <div className="bg-zinc-50/50 border-2 border-zinc-200 p-8 rounded-none flex flex-col justify-between hover:border-zinc-300 transition duration-300 shadow-[4px_4px_0px_0px_rgba(24,24,27,0.02)]">
               <div>
                 <span className="text-zinc-500 font-bold text-[10px] uppercase font-mono tracking-wider block mb-2">Básico</span>
-                <span className="text-4xl font-bold text-zinc-900 block">$19<span className="text-sm font-normal text-zinc-500">/mes</span></span>
+                <span className="text-4xl font-bold text-zinc-900 block">$10<span className="text-sm font-normal text-zinc-500">/mes</span></span>
                 <p className="text-xs text-zinc-600 mt-3 font-light leading-relaxed">
                   Ideal para emprendedores locales que desean comenzar a estructurar sus redes de manera consciente.
                 </p>
@@ -730,11 +730,11 @@ export default function LandingPage() {
                 <ul className="flex flex-col gap-3.5 text-xs text-zinc-650">
                   <li className="flex items-center gap-2">
                     <CheckCircle2 className="w-4 h-4 text-zinc-500 flex-shrink-0" />
-                    <span>Estrategia de marca simplificada</span>
+                    <span>Hasta 3 emprendimientos activos</span>
                   </li>
                   <li className="flex items-center gap-2">
                     <CheckCircle2 className="w-4 h-4 text-zinc-500 flex-shrink-0" />
-                    <span>Calendario básico de contenidos</span>
+                    <span>Hasta 3 estrategias mensuales</span>
                   </li>
                   <li className="flex items-center gap-2">
                     <CheckCircle2 className="w-4 h-4 text-zinc-500 flex-shrink-0" />
@@ -745,6 +745,14 @@ export default function LandingPage() {
                     <span>Prompts optimizados para imágenes IA</span>
                   </li>
                   <li className="flex items-center gap-2">
+                    <CheckCircle2 className="w-4 h-4 text-zinc-500 flex-shrink-0" />
+                    <span>Generación de hasta 10 imágenes al mes</span>
+                  </li> 
+                  <li className="flex items-center gap-2">
+                    <CheckCircle2 className="w-4 h-4 text-zinc-500 flex-shrink-0" />
+                    <span>Calendario básico de contenidos</span>
+                  </li>
+                   <li className="flex items-center gap-2">
                     <CheckCircle2 className="w-4 h-4 text-zinc-500 flex-shrink-0" />
                     <span>Historial de publicaciones persistente</span>
                   </li>
@@ -767,7 +775,7 @@ export default function LandingPage() {
               
               <div>
                 <span className="text-zinc-500 font-bold text-[10px] uppercase font-mono tracking-wider block mb-2 mt-2">Profesional</span>
-                <span className="text-4xl font-bold text-zinc-900 block">$39<span className="text-sm font-normal text-zinc-500">/mes</span></span>
+                <span className="text-4xl font-bold text-zinc-900 block">$29<span className="text-sm font-normal text-zinc-500">/mes</span></span>
                 <p className="text-xs text-zinc-650 mt-3 font-light leading-relaxed">
                   Excelente para negocios digitales o tiendas en línea en etapa de tracción comercial que requieren constancia total.
                 </p>
@@ -777,7 +785,11 @@ export default function LandingPage() {
                 <ul className="flex flex-col gap-3.5 text-xs text-zinc-700">
                   <li className="flex items-center gap-2">
                     <CheckCircle2 className="w-4 h-4 text-zinc-700 flex-shrink-0" />
-                    <span className="font-bold text-zinc-900">Todo lo del plan Básico</span>
+                    <span className="font-bold text-zinc-900">Hasta 6 emprendimientos activos</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckCircle2 className="w-4 h-4 text-zinc-750 flex-shrink-0" />
+                    <span>Hasta 6 estrategias mensuales</span>
                   </li>
                   <li className="flex items-center gap-2">
                     <CheckCircle2 className="w-4 h-4 text-zinc-750 flex-shrink-0" />
@@ -785,13 +797,17 @@ export default function LandingPage() {
                   </li>
                   <li className="flex items-center gap-2">
                     <CheckCircle2 className="w-4 h-4 text-zinc-750 flex-shrink-0" />
-                    <span>Estrategia IA Multidireccional</span>
+                    <span>Generación de hasta 40 imágenes al mes</span>
                   </li>
                   <li className="flex items-center gap-2">
                     <CheckCircle2 className="w-4 h-4 text-zinc-750 flex-shrink-0" />
+                    <span>Estrategia IA Multidireccional</span>
+                  </li>
+                   <li className="flex items-center gap-2">
+                    <CheckCircle2 className="w-4 h-4 text-zinc-750 flex-shrink-0" />
                     <span>Control de agendación integrada</span>
                   </li>
-                  <li className="flex items-center gap-2">
+                    <li className="flex items-center gap-2">
                     <CheckCircle2 className="w-4 h-4 text-zinc-750 flex-shrink-0" />
                     <span>Soporte prioritario 24/7</span>
                   </li>
@@ -810,7 +826,7 @@ export default function LandingPage() {
             <div className="bg-zinc-50/50 border-2 border-zinc-200 p-8 rounded-none flex flex-col justify-between hover:border-zinc-300 transition duration-300 shadow-[4px_4px_0px_0px_rgba(24,24,27,0.02)]">
               <div>
                 <span className="text-zinc-500 font-bold text-[10px] uppercase font-mono tracking-wider block mb-2">Premium</span>
-                <span className="text-4xl font-bold text-zinc-900 block">$79<span className="text-sm font-normal text-zinc-500">/mes</span></span>
+                <span className="text-4xl font-bold text-zinc-900 block">$69<span className="text-sm font-normal text-zinc-500">/mes</span></span>
                 <p className="text-xs text-zinc-600 mt-3 font-light leading-relaxed">
                   Para agencias, marcas consolidadas o agencias de marketing con múltiples cuentas empresariales que manejar.
                 </p>
@@ -820,21 +836,33 @@ export default function LandingPage() {
                 <ul className="flex flex-col gap-3.5 text-xs text-zinc-650">
                   <li className="flex items-center gap-2">
                     <CheckCircle2 className="w-4 h-4 text-zinc-500 flex-shrink-0" />
-                    <span className="font-bold text-zinc-900">Todo lo del plan Profesional</span>
+                    <span className="font-bold text-zinc-900">Emprendimientos ILIMITADOS</span>
                   </li>
                   <li className="flex items-center gap-2">
                     <CheckCircle2 className="w-4 h-4 text-zinc-500 flex-shrink-0" />
-                    <span>Multiempresa (hasta 5 perfiles)</span>
+                    <span>Estrategias IA ILIMITADAS</span>
                   </li>
                   <li className="flex items-center gap-2">
+                    <CheckCircle2 className="w-4 h-4 text-zinc-500 flex-shrink-0" />
+                    <span>Copies y Redacciones IA ILIMITADOS</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckCircle2 className="w-4 h-4 text-zinc-500 flex-shrink-0" />
+                    <span>Generación de imágenes IA ILIMITADA</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckCircle2 className="w-4 h-4 text-zinc-500 flex-shrink-0" />
+                    <span>Multiempresa (Soporte ilimitado)</span>
+                  </li>
+                   <li className="flex items-center gap-2">
                     <CheckCircle2 className="w-4 h-4 text-zinc-500 flex-shrink-0" />
                     <span>Multiusuario para tu equipo</span>
                   </li>
-                  <li className="flex items-center gap-2">
+                    <li className="flex items-center gap-2">
                     <CheckCircle2 className="w-4 h-4 text-zinc-500 flex-shrink-0" />
                     <span>Reportes de tendencias avanzadas</span>
                   </li>
-                  <li className="flex items-center gap-2">
+                    <li className="flex items-center gap-2">
                     <CheckCircle2 className="w-4 h-4 text-zinc-500 flex-shrink-0" />
                     <span>Acceso antes que nadie a nuevas funciones</span>
                   </li>
