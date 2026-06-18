@@ -600,7 +600,7 @@ export default function PremiumUpgradeModal({
                         <div className="mt-3 bg-zinc-900 px-3 py-2 border-l-2 border-emerald-500 flex justify-between items-center text-[10px] md:text-[11px] font-mono">
                           <span className="text-zinc-400">Total a transferir:</span>
                           <span className="text-emerald-400 font-extrabold text-xs">
-                            {activeTab === 'EMPRENDEDOR' ? 'S/. 72.00 PEN ($10 USD)' : activeTab === 'PRO' ? 'S/. 148.00 PEN ($29 USD)' : 'S/. 300.00 PEN ($69 USD)'}
+                            {activeTab === 'EMPRENDEDOR' ? '$10 USD' : activeTab === 'PRO' ? '$29 USD' : '$69 USD'}
                           </span>
                         </div>
                       </div>
@@ -678,7 +678,7 @@ export default function PremiumUpgradeModal({
                         <div className="text-center md:text-left font-sans">
                           <div className="text-[10px] font-mono text-zinc-500 uppercase font-bold">Total a pagar:</div>
                           <div className="text-xl font-bold font-mono text-emerald-400">
-                            {activeTab === 'EMPRENDEDOR' ? 'S/. 72.00 PEN' : activeTab === 'PRO' ? 'S/. 148.00 PEN' : 'S/. 300.00 PEN'}
+                            {activeTab === 'EMPRENDEDOR' ? 'S/. 33.90 PEN' : activeTab === 'PRO' ? 'S/. 98.31 PEN' : 'S/. 233.92 PEN'}
                           </div>
                         </div>
 
