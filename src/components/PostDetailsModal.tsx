@@ -15,7 +15,8 @@
     Video as VideoIcon, 
     ChevronRight, 
     RotateCw,
-    AlertCircle
+    AlertCircle,
+    Rocket
   } from 'lucide-react';
   import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
   import { doc, setDoc, deleteDoc } from 'firebase/firestore';
@@ -802,7 +803,7 @@
                   <div className="bg-zinc-100 p-4 border border-zinc-200 text-xs mt-2 space-y-3.5">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-1.5">
-                        <Sparkles className="w-4 h-4 text-zinc-900" />
+                        <Rocket className="w-4 h-4 text-zinc-700" />
                         <span className="text-[9.5px] font-mono font-bold text-zinc-800 block uppercase tracking-wider">CREACIÓN DE IMAGEN CON IA</span>
                       </div>
                       {/* Engine selection */}
@@ -841,7 +842,7 @@
                         disabled={generatingImage || !imageUrlPrompt.trim()}
                         className="bg-zinc-900 hover:bg-zinc-800 disabled:bg-zinc-400 disabled:cursor-not-allowed text-white font-mono text-[10px] font-bold py-2.5 px-4 border border-zinc-750 cursor-pointer flex items-center gap-1.5 uppercase transition"
                       >
-                        <Sparkles className={`w-3.5 h-3.5 ${generatingImage ? 'animate-pulse' : ''}`} />
+                        <Rocket className={`w-3.5 h-3.5 ${generatingImage ? 'animate-pulse' : ''}`} />
                         {generatingImage ? 'Generando...' : `Generar con ${imageEngine === 'gemini' ? 'Gemini 2.5' : 'Motor Libre'}`}
                       </button>
                     </div>
@@ -921,7 +922,7 @@
               <div className="border-4 border-emerald-500 bg-white p-6 max-h-[90%] overflow-y-auto space-y-5 text-zinc-900 shadow-2xl">
                 <div className="flex items-center gap-3 border-b-2 border-emerald-200 pb-3">
                   <div className="bg-emerald-100 p-2 border border-emerald-400 rounded-none text-emerald-800">
-                    <Sparkles className="w-6 h-6 animate-pulse" />
+                     <Rocket className="w-4 h-4 text-zinc-700" />
                   </div>
                   <div>
                     <h3 className="text-sm font-mono font-bold uppercase tracking-wider text-emerald-800">🚀 ¡Copiado con éxito!</h3>

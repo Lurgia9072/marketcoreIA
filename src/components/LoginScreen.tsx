@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
-import { Sparkles, Shield, AlertCircle, ArrowLeft } from 'lucide-react';
+import { Sparkles, Shield, AlertCircle, ArrowLeft, Rocket } from 'lucide-react';
 import { motion } from 'motion/react';
 
 export default function LoginScreen() {
@@ -48,7 +48,7 @@ export default function LoginScreen() {
           <ArrowLeft className="w-4 h-4 text-zinc-500" /> <span className="text-xs font-mono uppercase tracking-wider font-semibold">Volver al inicio</span>
         </Link>
         <div className="flex items-center gap-2">
-          <Sparkles className="w-4 h-4 text-zinc-650 text-zinc-600" />
+          <Rocket className="w-4 h-4 text-zinc-700" />
           <span className="text-xs font-mono text-zinc-500 tracking-wider">MARKETCORE_SECURE_AUTH_v1.0</span>
         </div>
       </header>
@@ -66,7 +66,7 @@ export default function LoginScreen() {
 
           {/* Logo marker */}
           <div className="bg-zinc-100 p-3.5 rounded-none border-2 border-zinc-205 border-zinc-200 inline-block mb-6">
-            <Sparkles className="w-8 h-8 text-zinc-900" />
+            <Rocket className="w-4 h-4 text-zinc-700" />
           </div>
 
           <h1 className="font-sans font-bold text-2xl md:text-3xl text-zinc-900 tracking-tight uppercase">

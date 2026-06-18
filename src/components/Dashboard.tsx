@@ -45,7 +45,8 @@ import {
   Layers,
   CheckSquare,
   HelpCircle,
-  Edit3
+  Edit3,
+  Rocket
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Link } from 'react-router-dom';
@@ -880,8 +881,8 @@ export default function Dashboard() {
         <div className="flex flex-col gap-6">
           <div className="flex items-center justify-between">
             <Link to="/" className="flex items-center gap-2.5">
-              <div className="bg-zinc-900 p-2.5 rounded-none border border-zinc-900">
-                <Sparkles className="w-5 h-5 text-white" />
+              <div className="p-2.5 rounded-none ">
+                  <Rocket className="w-4 h-4 text-zinc-700" />
               </div>
               <span className="font-sans font-bold text-base text-zinc-900 uppercase tracking-wider">
                 Mercadea<span className="text-zinc-650 bg-zinc-100 text-zinc-600 border border-zinc-205 px-1.5 py-0.5 ml-1.5 text-[10px] font-mono font-bold rounded-none">_IA</span>
@@ -986,7 +987,7 @@ export default function Dashboard() {
             onClick={() => setShowCopywriterDrawer(true)}
             className="w-full bg-zinc-900 border border-zinc-900 text-white hover:bg-zinc-800 px-4 py-3 rounded-none text-xs font-mono font-bold uppercase tracking-wider transition flex items-center justify-center gap-2 cursor-pointer shadow-[2px_2px_0px_0px_rgba(24,24,27,0.15)]"
           >
-            <Sparkles className="w-4 h-4 text-white" /> REDACTOR COPY IA
+            <Rocket className="w-4 h-4 text-zinc-700" /> REDACTOR COPY IA
           </button>
           
           <button 
@@ -1110,7 +1111,7 @@ export default function Dashboard() {
                     </>
                   ) : (
                     <>
-                      <Sparkles className="w-4 h-4" />
+                       <Rocket className="w-4 h-4 text-zinc-700" />
                       <span>CREAR NUEVA ESTRATEGIA IA</span>
                     </>
                   )}
@@ -1123,7 +1124,7 @@ export default function Dashboard() {
               
               <div className="bg-white border-2 border-zinc-200 rounded-none p-8 text-center max-w-xl mx-auto my-6 shadow-[4px_4px_0px_0px_rgba(24,24,27,1)]">
                 <div className="bg-zinc-50 border border-zinc-200 p-3 rounded-none inline-block mb-4">
-                  <Sparkles className="w-8 h-8 text-zinc-900" />
+                  <Rocket className="w-4 h-4 text-zinc-700" />
                 </div>
                 <h3 className="text-sm font-mono font-bold text-zinc-900 uppercase tracking-wider mb-2">No hay estrategia para {activeBusiness?.name}</h3>
                 <p className="text-xs text-zinc-650 max-w-md mx-auto leading-relaxed font-sans font-light">
@@ -2043,7 +2044,7 @@ export default function Dashboard() {
               {/* Drawer header */}
               <div className="px-6 py-5 border-b-2 border-zinc-200 flex justify-between items-center bg-zinc-50">
                 <span className="font-sans font-bold text-sm text-zinc-900 flex items-center gap-2 uppercase tracking-wider">
-                  <Sparkles className="w-5 h-5 text-zinc-900 animate-pulse" /> REDACTOR DE COPYWRITING IA
+                   <Rocket className="w-4 h-4 text-zinc-700" /> REDACTOR DE COPYWRITING IA
                 </span>
                 <button 
                   onClick={() => setShowCopywriterDrawer(false)}
@@ -2118,7 +2119,7 @@ export default function Dashboard() {
                       </>
                     ) : (
                       <>
-                        <Sparkles className="w-4 h-4" />
+                        <Rocket className="w-4 h-4 text-zinc-700" />
                         <span>GENERAR PROPUESTA DE COPY CON IA</span>
                       </>
                     )}

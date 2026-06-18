@@ -25,7 +25,8 @@ import {
   Instagram,
   Facebook,
   Twitter,
-  Send
+  Send,
+  Rocket
 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
@@ -81,8 +82,8 @@ export default function LandingPage() {
       <nav className="sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b-2 border-zinc-200 px-4 py-4 md:px-8">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <Link to="/" className="flex items-center gap-2.5">
-            <div className="bg-zinc-950 p-2 rounded-none border border-zinc-900">
-              <Sparkles className="w-5 h-5 text-white" />
+            <div className=" p-2 rounded-none">
+                <Rocket className="w-4 h-4 text-zinc-700" />
             </div>
             <span className="font-sans font-bold text-xl tracking-wide text-zinc-900 uppercase">
               Mercadea<span className="text-zinc-650 bg-zinc-100 text-zinc-600 border border-zinc-200 px-1.5 py-0.5 ml-1.5 text-xs font-mono font-normal">_IA</span>
@@ -135,7 +136,7 @@ export default function LandingPage() {
             transition={{ duration: 0.5 }}
             className="inline-flex items-center gap-2 bg-white border-2 border-zinc-200 text-zinc-700 px-4 py-1.5 rounded-none text-xs font-mono tracking-widest uppercase mb-8 shadow-sm"
           >
-            <Sparkles className="w-3.5 h-3.5 text-zinc-500" /> Analista de Marketing IA para Emprendedores
+            <Rocket className="w-4 h-4 text-zinc-700" /> Analista de Marketing IA para Emprendedores
           </motion.div>
 
           <motion.h1 
@@ -499,7 +500,7 @@ export default function LandingPage() {
               <div>
                 <div className="flex justify-between items-start">
                   <div className="bg-zinc-100 text-zinc-900 p-3 rounded-none border border-zinc-200">
-                    <Sparkles className="w-5 h-5 text-zinc-705 text-zinc-700" />
+                     <Rocket className="w-4 h-4 text-zinc-700" />
                   </div>
                   <span className="text-[9px] bg-zinc-50 border border-zinc-200 text-zinc-650 px-2 py-1 font-mono font-bold uppercase tracking-widest">Prompters optimizados</span>
                 </div>
@@ -1007,7 +1008,7 @@ export default function LandingPage() {
           
           <div className="flex items-center gap-2.5">
             <div className="bg-zinc-150 p-2 rounded-none border border-zinc-200 bg-white">
-              <Sparkles className="w-4 h-4 text-zinc-700" />
+              <Rocket className="w-4 h-4 text-zinc-700" />
             </div>
             <span className="font-sans font-bold text-lg text-zinc-900 uppercase tracking-wider">
               Mercadea<span className="text-zinc-600 font-mono text-xs font-normal">_IA</span>

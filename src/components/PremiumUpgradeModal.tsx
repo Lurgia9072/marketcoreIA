@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
   Sparkles, Check, AlertTriangle, ShieldCheck, Zap, 
-  CreditCard, ArrowRight, UserCheck, X, RefreshCw 
+  CreditCard, ArrowRight, UserCheck, X, RefreshCw, 
+  Rocket
 } from 'lucide-react';
 import { doc, updateDoc, getDoc } from 'firebase/firestore';
 import { db } from '../lib/firebase';
@@ -184,7 +185,7 @@ export default function PremiumUpgradeModal({
             <div>
               <div className="flex items-center gap-2 mb-6">
                 <div className="p-2 bg-indigo-600/20 text-indigo-400">
-                  <Sparkles className="w-5 h-5 animate-pulse" />
+                 <Rocket className="w-4 h-4 text-zinc-700" />
                 </div>
                 <span className="text-xs font-mono font-bold tracking-widest text-indigo-400 uppercase">MEMBRESÍA MARKETING IA</span>
               </div>

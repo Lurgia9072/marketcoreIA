@@ -16,7 +16,8 @@ import {
   X,
   HelpCircle,
   Clock,
-  ArrowRight
+  ArrowRight,
+  Rocket
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
@@ -412,7 +413,7 @@ export default function StrategyWizard({ userId, business, onClose, onSuccess, o
         <div className="px-6 py-5 border-b-2 border-zinc-200 flex justify-between items-center bg-zinc-50">
           <div className="flex items-center gap-3">
             <div className="bg-zinc-100 p-2.5 rounded-none border border-zinc-200">
-              <Sparkles className="w-5 h-5 text-zinc-900" />
+              <Rocket className="w-4 h-4 text-zinc-700" />
             </div>
             <div>
               <span className="text-[9px] font-mono font-bold tracking-widest uppercase block text-zinc-505">PLANIFICADOR ESTRATÉGICO IA</span>
@@ -470,7 +471,7 @@ export default function StrategyWizard({ userId, business, onClose, onSuccess, o
             <div className="min-h-[45vh] flex flex-col items-center justify-center text-center p-6 gap-5">
               <div className="relative">
                 <div className="w-16 h-16 border-4 border-zinc-200 border-t-zinc-900 rounded-none animate-spin"></div>
-                <Sparkles className="w-6 h-6 text-zinc-900 absolute inset-0 m-auto animate-pulse" />
+                <Rocket className="w-4 h-4 text-zinc-700 absolute inset-0 m-auto animate-pulse" />
               </div>
               <div>
                 <h3 className="text-sm font-mono font-bold text-zinc-900 uppercase tracking-wider mb-1.5">El director creativo de Gemini está estructurando tu campaña...</h3>
@@ -817,7 +818,7 @@ export default function StrategyWizard({ userId, business, onClose, onSuccess, o
                       onClick={triggerStrategyAI}
                       className="bg-zinc-900 hover:bg-zinc-800 text-white font-mono font-bold py-4.5 px-8 rounded-none text-xs uppercase tracking-widest border-r-4 border-b-4 border-zinc-500 active:translate-y-0.5 cursor-pointer flex items-center gap-2 shadow-lg"
                     >
-                      <Sparkles className="w-5 h-5" /> GENERAR {
+                      <Rocket className="w-5 h-5" /> GENERAR {
                         duration === 'diario' 
                           ? 'PUBLICACIÓN DIARIA' 
                           : duration === 'semanal' 
