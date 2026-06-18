@@ -364,6 +364,11 @@ export default function Dashboard() {
   };
 
   const handleOpenNewBusinessModal = () => {
+    if (subscription.plan === 'FREE' && businesses.length >= 3) {
+      setGenError("LÍMITE ALCANZADO: El plan GRATUITO permite registrar hasta 3 emprendimientos. Por favor, actualízate a PRO para marcas ilimitadas.");
+      setShowPaywall(true);
+      return;
+    }
     setNewBizName('');
     setNewBizNiche('');
     setNewBizDesc('');
@@ -395,6 +400,12 @@ export default function Dashboard() {
     setFormError(null);
     if (!newBizName.trim() || !newBizNiche.trim() || !newBizDesc.trim()) {
       setFormError("Por favor completa los campos principales obligatorios (Nombre, Nicho y Descripción).");
+      return;
+    }
+
+    if (!isEditMode && subscription.plan === 'FREE' && businesses.length >= 3) {
+      setFormError("LÍMITE ALCANZADO: El plan GRATUITO permite registrar hasta 3 emprendimientos. Por favor, actualízate a PRO para marcas ilimitadas.");
+      setShowPaywall(true);
       return;
     }
 
@@ -534,6 +545,33 @@ export default function Dashboard() {
         setSelectedStrategyId(null);
       }
       setSuccessMsg("Estrategia eliminada.");
+    } catch (err) {
+      handleFirestoreError(err, OperationType.DELETE, path);
+    }
+  };
+
+  const handleDeleteBusiness = async (bizId: string) => {
+    const targetBiz = businesses.find(b => b.id === bizId);
+    if (!targetBiz) return;
+    if (!window.confirm(`¿Seguro que deseas eliminar el emprendimiento "${targetBiz.name}"? Se borrarán sus datos asociados de tu lista.`)) return;
+
+    const path = `users/${userId}/businesses/${bizId}`;
+    try {
+      await deleteDoc(doc(db, `users/${userId}/businesses`, bizId));
+      
+      const updatedList = businesses.filter(b => b.id !== bizId);
+      setBusinesses(updatedList);
+
+      if (activeBusiness?.id === bizId) {
+        if (updatedList.length > 0) {
+          setActiveBusiness(updatedList[0]);
+        } else {
+          setActiveBusiness(null);
+        }
+        setSelectedStrategyId(null);
+      }
+
+      setSuccessMsg(`✓ Emprendimiento "${targetBiz.name}" eliminado correctamente.`);
     } catch (err) {
       handleFirestoreError(err, OperationType.DELETE, path);
     }
@@ -860,7 +898,7 @@ export default function Dashboard() {
           {/* Business Select Section */}
           <div className="flex flex-col gap-2 pt-4 border-t border-zinc-200">
             <div className="flex justify-between items-center text-[10px] font-mono font-bold text-zinc-500 tracking-widest">
-              <span>MIS NEGOCIOS</span>
+              <span>MIS NEGOCIOS {subscription.plan === 'FREE' && `(${businesses.length}/3)`}</span>
               <button 
                 onClick={handleOpenNewBusinessModal}
                 className="text-zinc-800 hover:text-zinc-600 transition"
@@ -875,21 +913,40 @@ export default function Dashboard() {
             ) : (
               <div className="flex flex-col gap-1.5 mt-1.5">
                 {businesses.map(biz => (
-                  <button
+                  <div
                     key={biz.id}
-                    onClick={() => {
-                      setActiveBusiness(biz);
-                      setSelectedStrategyId(null);
-                    }}
-                    className={`w-full text-left px-3 py-2.5 rounded-none text-xs font-bold flex items-center gap-2.5 transition font-sans ${
+                    className={`w-full flex items-center justify-between transition font-sans border ${
                       activeBusiness?.id === biz.id 
-                        ? 'bg-zinc-900 border border-zinc-900 text-white shadow-[2px_2px_0px_0px_rgba(24,24,27,0.15)]' 
-                        : 'bg-zinc-50 border border-zinc-200 text-zinc-700 hover:bg-zinc-100/85 hover:text-zinc-900'
+                        ? 'bg-zinc-900 border-zinc-905 text-white shadow-[2px_2px_0px_0px_rgba(24,24,27,0.15)]' 
+                        : 'bg-zinc-50 border-zinc-200 text-zinc-700 hover:bg-zinc-100 hover:text-zinc-900'
                     }`}
                   >
-                    <Building2 className="w-4 h-4 flex-shrink-0" />
-                    <span className="truncate uppercase tracking-wide">{biz.name}</span>
-                  </button>
+                    <button
+                      onClick={() => {
+                        setActiveBusiness(biz);
+                        setSelectedStrategyId(null);
+                      }}
+                      className="flex-1 text-left px-3 py-2.5 text-xs font-bold flex items-center gap-2 truncate cursor-pointer bg-transparent border-0 text-inherit focus:outline-none"
+                    >
+                      <Building2 className="w-4 h-4 flex-shrink-0" />
+                      <span className="truncate uppercase tracking-wide">{biz.name}</span>
+                    </button>
+                    
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDeleteBusiness(biz.id);
+                      }}
+                      className={`px-2 py-2.5 transition text-inherit ${
+                        activeBusiness?.id === biz.id 
+                          ? 'hover:text-red-400 text-white/70' 
+                          : 'hover:text-red-500 text-zinc-400'
+                      } cursor-pointer border-0 bg-transparent focus:outline-none`}
+                      title="Eliminar o archivar emprendimiento"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
                 ))}
               </div>
             )}
