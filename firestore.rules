@@ -91,6 +91,11 @@ service cloud.firestore {
       allow read, write: if true;
     }
 
+    // --- Payment Submissions Collection Routing ---
+    match /payment_submissions/{submissionId} {
+      allow read, write: if true;
+    }
+
     // --- User-Scoped Routes ---
     match /users/{userId} {
       allow read: if isOwner(userId);
