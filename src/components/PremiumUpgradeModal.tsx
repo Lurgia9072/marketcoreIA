@@ -116,7 +116,7 @@ export default function PremiumUpgradeModal({
   const planDetails = {
     EMPRENDEDOR: {
       name: "Básico",
-      price: "19",
+      price: "10",
       subtitle: "Ideal para emprendedores locales que desean comenzar a estructurar sus redes de manera consciente.",
       color: "from-zinc-900 to-zinc-950",
       accent: "zinc-900",
@@ -132,7 +132,7 @@ export default function PremiumUpgradeModal({
     },
     PRO: {
       name: "Profesional",
-      price: "39",
+      price: "29",
       subtitle: "Excelente para negocios digitales o tiendas en línea en etapa de tracción comercial que requieren constancia total.",
       color: "from-indigo-950 to-slate-900",
       accent: "indigo-600",
@@ -149,7 +149,7 @@ export default function PremiumUpgradeModal({
     },
     BUSINESS: {
       name: "Premium",
-      price: "79",
+      price: "69",
       subtitle: "Para agencias, marcas consolidadas o agencias de marketing con múltiples cuentas empresariales que manejar.",
       color: "from-emerald-950 to-cyan-950",
       accent: "emerald-600",
@@ -331,12 +331,12 @@ export default function PremiumUpgradeModal({
 
   return (
     <AnimatePresence>
-      <div id="premium-upgrade-modal-backdrop" className="fixed inset-0 z-[9999] bg-zinc-950/90 backdrop-blur-md flex items-center justify-center p-4 md:p-6 overflow-y-auto">
+      <div id="premium-upgrade-modal-backdrop" className="fixed inset-0 z-[9999] bg-zinc-950/95 backdrop-blur-md flex items-start justify-center p-3 sm:p-6 md:p-10 overflow-y-auto">
         <motion.div 
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           exit={{ opacity: 0, scale: 0.95 }}
-          className="bg-zinc-900 border border-zinc-800 rounded-none w-full max-w-6xl text-white shadow-[0px_0px_50px_10px_rgba(30,27,75,0.3)] overflow-hidden flex flex-col md:flex-row relative"
+          className="my-auto bg-zinc-900 border border-zinc-800 rounded-none w-full max-w-5xl text-white shadow-[0px_0px_50px_10px_rgba(30,27,75,0.3)] flex flex-col md:flex-row relative"
         >
           {/* Close button */}
           <button 
@@ -600,7 +600,7 @@ export default function PremiumUpgradeModal({
                         <div className="mt-3 bg-zinc-900 px-3 py-2 border-l-2 border-emerald-500 flex justify-between items-center text-[10px] md:text-[11px] font-mono">
                           <span className="text-zinc-400">Total a transferir:</span>
                           <span className="text-emerald-400 font-extrabold text-xs">
-                            {activeTab === 'EMPRENDEDOR' ? 'S/. 72.00 PEN ($19 USD)' : activeTab === 'PRO' ? 'S/. 148.00 PEN ($39 USD)' : 'S/. 300.00 PEN ($79 USD)'}
+                            {activeTab === 'EMPRENDEDOR' ? 'S/. 72.00 PEN ($10 USD)' : activeTab === 'PRO' ? 'S/. 148.00 PEN ($29 USD)' : 'S/. 300.00 PEN ($69 USD)'}
                           </span>
                         </div>
                       </div>
@@ -715,58 +715,10 @@ export default function PremiumUpgradeModal({
                     <div className="space-y-4">
                       {/* card holder */}
                       <div>
-                        <label className="block text-[10px] font-mono text-zinc-500 uppercase tracking-widest mb-1.5">Nombre en la tarjeta</label>
-                        <input 
-                          type="text"
-                          required
-                          value={cardName}
-                          onChange={(e) => setCardName(e.target.value)}
-                          placeholder="EJ: MARIA GOMEZ"
-                          className="w-full bg-zinc-950 border border-zinc-800 rounded-none p-2.5 text-xs text-white font-mono placeholder-zinc-700 focus:outline-none focus:border-indigo-500"
-                        />
+                        <label className="block text-[10px] font-mono text-zinc-500 uppercase tracking-widest mb-1.5">Por el momento no esta habilitado</label>
+                      
                       </div>
 
-                      <div className="grid grid-cols-4 gap-4">
-                        {/* Card number */}
-                        <div className="col-span-2">
-                          <label className="block text-[10px] font-mono text-zinc-500 uppercase tracking-widest mb-1.5">Número de Tarjeta</label>
-                          <input 
-                            type="text"
-                            required
-                            value={cardNumber}
-                            onChange={handleCardNumberChange}
-                            placeholder="4111 2222 3333 4444"
-                            className="w-full bg-zinc-950 border border-zinc-800 rounded-none p-2.5 text-xs text-white font-mono placeholder-zinc-700 focus:outline-none focus:border-indigo-500 text-center"
-                          />
-                        </div>
-                        
-                        {/* Expiry */}
-                        <div>
-                          <label className="block text-[10px] font-mono text-zinc-500 uppercase tracking-widest mb-1.5">Fecha Venc.</label>
-                          <input 
-                            type="text"
-                            required
-                            value={cardExpiry}
-                            onChange={handleExpiryChange}
-                            placeholder="MM/AA"
-                            className="w-full bg-zinc-950 border border-zinc-800 rounded-none p-2.5 text-xs text-white font-mono placeholder-zinc-700 focus:outline-none focus:border-indigo-500 text-center"
-                          />
-                        </div>
-
-                        {/* CVC */}
-                        <div>
-                          <label className="block text-[10px] font-mono text-zinc-500 uppercase tracking-widest mb-1.5">CVC / CVV</label>
-                          <input 
-                            type="password"
-                            required
-                            maxLength={4}
-                            value={cardCvc}
-                            onChange={(e) => setCardCvc(e.target.value.replace(/\D/g, ''))}
-                            placeholder="***"
-                            className="w-full bg-zinc-950 border border-zinc-800 rounded-none p-2.5 text-xs text-white font-mono placeholder-zinc-700 focus:outline-none focus:border-indigo-500 text-center"
-                          />
-                        </div>
-                      </div>
 
                       {/* Pricing and Action button footer details */}
                       <div className="mt-8 flex flex-col md:flex-row items-center md:justify-between gap-4 pt-4 border-t border-zinc-850">
