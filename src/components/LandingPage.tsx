@@ -86,7 +86,7 @@ export default function LandingPage() {
                 <Rocket className="w-4 h-4 text-zinc-700" />
             </div>
             <span className="font-sans font-bold text-xl tracking-wide text-zinc-900 uppercase">
-              Mercadea<span className="text-zinc-650 bg-zinc-100 text-zinc-600 border border-zinc-200 px-1.5 py-0.5 ml-1.5 text-xs font-mono font-normal">_IA</span>
+              Marketcore<span className="text-zinc-650 bg-zinc-100 text-zinc-600 border border-zinc-200 px-1.5 py-0.5 ml-1.5 text-xs font-mono font-normal">_IA</span>
             </span>
           </Link>
 
@@ -196,7 +196,7 @@ export default function LandingPage() {
                   <span className="text-[10px] font-mono text-zinc-500 uppercase tracking-widest ml-1">SISTEMA_ACTIVO_LIVEv3_ONLINE</span>
                 </div>
                 <div className="bg-zinc-50 px-3.5 py-1 text-[9px] font-mono text-zinc-500 tracking-widest border border-zinc-200">
-                  MERCADEA_DASHBOARD_STABLE
+                  Marketcore_DASHBOARD_STABLE
                 </div>
               </div>
 
@@ -639,7 +639,7 @@ export default function LandingPage() {
                 <div className="bg-rose-100/55 border border-rose-200 p-2.5 rounded-none">
                   <XCircle className="w-5 h-5 text-rose-700" />
                 </div>
-                <h4 className="font-bold text-lg text-zinc-900 uppercase tracking-wide">Antes de MercadeaIA</h4>
+                <h4 className="font-bold text-lg text-zinc-900 uppercase tracking-wide">Antes de MarketcoreIA</h4>
               </div>
 
               <ul className="flex flex-col gap-4 text-zinc-605 text-xs font-light leading-relaxed text-zinc-650">
@@ -672,7 +672,7 @@ export default function LandingPage() {
                 <div className="bg-emerald-100 border border-emerald-200 p-2.5 rounded-none">
                   <CheckCircle2 className="w-5 h-5 text-emerald-850 text-emerald-800" />
                 </div>
-                <h4 className="font-bold text-lg text-zinc-900 uppercase tracking-wide">Después de MercadeaIA</h4>
+                <h4 className="font-bold text-lg text-zinc-900 uppercase tracking-wide">Después de MarketcoreIA</h4>
               </div>
 
               <ul className="flex flex-col gap-4 text-zinc-705 text-xs font-light leading-relaxed text-zinc-700">
@@ -1039,7 +1039,7 @@ export default function LandingPage() {
               <Rocket className="w-4 h-4 text-zinc-700" />
             </div>
             <span className="font-sans font-bold text-lg text-zinc-900 uppercase tracking-wider">
-              Mercadea<span className="text-zinc-600 font-mono text-xs font-normal">_IA</span>
+              Marketcore<span className="text-zinc-600 font-mono text-xs font-normal">_IA</span>
             </span>
           </div>
 
@@ -1049,7 +1049,7 @@ export default function LandingPage() {
             <a href="#bento" className="hover:text-zinc-900 transition">Funcionalidades</a>
             <a href="#precios" className="hover:text-zinc-900 transition">Precios</a>
             <span className="text-zinc-200">|</span>
-            <span className="text-zinc-500 hover:text-zinc-900 cursor-pointer tracking-normal">info@mercadeaia.com</span>
+            <span className="text-zinc-500 hover:text-zinc-900 cursor-pointer tracking-normal">info@Marketcoreia.com</span>
           </div>
 
           <div className="flex items-center gap-4">
@@ -1067,7 +1067,7 @@ export default function LandingPage() {
         </div>
 
         <div className="max-w-7xl mx-auto text-center md:text-left mt-8 pt-6 border-t border-zinc-200 text-[10px] text-zinc-500 flex flex-col md:flex-row justify-between gap-4 uppercase tracking-widest">
-          <span>&copy; {new Date().getFullYear()} MercadeaIA · Todos los derechos reservados · Diseñado para emprendedores de forma transparente.</span>
+          <span>&copy; {new Date().getFullYear()} MarketcoreIA · Todos los derechos reservados · Diseñado para emprendedores de forma transparente.</span>
           <div className="flex justify-center gap-4">
             <span className="hover:text-zinc-800 cursor-pointer">Términos de servicio</span>
             <span>·</span>
