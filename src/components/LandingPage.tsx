@@ -553,7 +553,7 @@ export default function LandingPage() {
       </section>
 
       {/* DASHBOARD PREVIEW SECTION - MÓDULO 6 */}
-      <section className="py-24 px-4 md:px-8 border-b border-zinc-200 bg-white relative">
+   {/*    <section className="py-24 px-4 md:px-8 border-b border-zinc-200 bg-white relative">
         <div className="max-w-7xl mx-auto">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
             
@@ -609,7 +609,7 @@ export default function LandingPage() {
 
           </div>
         </div>
-      </section>
+      </section> */}
 
       {/* BENEFICIOS COMPARATIVA - MÓDULO 7 */}
       <section id="beneficios" className="py-24 px-4 md:px-8 bg-zinc-50/50 relative border-b border-zinc-200">
