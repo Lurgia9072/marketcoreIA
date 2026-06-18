@@ -7,6 +7,7 @@ import fs from "fs";
 import { initializeApp as initializeFirebaseApp } from "firebase/app";
 import { getFirestore, doc, getDoc, setDoc, updateDoc } from "firebase/firestore";
 import firebaseConfig from "./firebase-applet-config.json";
+import nodemailer from "nodemailer";
 
 // Initialize Firebase App for server-side limits tracking
 const firebaseApp = initializeFirebaseApp(firebaseConfig);
@@ -949,6 +950,184 @@ Devuelve un JSON con la estructura:
     } catch (err: any) {
       console.error("Error saving upload server-side:", err);
       return res.status(500).json({ error: err.message || "Error al decodificar y guardar el archivo." });
+    }
+  });
+
+  // Check if SMTP is configured
+  app.get("/api/smtp-config-status", (req, res) => {
+    const isConfigured = !!(process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS);
+    res.json({
+      configured: isConfigured,
+      host: process.env.SMTP_HOST || null,
+      from: process.env.SMTP_FROM || null
+    });
+  });
+
+  // API to send simulated or real marketing alert emails to users
+  app.post("/api/send-alert-email", async (req, res) => {
+    try {
+      const { userId, email, post, alertType } = req.body;
+      if (!userId || !email || !post || !alertType) {
+        return res.status(400).json({ error: "Faltan parámetros requeridos: userId, email, post, alertType" });
+      }
+
+      const pTitle = post.title || "Publicación de MarkeCore IA";
+      const pChannel = post.channel || "Instagram";
+      const pCopy = post.copy || "Contenido sin escribir.";
+      const pCta = post.cta || "";
+      const pTime = post.scheduledTime || "18:00";
+      const pDate = post.scheduledDate || "Lunes";
+      const pHashtags = (post.hashtags || []).map((h: string) => `#${h}`).join(" ");
+
+      let subject = "";
+      let headline = "";
+      let urgencyColor = "#18181b"; // Slate UI
+      const bName = req.body.businessName || post.businessName || "tu negocio";
+      let descText = "";
+
+      if (alertType === "30min") {
+        subject = `🕒 [MarkeCore] ¡Faltan 30 minutos! Hora boom para publicar en ${pChannel}`;
+        headline = "Aviso de 30 minutos: Tu hora boom se acerca";
+        urgencyColor = "#f59e0b"; // Amber
+        descText = `Para tu negocio <strong>${bName}</strong>, tu programación de <strong>"${pTitle}"</strong> está cerca del momento perfecto para publicarse. Es hora de publicar en tu red social <strong>${pChannel}</strong>, ¡así que faltan solo 30 minutos para que publiques en tu hora boom! No dejes pasar, entra aquí y publica.`;
+      } else if (alertType === "10min") {
+        subject = `⚠️ [ALERTA CRÍTICA] ¡Solo quedan 10 minutos! Hora boom de publicación en ${pChannel}`;
+        headline = "Aviso Crítico de 10 minutos";
+        urgencyColor = "#ef4444"; // Red
+        descText = `Para tu negocio <strong>${bName}</strong>, tu programación de <strong>"${pTitle}"</strong> está a punto de salir en su momento con mayor alcance. Es hora de publicar en tu red social <strong>${pChannel}</strong>, ¡así que faltan solo 10 minutos para que publiques en tu hora boom! No dejes pasar, entra aquí y publica.`;
+      } else if (alertType === "5min") {
+        subject = `🚨 [ROJO DE EMERGENCIA] ¡Solo quedan 5 minutos! Publica ya en ${pChannel}`;
+        headline = "¡Rojo de Emergencia! Quedan solo 5 minutos";
+        urgencyColor = "#dc2626"; // Crimson Red
+        descText = `¡Atención de alta prioridad para <strong>${bName}</strong>! Quedan solo 5 minutos para tu hora boom del post <strong>"${pTitle}"</strong> en <strong>${pChannel}</strong>. Se te está pasando el tiempo de publicarlo en el pico más alto de engagement. Entra de inmediato, copia el contenido y publícalo ya.`;
+      } else if (alertType === "now") {
+        subject = `🔥 [MOMENTO DE ORO] ¡Ya es hora! Publica ahora en ${pChannel}`;
+        headline = "¡Ya es hora de publicar! Momento perfecto activo";
+        urgencyColor = "#10b981"; // Emerald
+        descText = `Para tu negocio <strong>${bName}</strong>, tu programación de <strong>"${pTitle}"</strong> ha alcanzado su momento estelar. Es hora de publicar en tu red social <strong>${pChannel}</strong>, ¡ya estás en tu hora boom! No dejes pasar esta oportunidad, entra aquí y publica de inmediato para capturar la máxima audiencia.`;
+      } else if (alertType === "missed") {
+        subject = `💸 [Retrasado] Estás perdiendo alcance en ${pChannel} para ${bName}`;
+        headline = "⚠️ Alerta de alcance: Publicación pendiente";
+        urgencyColor = "#6366f1"; // Indigo / Alert
+        descText = `Para tu negocio <strong>${bName}</strong>, tu programación de <strong>"${pTitle}"</strong> ya pasó su hora boom en <strong>${pChannel}</strong> y sigue pendiente de confirmarse. ¡No dejes pasar tu constancia periódica! Entra aquí ahora, publica tu contenido e impulsa tu engagement orgánico.`;
+      }
+
+      // Design ultra-premium responsive email HTML template matching Swiss-neat neon slate look of MarkeCore IA
+      const html = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <meta charset="utf-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <title>${subject}</title>
+          <style>
+            body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #f4f4f5; color: #18181b; margin: 0; padding: 0; -webkit-font-smoothing: antialiased; }
+            .container { max-width: 600px; margin: 20px auto; background-color: #ffffff; border: 2px solid #18181b; padding: 24px; box-shadow: 4px 4px 0px 0px rgba(24,24,27,1); }
+            .header { border-bottom: 2px solid #e4e4e7; padding-bottom: 16px; margin-bottom: 20px; }
+            .badge { display: inline-block; font-size: 9px; font-weight: bold; font-family: monospace; letter-spacing: 1px; color: #ffffff; padding: 4px 8px; text-transform: uppercase; margin-bottom: 8px; }
+            .title { font-size: 18px; font-weight: bold; margin: 0 0 8px 0; color: #18181b; }
+            .meta-box { background-color: #f4f4f5; border: 1px solid #e4e4e7; padding: 12px; margin: 16px 0; font-family: monospace; font-size: 11px; }
+            .text-content { font-size: 13px; line-height: 1.6; color: #3f3f46; margin-bottom: 20px; }
+            .copy-box { background-color: #fafafa; border-left: 3px solid #18181b; padding: 14px; font-size: 13px; line-height: 1.5; color: #09090b; white-space: pre-wrap; word-break: break-word; margin: 16px 0; font-family: sans-serif; }
+            .cta-btn { display: inline-block; background-color: #18181b; color: #ffffff; text-decoration: none; padding: 12px 24px; font-weight: bold; font-family: monospace; text-transform: uppercase; font-size: 11px; letter-spacing: 1.5px; border: 1px solid #18181b; transition: all 0.2s ease-in-out; }
+            .footer { border-top: 2px solid #e4e4e7; padding-top: 16px; margin-top: 24px; font-size: 10px; color: #71717a; text-align: center; font-family: monospace; text-transform: uppercase; }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <div class="header">
+              <span class="badge" style="background-color: ${urgencyColor};">${alertType === 'missed' ? 'ALERTA PERDIDA' : alertType.toUpperCase()}</span>
+              <h1 class="title">${headline}</h1>
+            </div>
+            
+            <div class="text-content">
+              <p>Hola,</p>
+              <p>${descText}</p>
+            </div>
+
+            <div class="meta-box">
+              <strong>PUBLICACIÓN:</strong> ${pTitle}<br/>
+              <strong>RED SOCIAL:</strong> ${pChannel}<br/>
+              <strong>ESTRATEGIA RECOMENDADA:</strong> ${pDate} a las ${pTime}
+            </div>
+
+            <div class="text-content">
+              <strong>TEXTO COPY PERSUASIVO DE LA IA:</strong>
+              <div class="copy-box">${pCopy}\n\n${pCta ? `🔗 ${pCta}\n\n` : ''}${pHashtags}</div>
+            </div>
+
+            <div style="margin: 24px 0 16px 0; text-align: center;">
+              <a href="${process.env.APP_URL || 'http://localhost:3000'}/?postId=${post.id}&action=mark_published" class="cta-btn">✓ MARCAR COMO PUBLICADO</a>
+            </div>
+
+            <div class="footer">
+              Enviado automáticamente por MarkeCore IA • El estratega comercial de tu negocio en tus bolsillos.<br/>
+              <span style="font-size: 8px; color: #a1a1aa; margin-top: 6px; display: block;">No respondas a este correo. Sincronízate en el panel para ver más opciones en tiempo real.</span>
+            </div>
+          </div>
+        </body>
+        </html>
+      `;
+
+      // Check if real SMTP config exists in environment
+      const smtpHost = process.env.SMTP_HOST;
+      const smtpPort = Number(process.env.SMTP_PORT || 587);
+      const smtpUser = process.env.SMTP_USER;
+      const smtpPass = process.env.SMTP_PASS;
+      const smtpFrom = process.env.SMTP_FROM || '"MarkeCore IA" <alertas@markecore.ia>';
+
+      let sentRealEmail = false;
+      let realEmailDetail = "";
+
+      if (smtpHost && smtpUser && smtpPass) {
+        try {
+          const transporter = nodemailer.createTransport({
+            host: smtpHost,
+            port: smtpPort,
+            secure: smtpPort === 465,
+            auth: {
+              user: smtpUser,
+              pass: smtpPass
+            },
+            tls: {
+              rejectUnauthorized: false
+            }
+          });
+
+          await transporter.sendMail({
+            from: smtpFrom,
+            to: email,
+            subject: subject,
+            html: html
+          });
+
+          sentRealEmail = true;
+          realEmailDetail = `Enviado con éxito vía SMTP a ${email}`;
+          console.log(`[SMTP_SUCCESS] Correo enviado de manera real a ${email} para la publicación: ${post.id}`);
+        } catch (emailErr: any) {
+          console.warn("[SMTP_ERROR] No se pudo enviar el correo real por problemas de conexión o login.", emailErr.message);
+          realEmailDetail = `Error de conexión SMTP: ${emailErr.message || emailErr}`;
+        }
+      } else {
+        console.log(`[MOCK_EMAIL] Correo simulado para ${email}. Para emitir de forma real, configura SMTP_HOST en Secrets.`);
+        realEmailDetail = "Buzón local activado listo (SMTP no configurado en Secrets)";
+      }
+
+      return res.json({ 
+        success: true, 
+        sentRealEmail, 
+        smtpUsed: !!smtpHost,
+        realEmailDetail,
+        subject,
+        html,
+        alertType,
+        recipient: email,
+        timestamp: new Date().toISOString()
+      });
+
+    } catch (err: any) {
+      console.error("Error dispatching alert email:", err);
+      return res.status(500).json({ error: err.message || "Error al procesar el envío del correo de alerta" });
     }
   });
 

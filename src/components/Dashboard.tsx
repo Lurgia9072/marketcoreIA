@@ -136,6 +136,151 @@ export default function Dashboard() {
   const [cwLoading, setCwLoading] = useState(false);
   const [cwError, setCwError] = useState<string | null>(null);
 
+  // Email Alert queue simulation states
+  const [simulatingAlertId, setSimulatingAlertId] = useState<string | null>(null);
+  const [selectedInboxEmail, setSelectedInboxEmail] = useState<any | null>(null);
+  const [inboxEmails, setInboxEmails] = useState<any[]>(() => {
+    try {
+      const saved = localStorage.getItem('markecore_inbox_emails');
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  });
+
+  const [alertTab, setAlertTab] = useState<'sim' | 'inbox'>('sim');
+  const [appToasts, setAppToasts] = useState<any[]>([]);
+
+  // Real-time and simulated test variables for dynamic notification checkups
+  const [useRealTime, setUseRealTime] = useState<boolean>(true);
+  const [testDay, setTestDay] = useState<string>('Miércoles');
+  const [testTime, setTestTime] = useState<string>('18:30');
+  const [testWeek, setTestWeek] = useState<number>(1);
+  const [tick, setTick] = useState<number>(0);
+  const [sentAlertEmails, setSentAlertEmails] = useState<string[]>(() => {
+    try {
+      const saved = localStorage.getItem('markecore_sent_alerts');
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  });
+
+  // Dynamic ticking every 5 seconds to re-evaluate remaining times & fire notifications on matching minutes
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setTick(prev => prev + 1);
+    }, 5000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const [smtpStatus, setSmtpStatus] = useState<{ configured: boolean; host: string | null; from: string | null } | null>(null);
+
+  useEffect(() => {
+    fetch('/api/smtp-config-status')
+      .then(res => res.json())
+      .then(data => setSmtpStatus(data))
+      .catch(err => console.error("Error fetching SMTP status:", err));
+  }, []);
+
+  const getActiveTimeDetails = () => {
+    if (useRealTime) {
+      const now = new Date();
+      const days = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+      const currentDay = days[now.getDay()];
+      const currentHour = String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0');
+      return {
+        day: currentDay,
+        time: currentHour,
+        week: 1
+      };
+    } else {
+      return {
+        day: testDay,
+        time: testTime,
+        week: testWeek
+      };
+    }
+  };
+
+  // Automatic Real-Time Dynamic Alerts engine
+  useEffect(() => {
+    if (calendarItems.length === 0 || !activeBusiness) return;
+
+    const activeDetails = getActiveTimeDetails();
+    const activePosts = calendarItems.filter(p => p.businessId === activeBusiness.id);
+
+    activePosts.forEach(post => {
+      if (post.status !== 'Programado' && post.status !== 'Pendiente de aprobación') return;
+
+      const postDay = getDayOfWeek(post.scheduledDate);
+      const postWeek = Number(post.weekNum || 1);
+
+      // Day and week must match for the current scheduled strategy week
+      if (postWeek === activeDetails.week && postDay === activeDetails.day) {
+        if (!post.scheduledTime) return;
+        const [postH, postM] = post.scheduledTime.split(':').map(Number);
+        const [currH, currM] = activeDetails.time.split(':').map(Number);
+        
+        const postTotalMin = postH * 60 + postM;
+        const currTotalMin = currH * 60 + currM;
+        const diff = postTotalMin - currTotalMin;
+
+        let detectedType: string | null = null;
+        let badgeText = "";
+        let SpanishWarning = "";
+
+        // Evaluate precise standard trigger boundaries
+        if (diff === 30 || (diff <= 31 && diff >= 29)) {
+          detectedType = '30min';
+          badgeText = "PRÓXIMO POST (30m) 🕒";
+          SpanishWarning = `¡Faltan 30 minutos para tu hora boom en ${post.channel}! Prepara el copy y entra a publicar.`;
+        } else if (diff === 10 || (diff <= 11 && diff >= 9)) {
+          detectedType = '10min';
+          badgeText = "ALERTA CRÍTICA (10m) ⏰";
+          SpanishWarning = `¡Solo quedan 10 minutos para publicar en ${post.channel}! Tu momento de oro está cerca.`;
+        } else if (diff === 5 || (diff <= 6 && diff >= 4)) {
+          detectedType = '5min';
+          badgeText = "ROJO DE EMERGENCIA (5m) 🚨";
+          SpanishWarning = `¡ROJO DE EMERGENCIA! Faltan solo 5 minutos para publicar en su hora boom de ${post.channel}. ¡Publica ya!`;
+        } else if (diff === 0 || (diff <= 1 && diff >= -1)) {
+          detectedType = 'now';
+          badgeText = "¡HORA BOOM ACTIVA! 🔥";
+          SpanishWarning = `¡Ya es hora! Tu momento de oro en ${post.channel} está activo. ¡Entra y publica ahora!`;
+        } else if (diff === -15 || (diff <= -12 && diff >= -18)) {
+          detectedType = 'missed';
+          badgeText = "MULTA DE CONFIGURACIÓN ⚠️";
+          SpanishWarning = `Alerta de retraso: Tu post en ${post.channel} ya debería estar publicado. ¡Completa la acción!`;
+        }
+
+        if (detectedType) {
+          const key = `${post.id}-${detectedType}`;
+          if (!sentAlertEmails.includes(key)) {
+            const updatedSent = [...sentAlertEmails, key];
+            setSentAlertEmails(updatedSent);
+            localStorage.setItem('markecore_sent_alerts', JSON.stringify(updatedSent));
+
+            // Fire real mail alert dispatch
+            handleTriggerEmailAlert(post, detectedType);
+
+            // Toast feedback
+            const newToast = {
+              id: 'toast_' + Date.now() + Math.random(),
+              postTitle: post.title,
+              postId: post.id,
+              channel: post.channel,
+              alertType: detectedType,
+              badge: badgeText,
+              msg: SpanishWarning,
+              timestamp: new Date().toISOString()
+            };
+            setAppToasts(prev => [newToast, ...prev].slice(0, 4));
+          }
+        }
+      }
+    });
+  }, [tick, calendarItems, activeBusiness, useRealTime, testDay, testTime, testWeek, sentAlertEmails]);
+
   // General notification bubble
   const [alertMsg, setAlertMsg] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
@@ -486,6 +631,71 @@ export default function Dashboard() {
     }, 2000);
   };
 
+  const handleTriggerEmailAlert = async (post: CalendarPost, alertType: string) => {
+    setSimulatingAlertId(`${post.id}-${alertType}`);
+    try {
+      const res = await fetch('/api/send-alert-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId,
+          email: user?.email || 'velkoryauramiza@gmail.com',
+          post,
+          alertType,
+          businessName: activeBusiness?.name || "tu negocio"
+        })
+      });
+      if (res.ok) {
+        const data = await res.json();
+        const newMail = {
+          id: 'email_' + Date.now(),
+          postId: post.id,
+          postTitle: post.title,
+          alertType,
+          subject: data.subject,
+          html: data.html,
+          timestamp: new Date().toISOString(),
+          unread: true,
+          realEmailDetail: data.realEmailDetail,
+          smtpUsed: data.smtpUsed
+        };
+        setInboxEmails(prev => {
+          const updated = [newMail, ...prev];
+          localStorage.setItem('markecore_inbox_emails', JSON.stringify(updated));
+          return updated;
+        });
+        setSuccessMsg(`¡Alerta de correo de la hora boom (${alertType}) procesada con éxito!`);
+      }
+    } catch (err) {
+      console.error(err);
+      setAlertMsg("Fallo al despachar alerta de correo.");
+    } finally {
+      setSimulatingAlertId(null);
+    }
+  };
+
+  // Check URL parameters for direct email CTA action links
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const postId = params.get('postId');
+    const action = params.get('action');
+    if (postId && action === 'mark_published' && calendarItems.length > 0) {
+      const target = calendarItems.find(p => p.id === postId);
+      if (target && target.status !== 'Publicado') {
+        const updated = { ...target, status: 'Publicado' as const };
+        const docRef = doc(db, `users/${userId}/calendar`, postId);
+        setDoc(docRef, updated, { merge: true })
+          .then(() => {
+            setCalendarItems(prev => prev.map(p => p.id === postId ? updated : p));
+            setSuccessMsg(`¡Publicación "${target.title}" confirmada como Publicada vía el enlace del correo! 🎉`);
+          })
+          .catch(console.error);
+      }
+      // Remove query string cleanly
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
+  }, [calendarItems, userId]);
+
   const filterCalendarByBiz = (bizId: string) => {
     const bizPosts = calendarItems.filter(item => item.businessId === bizId);
     if (showAllCalendarPosts) {
@@ -514,6 +724,91 @@ export default function Dashboard() {
   return (
     <div className="min-h-screen bg-[#fafafc] text-zinc-800 flex flex-col md:flex-row font-sans selection:bg-zinc-200 selection:text-zinc-900">
       
+      {/* FLOATING SYSTEM NOTIFICATION ALERTS */}
+      <div className="fixed bottom-5 right-5 z-[9999] space-y-3 max-w-sm w-full pointer-events-none px-4 md:px-0">
+        <AnimatePresence>
+          {appToasts.map(toast => (
+            <motion.div
+              key={toast.id}
+              initial={{ opacity: 0, x: 50, y: 10, scale: 0.95 }}
+              animate={{ opacity: 1, x: 0, y: 0, scale: 1 }}
+              exit={{ opacity: 0, x: 30, scale: 0.9 }}
+              className="pointer-events-auto bg-zinc-950 border border-zinc-900 text-white p-4 shadow-[4px_4px_0px_0px_rgba(245,158,11,1)] flex flex-col gap-2 relative overflow-hidden"
+              style={{
+                boxShadow: toast.alertType === 'now' 
+                  ? '4px 4px 0px 0px rgba(16,185,129,1)' 
+                  : toast.alertType === 'missed'
+                    ? '4px 4px 0px 0px rgba(99,102,241,1)' 
+                    : toast.alertType === '10min'
+                      ? '4px 4px 0px 0px rgba(239,68,68,1)' 
+                      : '4px 4px 0px 0px rgba(245,158,11,1)' 
+              }}
+            >
+              <div className="flex justify-between items-start">
+                <span className={`text-[8px] font-mono font-black tracking-widest px-1.5 py-0.5 text-black ${
+                  toast.alertType === 'now' ? 'bg-emerald-400' :
+                  toast.alertType === 'missed' ? 'bg-indigo-400' :
+                  toast.alertType === '10min' ? 'bg-rose-500' : 'bg-amber-400'
+                }`}>
+                  {toast.badge}
+                </span>
+                <button 
+                  onClick={() => setAppToasts(prev => prev.filter(t => t.id !== toast.id))}
+                  className="text-zinc-400 hover:text-white font-bold text-xs cursor-pointer focus:outline-none"
+                >
+                  ✕
+                </button>
+              </div>
+              <p className="text-[11px] font-sans font-medium text-zinc-100 pr-2 leading-relaxed">
+                {toast.msg}
+              </p>
+              <div className="flex items-center justify-between border-t border-zinc-900 pt-2.5 mt-1">
+                <span className="text-[7.5px] text-zinc-400 font-mono">
+                  AUTO_DISPATCHED OK 📡
+                </span>
+                
+                <div className="flex gap-1.5">
+                  <button 
+                    onClick={() => {
+                      const foundItem = calendarItems.find(p => p.id === toast.postId);
+                      if (foundItem) {
+                        navigator.clipboard.writeText(foundItem.copy || "");
+                        setSuccessMsg("¡Texto copy de la publicación copiado al portapapeles!");
+                      }
+                    }}
+                    className="text-[7.5px] bg-zinc-900 border border-zinc-800 hover:bg-zinc-850 text-zinc-300 font-bold px-2 py-1 tracking-wider uppercase cursor-pointer"
+                  >
+                    📋 COPIAR COPY
+                  </button>
+                  <button 
+                    onClick={() => {
+                      if (toast.postId) {
+                        const target = calendarItems.find(p => p.id === toast.postId);
+                        if (target) {
+                          const updated = { ...target, status: 'Publicado' as const };
+                          const docRef = doc(db, `users/${userId}/calendar`, toast.postId);
+                          setDoc(docRef, updated, { merge: true })
+                            .then(() => {
+                              setCalendarItems(prev => prev.map(p => p.id === toast.postId ? updated : p));
+                              setSuccessMsg(`¡Publicación "${target.title}" confirmada como publicada! 🎉`);
+                              // Dismiss toast
+                              setAppToasts(prev => prev.filter(t => t.id !== toast.id));
+                            })
+                            .catch(console.error);
+                        }
+                      }
+                    }}
+                    className="text-[7.5px] bg-[#00ff66] text-black font-black px-2 py-1 tracking-wider uppercase cursor-pointer border-0"
+                  >
+                    ✓ PUBLICADO
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          ))}
+        </AnimatePresence>
+      </div>
+      
       {/* SIDEBAR NAVIGATION PANEL */}
       <aside className="w-full md:w-64 bg-white border-b md:border-b-0 md:border-r border-zinc-200 p-5 flex flex-col justify-between shadow-xs">
         <div className="flex flex-col gap-6">
@@ -523,7 +818,7 @@ export default function Dashboard() {
                 <Sparkles className="w-5 h-5 text-white" />
               </div>
               <span className="font-sans font-bold text-base text-zinc-900 uppercase tracking-wider">
-                MARKETCORE<span className="text-zinc-650 bg-zinc-100 text-zinc-600 border border-zinc-205 px-1.5 py-0.5 ml-1.5 text-[10px] font-mono font-bold rounded-none">_IA</span>
+                Mercadea<span className="text-zinc-650 bg-zinc-100 text-zinc-600 border border-zinc-205 px-1.5 py-0.5 ml-1.5 text-[10px] font-mono font-bold rounded-none">_IA</span>
               </span>
             </Link>
           </div>
@@ -887,37 +1182,224 @@ export default function Dashboard() {
                     ))}
                   </div>
 
-                  {/* Real-time Email Reminders Queue Tracker */}
-                  <div className="bg-white border-2 border-zinc-200 rounded-none p-5 shadow-[4px_4px_0px_0px_rgba(24,24,27,1)]">
-                    <span className="text-[10px] font-mono font-bold tracking-widest text-zinc-500 uppercase block mb-2">COLA DE ALERTAS DE CORREO</span>
-                    <p className="text-[11px] text-zinc-500 leading-relaxed font-sans font-light mb-3">
-                      Se envían recordatorios automáticamente por email 30 min y 10 min antes de la hora de cada publicación programada para el equipo.
-                    </p>
+                  {/* Alertas & Control de Publicación */}
+                  <div className="bg-white border-2 border-zinc-200 rounded-none p-5 shadow-[4px_4px_0px_0px_rgba(24,24,27,1)] space-y-4">
+                    <div className="flex justify-between items-center border-b border-zinc-200 pb-3">
+                      <div>
+                        <span className="text-[10px] font-mono font-bold tracking-widest text-zinc-900 uppercase block">ALERTAS & CONTROL DE PUBLICACIÓN</span>
+                        <p className="text-[10px] text-zinc-500 font-sans font-light mt-0.5 leading-tight">Garantiza constancia periódica en tus redes</p>
+                      </div>
+                    </div>
 
-                    <div className="space-y-2 max-h-40 overflow-y-auto">
-                      {filterCalendarByBiz(activeBusiness?.id || '')
-                        .filter(p => p.status === 'Programado' || p.status === 'Pendiente de aprobación')
-                        .map(post => (
-                          <div key={post.id} className="bg-zinc-50 p-2.5 border border-zinc-200 text-[10px] flex items-center justify-between font-mono">
-                            <div className="overflow-hidden pr-2">
-                              <span className="text-zinc-900 block font-bold leading-tight truncate uppercase">{post.title}</span>
-                              <span className="text-zinc-500 text-[8px] inline-flex items-center gap-1 mt-0.5">
-                                <Clock className="w-3 h-3 text-zinc-400" /> {post.scheduledDate} a las {post.scheduledTime}
+                    <div className="space-y-4">
+                        {/* CONTROLES DE FECHA/HORA DINÁMICA (Elegante y Swiss Neat) */}
+                        <div className="bg-zinc-50 border border-zinc-200 p-3.5 space-y-3 font-mono text-[9.5px]">
+                          <div className="flex justify-between items-center border-b border-zinc-200 pb-2">
+                            <span className="text-zinc-650 font-bold uppercase tracking-wider">⏱️ Reloj Activo de Referencia</span>
+                            
+                            <div className="flex bg-zinc-200 p-0.5 rounded-none border border-zinc-300">
+                              <button
+                                type="button"
+                                onClick={() => setUseRealTime(true)}
+                                className={`px-2 py-0.5 text-[8px] font-bold uppercase cursor-pointer ${useRealTime ? 'bg-zinc-900 text-white shadow-xs' : 'text-zinc-650'}`}
+                              >
+                                Real
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => setUseRealTime(false)}
+                                className={`px-2 py-0.5 text-[8px] font-bold uppercase cursor-pointer ${!useRealTime ? 'bg-zinc-900 text-white shadow-xs' : 'text-zinc-650'}`}
+                              >
+                                Prueba
+                              </button>
+                            </div>
+                          </div>
+
+                          <div className="flex items-center justify-between gap-4 py-1">
+                            <div className="flex flex-col">
+                              <span className="text-zinc-400 text-[8px] uppercase font-bold">Modo actual:</span>
+                              <span className="font-bold text-zinc-800 text-[10px] tracking-tight">
+                                {useRealTime ? '🟢 HORA DISPOSITIVO (REAL)' : '⚡ PRUEBA DE ALERTAS MANUAL'}
                               </span>
                             </div>
-                            <span className="bg-emerald-50 text-emerald-855 text-emerald-700 border border-emerald-200 py-0.5 px-2 flex-shrink-0 uppercase font-bold text-[8px] tracking-widest">
-                              ALERT_OK
-                            </span>
+                            
+                            <div className="bg-zinc-950 text-[#00ff66] font-bold px-3 py-1.5 text-sm tracking-wide border border-zinc-800 font-mono flex items-center gap-1.5 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+                              <span className="w-1.5 h-1.5 rounded-full bg-[#00ff66] animate-ping"></span>
+                              {getActiveTimeDetails().day.toUpperCase()} {getActiveTimeDetails().time}
+                            </div>
                           </div>
-                        ))
-                      }
-                      {filterCalendarByBiz(activeBusiness?.id || '').filter(p => p.status === 'Programado' || p.status === 'Pendiente de aprobación').length === 0 && (
-                        <div className="text-center py-2 text-[9px] text-zinc-450 uppercase font-bold italic tracking-wide">
-                          No hay publicaciones programadas activas para alertas.
+
+                          {!useRealTime && (
+                            <div className="grid grid-cols-3 gap-2 bg-white p-2.5 border border-zinc-200 animate-fade-in">
+                              <div>
+                                <span className="text-zinc-400 text-[7.5px] uppercase block mb-1 font-bold">Día:</span>
+                                <select
+                                  value={testDay}
+                                  onChange={(e) => setTestDay(e.target.value)}
+                                  className="w-full bg-zinc-50 border border-zinc-300 px-1 py-0.5 text-[9px] font-bold text-zinc-800"
+                                >
+                                  {['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'].map(d => (
+                                    <option key={d} value={d}>{d}</option>
+                                  ))}
+                                </select>
+                              </div>
+
+                              <div>
+                                <span className="text-zinc-400 text-[7.5px] uppercase block mb-1 font-bold">Hora de Prueba:</span>
+                                <input
+                                  type="text"
+                                  value={testTime}
+                                  onChange={(e) => setTestTime(e.target.value)}
+                                  placeholder="18:30"
+                                  className="w-full bg-zinc-50 border border-zinc-300 px-1 py-0.5 text-[9px] font-mono font-bold text-zinc-800 text-center focus:outline-none"
+                                />
+                              </div>
+
+                              <div className="flex items-end">
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setTestDay('Miércoles');
+                                    setTestTime('18:30');
+                                    setSuccessMsg("Reloj de prueba calibrado a Miércoles 18:30. ¡Listo para interactuar!");
+                                  }}
+                                  className="w-full py-1 bg-zinc-900 border border-zinc-800 hover:bg-zinc-950 text-white font-bold text-[8px] uppercase cursor-pointer"
+                                  title="Calibrar ensayo de Miércoles 18:30"
+                                >
+                                  Reset 18:30
+                                </button>
+                              </div>
+                            </div>
+                          )}
                         </div>
-                      )}
+
+                        <p className="text-[10px] text-zinc-500 font-sans font-light leading-relaxed">
+                          Tus alertas automáticas se disparan dinámicamente a tu correo registrado <strong>{user?.email || 'velkoryauramiza@gmail.com'}</strong>. Se actualizan dinámicamente según la hora activa de referencia.
+                        </p>
+
+                        {/* Direct scheduled alerts list with in-app warning messages & publication state confirmation */}
+                        <div className="space-y-3 max-h-[500px] overflow-y-auto pr-1">
+                          {filterCalendarByBiz(activeBusiness?.id || 'null_biz')
+                            .filter(p => p.status === 'Programado' || p.status === 'Pendiente de aprobación')
+                            .map(post => {
+                              const activeDetails = getActiveTimeDetails();
+                              const postDay = getDayOfWeek(post.scheduledDate);
+                              const postWeek = Number(post.weekNum || 1);
+                              const isToday = postWeek === activeDetails.week && postDay === activeDetails.day;
+
+                              let diff = 9999;
+                              let labelStyle = "bg-zinc-100 text-zinc-855 text-zinc-700 border border-zinc-300";
+                              let alertMsgText = "";
+                              let alertBadge = "🕒 EN ESPERA DE DÍA";
+                              let urgencyLevel: 'waiting' | 'warn30' | 'warn10' | 'emergency' | 'now' | 'retrasado' = 'waiting';
+
+                              if (isToday && post.scheduledTime) {
+                                const [pH, pM] = post.scheduledTime.split(':').map(Number);
+                                const [cH, cM] = activeDetails.time.split(':').map(Number);
+                                diff = (pH * 60 + pM) - (cH * 60 + cM);
+
+                                if (diff > 30) {
+                                  alertBadge = `🕒 FALTAN ${diff} MIN`;
+                                  labelStyle = "bg-zinc-105 text-zinc-700 border border-zinc-300 font-bold";
+                                  alertMsgText = `Aún faltan ${diff} minutos para tu hora boom en ${post.channel}. Prepara tus gráficos.`;
+                                  urgencyLevel = 'waiting';
+                                } else if (diff <= 30 && diff > 10) {
+                                  alertBadge = `🕒 FALTAN ${diff} MIN`;
+                                  labelStyle = "bg-amber-100 text-amber-800 border-2 border-amber-400 font-bold";
+                                  alertMsgText = `Para tu negocio ${activeBusiness?.name || 'tu negocio'}, tu publicación está cerca. ¡Faltan exactamente ${diff} minutos para tu hora boom en ${post.channel}! No lo dejes pasar, prepara las imágenes.`;
+                                  urgencyLevel = 'warn30';
+                                } else if (diff <= 10 && diff > 5) {
+                                  alertBadge = `⏰ ALERTA CRÍTICA (${diff} MIN)`;
+                                  labelStyle = "bg-rose-100 text-rose-800 border-2 border-rose-400 font-black animate-pulse";
+                                  alertMsgText = `¡Atención! Es hora de alistarse, faltan solo ${diff} minutos para publicar tu post de hora boom en tu red social ${post.channel}.`;
+                                  urgencyLevel = 'warn10';
+                                } else if (diff <= 5 && diff > 0) {
+                                  alertBadge = `🚨 ROJO EMERGENCIA (${diff} MIN)`;
+                                  labelStyle = "bg-red-600 text-white border-2 border-red-800 font-black animate-bounce";
+                                  alertMsgText = `🚨 ¡ROJO DE EMERGENCIA DE PUBLICACIÓN! Faltan solo ${diff} minutos para publicar tu post en ${post.channel}. Se te está perdiendo la oportunidad estelar deengagement. ¡Súbelo ya!`;
+                                  urgencyLevel = 'emergency';
+                                } else if (diff === 0) {
+                                  alertBadge = `🔥 ¡MOMENTO DE ORO ACTIVO!`;
+                                  labelStyle = "bg-emerald-500 text-white font-black animate-pulse border border-emerald-600";
+                                  alertMsgText = `🔥 ¡Llegó tu momento de oro! Ya es exactamente la hora boom registrada para publicar en tu ${post.channel}. ¡Copia el contenido y publícalo ahora mismo!`;
+                                  urgencyLevel = 'now';
+                                } else {
+                                  alertBadge = `💸 RETRASADO (${Math.abs(diff)} MIN)`;
+                                  labelStyle = "bg-indigo-150 bg-indigo-50 text-indigo-900 border-2 border-indigo-400 font-extrabold";
+                                  alertMsgText = `⚠️ Alerta de retraso: Tu post para ${post.channel} tiene ya un retraso de ${Math.abs(diff)} minutos respecto a su hora planificada. ¡Por favor completa la acción ahora!`;
+                                  urgencyLevel = 'retrasado';
+                                }
+                              } else {
+                                alertMsgText = `Programado para el día ${postDay} de la Semana Estratégica ${postWeek}. El contador dinámico se activará automáticamente el día y semana indicados.`;
+                              }
+
+                              return (
+                                <div key={post.id} className="bg-zinc-50 border-2 border-zinc-200 p-4 text-[10px] space-y-3 shadow-xs">
+                                  <div className="flex justify-between items-start font-mono">
+                                    <div className="overflow-hidden pr-2">
+                                      <span className="bg-zinc-900 text-white text-[7.5px] px-2 py-0.5 tracking-wider uppercase font-bold mr-1.5">{post.channel}</span>
+                                      <span className="text-zinc-900 font-bold text-xs uppercase block truncate mt-1">{post.title}</span>
+                                      <span className="text-zinc-500 text-[9px] flex items-center gap-1 mt-1">
+                                        <Clock className="w-3 h-3 text-zinc-400" /> {post.scheduledDate} a las {post.scheduledTime}
+                                      </span>
+                                    </div>
+                                    <span className="bg-amber-100 text-amber-800 px-2 py-0.5 text-[8.5px] uppercase font-bold tracking-tight border border-amber-300">
+                                      Programado
+                                    </span>
+                                  </div>
+
+                                  {/* DINAMIC ALERTS ALONG WITH LIVE IN-APP COUNTDOWNS (FALTAN X MINUTOS COMO DIJO EL USUARIO) */}
+                                  <div className="bg-white border text-[10px] p-3 space-y-2 rounded-none relative overflow-hidden">
+                                    <div className="flex items-center justify-between border-b border-zinc-100 pb-2">
+                                      <span className="text-[8.5px] font-mono font-bold text-zinc-400 uppercase">Estado Dinámico del Reloj:</span>
+                                      <span className={`text-[8.5px] font-mono font-black py-0.5 px-2 tracking-wider ${labelStyle}`}>
+                                        {alertBadge}
+                                      </span>
+                                    </div>
+                                    
+                                    <div className="text-[10px] font-sans text-zinc-800 font-light leading-relaxed">
+                                      {alertMsgText}
+                                    </div>
+                                  </div>
+
+                                  {/* ESTADO DE PUBLICACIÓN & CONFIRMACIÓN (BOTÓN HECHO / AÚN FALTA COMO PIDIÓ EL USUARIO) */}
+                                  <div className="p-2.5 bg-zinc-100 border border-zinc-200 rounded-none flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2.5">
+                                    <div className="font-mono">
+                                      <span className="text-[7.5px] text-zinc-400 uppercase tracking-widest block font-bold">CONFIRMACIÓN DE HISTORIAL</span>
+                                      <div className="flex items-center gap-1.5 mt-0.5">
+                                        <span className={`w-2 h-2 rounded-full ${diff < 0 ? 'bg-rose-500' : 'bg-amber-500'} animate-pulse`}></span>
+                                        <span className="text-[8.5px] font-bold text-zinc-700 uppercase">
+                                          {diff < 0 ? '⚠️ Post Retrasado - Aún Falta Publicar' : '⚡ Programado - Aún Falta Publicar'}
+                                        </span>
+                                      </div>
+                                    </div>
+                                    
+                                    <button
+                                      type="button"
+                                      onClick={async () => {
+                                        const updated = { ...post, status: 'Publicado' as const };
+                                        const docRef = doc(db, `users/${userId}/calendar`, post.id);
+                                        await setDoc(docRef, updated, { merge: true });
+                                        setCalendarItems(prev => prev.map(p => p.id === post.id ? updated : p));
+                                        setSuccessMsg(`✓ Publicación "${post.title}" confirmada como publicada. ¡Felicidades! 🎉`);
+                                      }}
+                                      className="w-full sm:w-auto bg-zinc-900 hover:bg-zinc-950 text-white font-mono text-[7.5px] font-bold py-1.5 px-2.5 uppercase tracking-wider cursor-pointer border-0"
+                                    >
+                                      ✓ Hecho (Ya lo publiqué)
+                                    </button>
+                                  </div>
+                                </div>
+                              );
+                            })
+                          }
+                          {filterCalendarByBiz(activeBusiness?.id || 'null_biz').filter(p => p.status === 'Programado' || p.status === 'Pendiente de aprobación').length === 0 && (
+                            <div className="text-center py-6 bg-zinc-50 border border-zinc-150 text-[9px] text-zinc-450 uppercase font-bold italic tracking-wide">
+                              No hay publicaciones programadas activas para alertas. ¡Agrega un post al calendario!
+                            </div>
+                          )}
+                        </div>
+                      </div>
                     </div>
-                  </div>
 
                   {/* Visual helper KPI panel */}
                   <div className="bg-white border-2 border-zinc-200 rounded-none p-5 shadow-[4px_4px_0px_0px_rgba(24,24,27,1)]">
@@ -1654,6 +2136,8 @@ export default function Dashboard() {
         onUpgradeSuccess={fetchUserContent}
         currentUsage={subscription}
       />
+
+
 
     </div>
   );
