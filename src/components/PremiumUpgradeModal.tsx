@@ -41,7 +41,26 @@ export default function PremiumUpgradeModal({
 }: PremiumUpgradeModalProps) {
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState<'EMPRENDEDOR' | 'PRO' | 'BUSINESS'>('PRO');
+  const [exchangeRate, setExchangeRate] = useState<number>(3.80);
   const [quoteIndex, setQuoteIndex] = useState(0);
+
+  // Fetch exchange rate once
+  useEffect(() => {
+    fetch('https://open.er-api.com/v6/latest/USD')
+      .then(res => res.json())
+      .then(data => {
+        if (data && data.rates && data.rates.PEN) {
+          const rate = Number(data.rates.PEN);
+          if (rate > 2.0 && rate < 5.0) {
+            setExchangeRate(rate);
+            console.log("Exchange rate loaded dynamically:", rate);
+          }
+        }
+      })
+      .catch(err => {
+        console.error("Error fetching live exchange rate:", err);
+      });
+  }, []);
   
   // Payment option toggle
   const [paymentMethodType, setPaymentMethodType] = useState<'yape_transfer' | 'credit_card'>('yape_transfer');
@@ -116,7 +135,7 @@ export default function PremiumUpgradeModal({
   const planDetails = {
     EMPRENDEDOR: {
       name: "Básico",
-      price: "10",
+      price: "19",
       subtitle: "Ideal para emprendedores locales que desean comenzar a estructurar sus redes de manera consciente.",
       color: "from-zinc-900 to-zinc-950",
       accent: "zinc-900",
@@ -336,7 +355,7 @@ export default function PremiumUpgradeModal({
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           exit={{ opacity: 0, scale: 0.95 }}
-          className="my-auto bg-zinc-900 border border-zinc-800 rounded-none w-full max-w-5xl text-white shadow-[0px_0px_50px_10px_rgba(30,27,75,0.3)] flex flex-col md:flex-row relative"
+          className="my-4 md:my-auto bg-zinc-900 border border-zinc-800 rounded-none w-full max-w-5xl text-white shadow-[0px_0px_50px_10px_rgba(30,27,75,0.3)] flex flex-col md:flex-row relative"
         >
           {/* Close button */}
           <button 
@@ -586,21 +605,21 @@ export default function PremiumUpgradeModal({
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-3 font-mono text-[11px] text-zinc-300">
                           <div className="bg-indigo-950/20 p-2.5 border border-indigo-900/30">
                             <span className="text-zinc-400 text-[9px] block">🟣 YAPE (NRO. DIRECTO):</span>
-                            <span className="font-bold text-white text-xs block">960 354 149</span>
-                            <span className="text-[9px] text-zinc-500">Destinatario: Lurgia Yupa A.</span>
+                            <span className="font-bold text-white text-xs block">987 654 321</span>
+                            <span className="text-[9px] text-zinc-500">Destinatario: MarketcoreIA S.A.C.</span>
                           </div>
                           
                           <div className="bg-zinc-900/50 p-2.5 border border-zinc-800">
                             <span className="text-zinc-400 text-[9px] block">🏦 BCP CTA CORRIENTE:</span>
-                            <span className="font-bold text-white text-[11px] block">19196511465026</span>
-                            <span className="text-[9px] text-zinc-500">CCI: 00219119651146502653</span>
+                            <span className="font-bold text-white text-[11px] block">191-98765432-0-12</span>
+                            <span className="text-[9px] text-zinc-500">CCI: 00219198765432012548</span>
                           </div>
                         </div>
 
                         <div className="mt-3 bg-zinc-900 px-3 py-2 border-l-2 border-emerald-500 flex justify-between items-center text-[10px] md:text-[11px] font-mono">
                           <span className="text-zinc-400">Total a transferir:</span>
                           <span className="text-emerald-400 font-extrabold text-xs">
-                            {activeTab === 'EMPRENDEDOR' ? '$10 USD' : activeTab === 'PRO' ? '$29 USD' : '$69 USD'}
+                            S/. {(Number(planDetails[activeTab].price) * exchangeRate).toFixed(2)} PEN (${planDetails[activeTab].price} USD) (T.C. {exchangeRate.toFixed(2)})
                           </span>
                         </div>
                       </div>
@@ -678,7 +697,7 @@ export default function PremiumUpgradeModal({
                         <div className="text-center md:text-left font-sans">
                           <div className="text-[10px] font-mono text-zinc-500 uppercase font-bold">Total a pagar:</div>
                           <div className="text-xl font-bold font-mono text-emerald-400">
-                            {activeTab === 'EMPRENDEDOR' ? 'S/. 33.90 PEN' : activeTab === 'PRO' ? 'S/. 98.31 PEN' : 'S/. 233.92 PEN'}
+                            S/. {(Number(planDetails[activeTab].price) * exchangeRate).toFixed(2)} PEN
                           </div>
                         </div>
 
@@ -715,10 +734,58 @@ export default function PremiumUpgradeModal({
                     <div className="space-y-4">
                       {/* card holder */}
                       <div>
-                        <label className="block text-[10px] font-mono text-zinc-500 uppercase tracking-widest mb-1.5">Por el momento no esta habilitado</label>
-                      
+                        <label className="block text-[10px] font-mono text-zinc-500 uppercase tracking-widest mb-1.5">Nombre en la tarjeta</label>
+                        <input 
+                          type="text"
+                          required
+                          value={cardName}
+                          onChange={(e) => setCardName(e.target.value)}
+                          placeholder="EJ: MARIA GOMEZ"
+                          className="w-full bg-zinc-950 border border-zinc-800 rounded-none p-2.5 text-xs text-white font-mono placeholder-zinc-700 focus:outline-none focus:border-indigo-500"
+                        />
                       </div>
 
+                      <div className="grid grid-cols-4 gap-4">
+                        {/* Card number */}
+                        <div className="col-span-2">
+                          <label className="block text-[10px] font-mono text-zinc-500 uppercase tracking-widest mb-1.5">Número de Tarjeta</label>
+                          <input 
+                            type="text"
+                            required
+                            value={cardNumber}
+                            onChange={handleCardNumberChange}
+                            placeholder="4111 2222 3333 4444"
+                            className="w-full bg-zinc-950 border border-zinc-800 rounded-none p-2.5 text-xs text-white font-mono placeholder-zinc-700 focus:outline-none focus:border-indigo-500 text-center"
+                          />
+                        </div>
+                        
+                        {/* Expiry */}
+                        <div>
+                          <label className="block text-[10px] font-mono text-zinc-500 uppercase tracking-widest mb-1.5">Fecha Venc.</label>
+                          <input 
+                            type="text"
+                            required
+                            value={cardExpiry}
+                            onChange={handleExpiryChange}
+                            placeholder="MM/AA"
+                            className="w-full bg-zinc-950 border border-zinc-800 rounded-none p-2.5 text-xs text-white font-mono placeholder-zinc-700 focus:outline-none focus:border-indigo-500 text-center"
+                          />
+                        </div>
+
+                        {/* CVC */}
+                        <div>
+                          <label className="block text-[10px] font-mono text-zinc-500 uppercase tracking-widest mb-1.5">CVC / CVV</label>
+                          <input 
+                            type="password"
+                            required
+                            maxLength={4}
+                            value={cardCvc}
+                            onChange={(e) => setCardCvc(e.target.value.replace(/\D/g, ''))}
+                            placeholder="***"
+                            className="w-full bg-zinc-950 border border-zinc-800 rounded-none p-2.5 text-xs text-white font-mono placeholder-zinc-700 focus:outline-none focus:border-indigo-500 text-center"
+                          />
+                        </div>
+                      </div>
 
                       {/* Pricing and Action button footer details */}
                       <div className="mt-8 flex flex-col md:flex-row items-center md:justify-between gap-4 pt-4 border-t border-zinc-850">

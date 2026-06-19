@@ -46,6 +46,12 @@ import {
   Layers,
   CheckSquare,
   HelpCircle,
+  ShieldCheck,
+  ShieldAlert,
+  CheckCircle,
+  XCircle,
+  ExternalLink,
+  RefreshCw,
   Edit3
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
@@ -179,6 +185,49 @@ export default function Dashboard() {
   const [inputNewHistoryMonth, setInputNewHistoryMonth] = useState('');
   const [inputNewHistoryFollowers, setInputNewHistoryFollowers] = useState('');
   const [inputNewHistoryEngagement, setInputNewHistoryEngagement] = useState('');
+
+  // --- Admin Panel States ---
+  const [isAdminView, setIsAdminView] = useState(false);
+  const [submissions, setSubmissions] = useState<any[]>([]);
+  const [loadingSubmissions, setLoadingSubmissions] = useState(false);
+  const [adminFilter, setAdminFilter] = useState<'PENDING' | 'APPROVED' | 'REJECTED' | 'ALL'>('PENDING');
+  const [submittingAdminAction, setSubmittingAdminAction] = useState(false);
+  
+  // Dialogs / Selection
+  const [selectedVoucherForApproval, setSelectedVoucherForApproval] = useState<any | null>(null);
+  const [selectedVoucherForRejection, setSelectedVoucherForRejection] = useState<any | null>(null);
+  const [rejectReason, setRejectReason] = useState("");
+  const [approvedPlan, setApprovedPlan] = useState<'EMPRENDEDOR' | 'PRO' | 'BUSINESS'>('PRO');
+  const [approvedStartDate, setApprovedStartDate] = useState(new Date().toISOString().substring(0, 10));
+  const [approvedEndDate, setApprovedEndDate] = useState(() => {
+    let d = new Date();
+    d.setDate(d.getDate() + 30);
+    return d.toISOString().substring(0, 10);
+  });
+
+  const fetchSubmissionsNow = async () => {
+    setLoadingSubmissions(true);
+    try {
+      const snap = await getDocs(collection(db, "payment_submissions"));
+      const list = snap.docs.map(docSnap => ({ id: docSnap.id, ...docSnap.data() }));
+      list.sort((a: any, b: any) => {
+        if (a.status === 'PENDING' && b.status !== 'PENDING') return -1;
+        if (a.status !== 'PENDING' && b.status === 'PENDING') return 1;
+        return new Date(b.submittedAt || 0).getTime() - new Date(a.submittedAt || 0).getTime();
+      });
+      setSubmissions(list);
+    } catch (err) {
+      console.error("Error fetching payment submissions:", err);
+    } finally {
+      setLoadingSubmissions(false);
+    }
+  };
+
+  useEffect(() => {
+    if (isAdminView) {
+      fetchSubmissionsNow();
+    }
+  }, [isAdminView]);
 
   // Real-time and simulated test variables for dynamic notification checkups
   const [useRealTime, setUseRealTime] = useState<boolean>(true);
@@ -491,12 +540,100 @@ export default function Dashboard() {
   const fetchUserContent = async () => {
     setLoadingData(true);
     try {
-      // 0. Fetch/Initialize subscription
+      // 0. Fetch/Initialize subscription with robust live expiration checkup
       try {
         const subRef = doc(db, "subscriptions", userId);
         const subSnap = await getDoc(subRef);
         if (subSnap.exists()) {
-          setSubscription(subSnap.data() as any);
+          const subData = subSnap.data() as any;
+          
+          if (subData.plan && subData.plan !== 'FREE' && subData.endDate) {
+            const end = new Date(subData.endDate);
+            const now = new Date();
+            
+            if (now > end) {
+              // SUBSCRIPTION EXPIRED! Degrade immediately
+              const degradedSub = {
+                ...subData,
+                plan: 'FREE',
+                status: 'EXPIRED',
+                expiredPlanName: subData.plan,
+                expiredAt: subData.endDate,
+                updatedAt: now.toISOString()
+              };
+              
+              await updateDoc(subRef, {
+                plan: 'FREE',
+                status: 'EXPIRED',
+                expiredPlanName: subData.plan,
+                expiredAt: subData.endDate,
+                updatedAt: now.toISOString()
+              });
+              
+              // Also update user profile to 'free'
+              try {
+                const userRef = doc(db, 'users', userId);
+                await updateDoc(userRef, { plan: 'free' });
+              } catch (e) {
+                console.error("Error updating user record on expiration:", e);
+              }
+              
+              setSubscription(degradedSub as any);
+              setGenError(`TU PLAN ${subData.plan} HA VENCIDO EL ${new Date(subData.endDate).toLocaleDateString()}. Hemos retornado tu cuenta al modo Gratuito.`);
+              
+              // Send automated email simulator in-box
+              const newMsg = {
+                id: 'exp_' + Date.now(),
+                subject: 'Tu suscripción a Marketcore_IA ha vencido',
+                sender: 'Facturación Marketcore_IA',
+                body: `Hola,\n\nTu suscripción activa al plan ${subData.plan} ha expirado el ${new Date(subData.endDate).toLocaleString()}.\n\nTu acceso se ha reajustado al plan GRATUITO de prueba. Para reactivar tu capacidad creativa con Gemini e imágenes ilimitadas de alta conversión, por favor vuelve a realizar un abono mensual y sube el comprobante desde la pestaña "Upgrade" de tu panel.\n\nSaludos,\nEquipo de Crecimiento Marketcore_IA`,
+                date: now.toISOString()
+              };
+              
+              setInboxEmails(prev => {
+                const updated = [newMsg, ...prev.filter(m => !m.id.startsWith('exp_'))];
+                localStorage.setItem('markecore_inbox_emails', JSON.stringify(updated));
+                return updated;
+              });
+            } else {
+              // Subscription is active. Check near-expiration alerts
+              setSubscription(subData);
+              const diffMs = end.getTime() - now.getTime();
+              const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+              
+              if (diffDays <= 5 && diffDays >= 0) {
+                // Near expiration toast
+                setAppToasts(prev => {
+                  const toastId = 'near_exp_' + subData.plan;
+                  if (prev.some(t => t.id === toastId)) return prev;
+                  return [...prev, {
+                    id: toastId,
+                    msg: `⚠️ Tu plan ${subData.plan} vencerá en ${diffDays} día(s) (el ${new Date(subData.endDate).toLocaleDateString()}). Envía un abono mensual para renovar.`,
+                    badge: "AVISO DE PAGO",
+                    alertType: "expire_warning"
+                  }];
+                });
+                
+                // Add email warning simulator if not already added
+                setInboxEmails(prev => {
+                  if (prev.some(m => m.id === 'near_exp_email_' + subData.plan)) return prev;
+                  const warningMsg = {
+                    id: 'near_exp_email_' + subData.plan,
+                    subject: 'Recordatorio de pago mensual - Suscripción por vencer',
+                    sender: 'Facturación Marketcore_IA',
+                    body: `Hola,\n\nTe recordamos que tu suscripción activa al plan ${subData.plan} vencerá en ${diffDays} días (el ${new Date(subData.endDate).toLocaleString()}).\n\nPor favor, ingresa a la pestaña "Upgrade" para realizar tu transferencia y subir tu boleta de pago oportuna, lo que evitará interrupciones en tus copies, redacciones e imágenes IA.\n\nSaludos,\nEquipo de Facturación`,
+                    date: now.toISOString()
+                  };
+                  const updated = [warningMsg, ...prev];
+                  localStorage.setItem('markecore_inbox_emails', JSON.stringify(updated));
+                  return updated;
+                });
+              }
+            }
+          } else {
+            // Plan is FREE or other state
+            setSubscription(subData);
+          }
         } else {
           const defaultSub = {
             plan: 'FREE',
@@ -986,6 +1123,495 @@ export default function Dashboard() {
     .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
   const activeStrategy = businessStrats.find(s => s.id === selectedStrategyId) || businessStrats[0];
 
+  const renderAdminPanel = () => {
+    // Filter submissions based on option
+    const filteredSubmissions = submissions.filter((sub: any) => {
+      if (adminFilter === 'ALL') return true;
+      return sub.status === adminFilter;
+    });
+
+    const pendingCount = submissions.filter(s => s.status === 'PENDING').length;
+    const approvedCount = submissions.filter(s => s.status === 'APPROVED').length;
+    const rejectedCount = submissions.filter(s => s.status === 'REJECTED').length;
+
+    const handleApproveSubmit = async () => {
+      if (!selectedVoucherForApproval) return;
+      setSubmittingAdminAction(true);
+      try {
+        const subId = selectedVoucherForApproval.id;
+        const subUserId = selectedVoucherForApproval.userId;
+
+        // 1. Update payment submission document
+        await updateDoc(doc(db, "payment_submissions", subId), {
+          status: "APPROVED",
+          approvedAt: new Date().toISOString(),
+          assignedPlan: approvedPlan,
+          startDate: approvedStartDate,
+          endDate: approvedEndDate
+        });
+
+        // 2. Update actual subscription document
+        const subRef = doc(db, "subscriptions", subUserId);
+        await setDoc(subRef, {
+          plan: approvedPlan,
+          status: "ACTIVE",
+          startDate: approvedStartDate,
+          endDate: approvedEndDate,
+          copiesUsed: 0,
+          imagesUsed: 0,
+          strategiesUsed: 0,
+          weeklyPlansUsed: 0,
+          updatedAt: new Date().toISOString()
+        }, { merge: true });
+
+        // 3. Update user profile
+        try {
+          const userRef = doc(db, 'users', subUserId);
+          const lowercasePlan = approvedPlan === 'EMPRENDEDOR' ? 'basic' : approvedPlan === 'PRO' ? 'profesional' : 'premium';
+          await updateDoc(userRef, {
+            plan: lowercasePlan
+          });
+        } catch (profileErr) {
+          console.warn("Could not update main user profile plan, but subscription record is updated successfully:", profileErr);
+        }
+
+        setSuccessMsg(`¡Plan ${approvedPlan} ACTIVADO con éxito para ${selectedVoucherForApproval.userEmail}! Acceso válido hasta el ${new Date(approvedEndDate).toLocaleDateString()}`);
+        setSelectedVoucherForApproval(null);
+        fetchSubmissionsNow();
+      } catch (err) {
+        console.error("Error approving subscription:", err);
+        setGenError("Error al procesar la aprobación.");
+      } finally {
+        setSubmittingAdminAction(false);
+      }
+    };
+
+    const handleRejectSubmit = async () => {
+      if (!selectedVoucherForRejection) return;
+      if (!rejectReason.trim()) {
+        alert("Por favor introduce una razón para el rechazo.");
+        return;
+      }
+      setSubmittingAdminAction(true);
+      try {
+        const subId = selectedVoucherForRejection.id;
+        const subUserId = selectedVoucherForRejection.userId;
+
+        // 1. Update payment submission
+        await updateDoc(doc(db, "payment_submissions", subId), {
+          status: "REJECTED",
+          rejectedAt: new Date().toISOString(),
+          rejectReason: rejectReason
+        });
+
+        // 2. Update user subscription
+        const subRef = doc(db, "subscriptions", subUserId);
+        await updateDoc(subRef, {
+          status: "REJECTED",
+          rejectReason: rejectReason,
+          updatedAt: new Date().toISOString()
+        });
+
+        setSuccessMsg(`Comprobante de ${selectedVoucherForRejection.userEmail} RECHAZADO.`);
+        setSelectedVoucherForRejection(null);
+        setRejectReason("");
+        fetchSubmissionsNow();
+      } catch (err) {
+        console.error("Error rejecting subscription:", err);
+        setGenError("Error al rechazar el comprobante.");
+      } finally {
+        setSubmittingAdminAction(false);
+      }
+    };
+
+    return (
+      <div className="space-y-8 animate-fade-in font-sans">
+        {/* Admin Dashboard header info */}
+        <div className="bg-zinc-900 text-white rounded-none p-6 border-l-4 border-amber-500 shadow-[4px_4px_0px_0px_rgba(245,158,11,1)]">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div>
+              <span className="text-[9px] font-mono tracking-widest text-amber-400 font-extrabold uppercase block mb-1">PROCESO DE FACTURACIÓN Y BOLETAS</span>
+              <h1 className="text-xl md:text-2xl font-black uppercase tracking-tight flex items-center gap-2">
+                <ShieldCheck className="w-6 h-6 text-amber-400" /> Panel de Verificación de Pagos (Admin)
+              </h1>
+              <p className="text-xs text-zinc-400 mt-1 max-w-lg font-light leading-relaxed">
+                Revisa los depósitos por Yape o Transferencia BCP realizados por los clientes en Perú. Clasifica y aprueba accesos "Basic", "Profesional" o "Premium" con fechas de vencimiento dinámicas.
+              </p>
+            </div>
+            <button 
+              onClick={fetchSubmissionsNow}
+              className="text-xs font-mono font-bold bg-white/10 hover:bg-white/20 text-white border border-zinc-700 px-4 py-2.5 transition uppercase tracking-wider flex items-center gap-1.5 self-start md:self-auto cursor-pointer"
+            >
+              <RefreshCw className={`w-3.5 h-3.5 ${loadingSubmissions ? 'animate-spin' : ''}`} /> Sincronizar Boletas
+            </button>
+          </div>
+        </div>
+
+        {/* Dynamic Metric counters info boxes */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 font-mono text-zinc-800">
+          <button 
+            onClick={() => setAdminFilter('PENDING')}
+            className={`cursor-pointer p-4 rounded-none border text-left transition flex items-center justify-between ${
+              adminFilter === 'PENDING'
+                ? 'bg-amber-50 border-amber-400 text-amber-955 shadow-[4px_4px_0px_0px_rgba(245,158,11,1)] font-extrabold'
+                : 'bg-white border-zinc-200 hover:bg-zinc-50'
+            }`}
+          >
+            <div>
+              <span className="text-[9px] block text-zinc-550 font-bold uppercase tracking-wider">Boletas por Aprobar</span>
+              <span className="text-2xl font-black">{pendingCount}</span>
+            </div>
+            <Clock className={`w-8 h-8 ${pendingCount > 0 ? 'text-amber-500 animate-pulse' : 'text-zinc-300'}`} />
+          </button>
+
+          <button 
+            onClick={() => setAdminFilter('APPROVED')}
+            className={`cursor-pointer p-4 rounded-none border text-left transition flex items-center justify-between col-span-1 ${
+              adminFilter === 'APPROVED'
+                ? 'bg-emerald-50 border-emerald-400 text-emerald-955 shadow-[4px_4px_0px_0px_rgba(16,185,129,1)] font-extrabold'
+                : 'bg-white border-zinc-200 hover:bg-zinc-50'
+            }`}
+          >
+            <div>
+              <span className="text-[9px] block text-zinc-550 font-bold uppercase tracking-wider font-mono">Abonos Aprobados</span>
+              <span className="text-2xl font-black">{approvedCount}</span>
+            </div>
+            <CheckCircle className="w-8 h-8 text-emerald-500" />
+          </button>
+
+          <button 
+            onClick={() => setAdminFilter('REJECTED')}
+            className={`cursor-pointer p-4 rounded-none border text-left transition flex items-center justify-between col-span-1 ${
+              adminFilter === 'REJECTED'
+                ? 'bg-rose-50 border-rose-400 text-rose-955 shadow-[4px_4px_0px_0px_rgba(244,63,94,1)] font-extrabold'
+                : 'bg-white border-zinc-200 hover:bg-zinc-50'
+            }`}
+          >
+            <div>
+              <span className="text-[9px] block text-zinc-550 font-bold uppercase tracking-wider font-mono">Boletas Rechazadas</span>
+              <span className="text-2xl font-black">{rejectedCount}</span>
+            </div>
+            <XCircle className="w-8 h-8 text-rose-500" />
+          </button>
+        </div>
+
+        {/* Global tab selector */}
+        <div className="flex border-b-2 border-zinc-200 font-mono text-[10px]">
+          <button 
+            onClick={() => setAdminFilter('PENDING')}
+            className={`pb-2.5 px-4 uppercase font-bold border-b-2 -mb-0.5 transition cursor-pointer ${adminFilter === 'PENDING' ? 'border-amber-500 text-amber-900 font-extrabold' : 'border-transparent text-zinc-500 hover:text-zinc-800'}`}
+          >
+            Pendientes ({pendingCount})
+          </button>
+          <button 
+            onClick={() => setAdminFilter('APPROVED')}
+            className={`pb-2.5 px-4 uppercase font-bold border-b-2 -mb-0.5 transition cursor-pointer ${adminFilter === 'APPROVED' ? 'border-emerald-500 text-emerald-900 font-extrabold' : 'border-transparent text-zinc-500 hover:text-zinc-800'}`}
+          >
+            Aprobados ({approvedCount})
+          </button>
+          <button 
+            onClick={() => setAdminFilter('REJECTED')}
+            className={`pb-2.5 px-4 uppercase font-bold border-b-2 -mb-0.5 transition cursor-pointer ${adminFilter === 'REJECTED' ? 'border-rose-500 text-rose-950 font-extrabold' : 'border-transparent text-zinc-500 hover:text-zinc-800'}`}
+          >
+            Rechazados ({rejectedCount})
+          </button>
+          <button 
+            onClick={() => setAdminFilter('ALL')}
+            className={`pb-2.5 px-4 uppercase font-bold border-b-2 -mb-0.5 transition cursor-pointer ${adminFilter === 'ALL' ? 'border-zinc-900 text-zinc-900 font-extrabold' : 'border-transparent text-zinc-500 hover:text-zinc-805'}`}
+          >
+            Todos ({submissions.length})
+          </button>
+        </div>
+
+        {/* List content of requests */}
+        {loadingSubmissions ? (
+          <div className="min-h-[25vh] flex flex-col items-center justify-center text-center gap-3">
+            <div className="w-8 h-8 border-2 border-amber-600 border-t-transparent animate-spin"></div>
+            <span className="text-[10px] font-mono text-zinc-550 uppercase tracking-widest">Sincronizando depósitos de Firestore...</span>
+          </div>
+        ) : filteredSubmissions.length === 0 ? (
+          <div className="bg-white border-2 border-zinc-200 border-dashed p-10 text-center font-mono">
+            <ShieldAlert className="w-10 h-10 text-zinc-300 mx-auto mb-3" />
+            <span className="text-zinc-500 text-xs block uppercase">Ningún comprobante en este estado "{adminFilter}"</span>
+            <p className="text-[10px] text-zinc-400 mt-1">Los depósitos por Yape o BCP subidos por los usuarios aparecerán aquí.</p>
+          </div>
+        ) : (
+          <div className="bg-white border-2 border-zinc-200 shadow-xs overflow-x-auto rounded-none">
+            <table className="w-full text-left font-sans text-xs border-collapse">
+              <thead>
+                <tr className="bg-zinc-50 border-b border-zinc-200 font-mono text-[9px] text-zinc-550 uppercase tracking-wider">
+                  <th className="p-4 py-3">Usuario (Email)</th>
+                  <th className="p-4 py-3">Plan Solicitado</th>
+                  <th className="p-4 py-3">Detalles Depósito</th>
+                  <th className="p-4 py-3">Voucher</th>
+                  <th className="p-4 py-3">Fecha de Subida</th>
+                  <th className="p-4 py-3">Estado / Vigencia</th>
+                  <th className="p-4 py-3 text-right">Acción</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-zinc-200">
+                {filteredSubmissions.map((sub: any) => {
+                  const isPending = sub.status === 'PENDING';
+                  const isApproved = sub.status === 'APPROVED';
+                  const isRejected = sub.status === 'REJECTED';
+                  
+                  return (
+                    <tr key={sub.id} className="hover:bg-zinc-50/50 transition">
+                      <td className="p-4">
+                        <span className="font-extrabold text-zinc-950 block truncate max-w-[170px]" title={sub.userEmail}>{sub.userEmail}</span>
+                        <span className="text-[9px] font-mono text-zinc-500">ID: {sub.userId?.substring(0, 8)}...</span>
+                      </td>
+                      
+                      <td className="p-4">
+                        <span className={`text-[9px] font-mono font-bold px-1.5 py-0.5 tracking-wider inline-block border ${
+                          sub.requestedPlan === 'EMPRENDEDOR' 
+                            ? 'bg-zinc-900 text-white border-zinc-950' 
+                            : sub.requestedPlan === 'PRO'
+                              ? 'bg-indigo-50 text-indigo-700 border-indigo-200'
+                              : 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                        }`}>
+                          {sub.requestedPlan === 'EMPRENDEDOR' ? 'Básico' : sub.requestedPlan === 'PRO' ? 'Profesional' : sub.requestedPlan === 'BUSINESS' ? 'Premium' : (sub.requestedPlan || 'Básico')}
+                        </span>
+                      </td>
+
+                      <td className="p-4 font-mono text-[11px] text-zinc-800">
+                        <span className="text-zinc-650 block"><strong className="text-zinc-800 font-bold">Titular:</strong> {sub.payerName || 'N/A'}</span>
+                        <span className="text-zinc-650 block"><strong className="text-zinc-800 font-bold">Op:</strong> {sub.operationNumber || 'N/A'}</span>
+                      </td>
+
+                      <td className="p-4">
+                        {sub.voucherUrl ? (
+                          <a 
+                            href={sub.voucherUrl} 
+                            target="_blank" 
+                            rel="noreferrer"
+                            className="inline-flex items-center gap-1 font-mono text-[10px] text-indigo-600 hover:text-indigo-850 hover:underline cursor-pointer"
+                          >
+                            <ExternalLink className="w-3 h-3" /> Ver Boleta
+                          </a>
+                        ) : (
+                          <span className="text-zinc-400 font-mono text-[10px]">Sin Voucher</span>
+                        )}
+                      </td>
+
+                      <td className="p-4 text-zinc-600 font-mono text-[11px]">
+                        {sub.submittedAt ? new Date(sub.submittedAt).toLocaleDateString('es-PE') : 'N/A'}
+                      </td>
+
+                      <td className="p-4">
+                        {isPending && (
+                          <span className="inline-flex items-center gap-1 text-[8.5px] font-mono font-bold uppercase tracking-wider text-amber-700 bg-amber-50 border border-amber-200 px-1.5 py-0.5 rounded-none">
+                            <Clock className="w-3 h-3 text-amber-500 animate-pulse" /> Pendiente
+                          </span>
+                        )}
+                        {isApproved && (
+                          <div className="space-y-0.5">
+                            <span className="inline-flex items-center gap-1 text-[8.5px] font-mono font-bold uppercase tracking-wider text-emerald-700 bg-emerald-50 border border-emerald-250 px-1.5 py-0.5 rounded-none">
+                              <Check className="w-3 h-3 text-emerald-600" /> Aprobado
+                            </span>
+                            {sub.endDate && (
+                              <span className="block text-[8px] font-mono text-zinc-550">
+                                Vence: {new Date(sub.endDate).toLocaleDateString()}
+                              </span>
+                            )}
+                          </div>
+                        )}
+                        {isRejected && (
+                          <div className="space-y-0.5 max-w-xs">
+                            <span className="inline-flex items-center gap-1 text-[8.5px] font-mono font-bold uppercase tracking-wider text-rose-700 bg-rose-50 border border-rose-200 px-1.5 py-0.5 rounded-none">
+                              <XCircle className="w-3 h-3 text-rose-600" /> Rechazado
+                            </span>
+                            {sub.rejectReason && (
+                              <p className="text-[8.5px] text-zinc-500 font-mono truncate max-w-[120px]" title={sub.rejectReason}>
+                                {sub.rejectReason}
+                              </p>
+                            )}
+                          </div>
+                        )}
+                      </td>
+
+                      <td className="p-4 text-right">
+                        {isPending ? (
+                          <div className="flex gap-1.5 justify-end">
+                            <button
+                              onClick={() => {
+                                setApprovedPlan(sub.requestedPlan || 'PRO');
+                                setApprovedStartDate(new Date().toISOString().substring(0, 10));
+                                let d = new Date();
+                                d.setDate(d.getDate() + 30);
+                                setApprovedEndDate(d.toISOString().substring(0, 10));
+                                setSelectedVoucherForApproval(sub);
+                              }}
+                              className="bg-emerald-600 hover:bg-emerald-700 text-white font-mono font-bold text-[9px] uppercase tracking-wider px-2 py-1 rounded-none transition cursor-pointer border-0"
+                            >
+                              Aprobar
+                            </button>
+                            <button
+                              onClick={() => {
+                                setRejectReason("");
+                                setSelectedVoucherForRejection(sub);
+                              }}
+                              className="bg-rose-600 hover:bg-rose-700 text-white font-mono font-bold text-[9px] uppercase tracking-wider px-2 py-1 rounded-none transition cursor-pointer border-0"
+                            >
+                              Rechazar
+                            </button>
+                          </div>
+                        ) : (
+                          <span className="text-[10px] text-zinc-400 font-mono font-light uppercase">Resuelto</span>
+                        )}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
+
+        {/* approval modal */}
+        <AnimatePresence>
+          {selectedVoucherForApproval && (
+            <div className="fixed inset-0 z-[10005] flex items-center justify-center p-4 bg-zinc-950/80 backdrop-blur-sm">
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                className="bg-zinc-90 w-full max-w-sm bg-zinc-900 border border-zinc-800 text-white p-6 shadow-2xl relative"
+              >
+                <div className="flex items-center gap-2 mb-4">
+                  <ShieldCheck className="w-5 h-5 text-emerald-400" />
+                  <h3 className="font-bold text-sm uppercase tracking-tight text-white font-mono">Verificar Aprobación</h3>
+                </div>
+
+                <div className="mb-4 text-zinc-300 font-mono text-[10px] leading-relaxed bg-zinc-950 p-3 border border-zinc-850">
+                  <span className="text-zinc-500 block text-[8px] font-bold uppercase tracking-wider">Cliente:</span>
+                  <span className="text-emerald-400 font-extrabold text-[11px] block truncate mb-1.5">{selectedVoucherForApproval.userEmail}</span>
+                  
+                  <span className="text-zinc-500 block text-[8px] font-bold uppercase tracking-wider">Depósito:</span>
+                  <span className="text-zinc-300 block mb-1">{selectedVoucherForApproval.payerName} (Op: {selectedVoucherForApproval.operationNumber})</span>
+                </div>
+
+                <div className="space-y-3 font-mono text-[10px] text-zinc-800">
+                  <div>
+                    <label className="block text-zinc-400 uppercase font-bold text-[8.5px] tracking-widest mb-1">Plan a Vincular</label>
+                    <select
+                      value={approvedPlan}
+                      onChange={(e: any) => setApprovedPlan(e.target.value)}
+                      className="w-full bg-zinc-950 border border-zinc-850 p-2 text-white font-mono text-[11px] focus:outline-none focus:border-emerald-500"
+                    >
+                      <option value="EMPRENDEDOR">Básico (EMPRENDEDOR)</option>
+                      <option value="PRO">Profesional (PRO)</option>
+                      <option value="BUSINESS">Premium (BUSINESS)</option>
+                    </select>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <label className="block text-zinc-400 uppercase font-bold text-[8px] tracking-widest mb-1">Fecha de Alta</label>
+                      <input 
+                        type="date"
+                        required
+                        value={approvedStartDate}
+                        onChange={(e) => setApprovedStartDate(e.target.value)}
+                        className="w-full bg-zinc-950 border border-zinc-850 p-1.5 text-white font-mono text-[10px] focus:outline-none focus:border-emerald-500"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-zinc-400 uppercase font-bold text-[8px] tracking-widest mb-1">Vence en:</label>
+                      <input 
+                        type="date"
+                        required
+                        value={approvedEndDate}
+                        onChange={(e) => setApprovedEndDate(e.target.value)}
+                        className="w-full bg-zinc-950 border border-zinc-850 p-1.5 text-white font-mono text-[10px] focus:outline-none focus:border-emerald-500"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="mt-5 flex justify-end gap-2 font-mono text-[10px]">
+                  <button
+                    onClick={() => setSelectedVoucherForApproval(null)}
+                    disabled={submittingAdminAction}
+                    className="bg-zinc-800 hover:bg-zinc-700 text-zinc-300 font-bold px-3 py-2 uppercase tracking-wider transition cursor-pointer"
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    onClick={handleApproveSubmit}
+                    disabled={submittingAdminAction}
+                    className="bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white font-bold px-4 py-2 uppercase tracking-wider transition cursor-pointer"
+                  >
+                    {submittingAdminAction ? 'Sincronizando...' : 'Activar Acceso ✓'}
+                  </button>
+                </div>
+              </motion.div>
+            </div>
+          )}
+        </AnimatePresence>
+
+        {/* rejections modal */}
+        <AnimatePresence>
+          {selectedVoucherForRejection && (
+            <div className="fixed inset-0 z-[10005] flex items-center justify-center p-4 bg-zinc-950/80 backdrop-blur-sm">
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                className="bg-zinc-90 w-full max-w-sm bg-zinc-900 border border-zinc-800 text-white p-6 shadow-2xl relative"
+              >
+                <div className="flex items-center gap-2 mb-4">
+                  <XCircle className="w-5 h-5 text-rose-500" />
+                  <h3 className="font-bold text-sm uppercase tracking-tight text-white font-mono">Rechazar Depósito</h3>
+                </div>
+
+                <div className="mb-3 text-zinc-300 font-mono text-[10px] bg-zinc-950 p-3 border border-zinc-850">
+                  <span className="text-zinc-550 block text-[8px] font-bold uppercase tracking-wider">Titular:</span>
+                  <span className="text-white font-extrabold text-[11px] block truncate">{selectedVoucherForRejection.payerName} ({selectedVoucherForRejection.userEmail})</span>
+                </div>
+
+                <div className="space-y-3 font-mono text-[10px]">
+                  <div>
+                    <label className="block text-zinc-400 uppercase font-bold text-[8px] tracking-widest mb-1">Razón o Motivo del Rechazo</label>
+                    <textarea
+                      required
+                      rows={3}
+                      value={rejectReason}
+                      onChange={(e) => setRejectReason(e.target.value)}
+                      placeholder="Ej: Código de operación inexistente o monto depositado incompleto."
+                      className="w-full bg-zinc-950 border border-zinc-850 p-2 text-white font-mono text-[10.5px] placeholder-zinc-700 resize-none focus:outline-none focus:border-rose-500"
+                    />
+                  </div>
+                </div>
+
+                <div className="mt-5 flex justify-end gap-2 font-mono text-[10px]">
+                  <button
+                    onClick={() => {
+                      setSelectedVoucherForRejection(null);
+                      setRejectReason("");
+                    }}
+                    disabled={submittingAdminAction}
+                    className="bg-zinc-800 hover:bg-zinc-700 text-zinc-300 font-bold px-3 py-2 uppercase tracking-wider transition cursor-pointer border-0"
+                  >
+                    Cerrar
+                  </button>
+                  <button
+                    onClick={handleRejectSubmit}
+                    disabled={submittingAdminAction}
+                    className="bg-rose-600 hover:bg-rose-700 disabled:opacity-50 text-white font-bold px-4 py-2 uppercase tracking-wider transition cursor-pointer border-0"
+                  >
+                    {submittingAdminAction ? 'Procesando...' : 'Rechazar ✕'}
+                  </button>
+                </div>
+              </motion.div>
+            </div>
+          )}
+        </AnimatePresence>
+      </div>
+    );
+  };
+
   return (
     <div className="min-h-screen bg-[#fafafc] text-zinc-800 flex flex-col md:flex-row font-sans selection:bg-zinc-200 selection:text-zinc-900">
       
@@ -1181,6 +1807,20 @@ export default function Dashboard() {
         </div>
 
         <div className="pt-6 border-t border-zinc-200 mt-6 flex flex-col gap-2">
+          {(user?.email === 'velkoryauramiza@gmail.com' || user?.email === 'admin@marketcore.com') && (
+            <button
+              onClick={() => setIsAdminView(!isAdminView)}
+              className={`w-full border px-4 py-3 rounded-none text-xs font-mono font-bold uppercase tracking-wider transition flex items-center justify-center gap-2 cursor-pointer shadow-[2px_2px_0px_0px_rgba(24,24,27,0.15)] ${
+                isAdminView
+                  ? 'bg-amber-500 border-amber-600 text-black hover:bg-amber-450'
+                  : 'bg-indigo-600 border-indigo-700 text-white hover:bg-indigo-750'
+              }`}
+            >
+              <ShieldCheck className="w-4 h-4" />
+              {isAdminView ? 'VER VISTA CLIENTE' : '⚙️ PANEL DE ADMIN'}
+            </button>
+          )}
+
           <button
             onClick={() => setShowCopywriterDrawer(true)}
             className="w-full bg-zinc-900 border border-zinc-900 text-white hover:bg-zinc-800 px-4 py-3 rounded-none text-xs font-mono font-bold uppercase tracking-wider transition flex items-center justify-center gap-2 cursor-pointer shadow-[2px_2px_0px_0px_rgba(24,24,27,0.15)]"
@@ -1219,8 +1859,58 @@ export default function Dashboard() {
           </div>
         )}
 
-        {/* LOADING SCREEN */}
-        {loadingData ? (
+        {/* USER SUBSCRIPTION LEVEL ALERTS */}
+        {subscription.status === 'PENDING_VERIFICATION' && (
+          <div className="bg-amber-50 border-2 border-amber-300 text-amber-950 text-xs font-mono p-4 rounded-none mb-6 flex flex-col sm:flex-row gap-3.5 items-start sm:items-center justify-between shadow-[2px_2px_0px_0px_rgba(245,158,11,0.15)] animate-pulse">
+            <div className="flex gap-2.5 items-start">
+              <Clock className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
+              <div>
+                <span className="font-extrabold block uppercase text-[10px] tracking-wider text-amber-950 mb-0.5">COMPROBANTE EN PROCESO DE VERIFICACIÓN ⚡</span>
+                <p className="font-sans font-light text-[11px] text-zinc-700 leading-normal">
+                  Hemos recibido tu comprobante para el plan <strong className="font-bold uppercase text-amber-950">{subscription.requestedPlan || 'Premium'}</strong> (Titular: <strong>{subscription.pendingPayerName || 'N/A'}</strong>, Op: <strong>{subscription.pendingTxRef || 'N/A'}</strong>). Nuestro equipo de administración verificará tu abono pronto para darte accesos premium de inmediato.
+                </p>
+              </div>
+            </div>
+            {subscription.pendingVoucherUrl && (
+              <a 
+                href={subscription.pendingVoucherUrl} 
+                target="_blank" 
+                rel="noreferrer"
+                className="text-[10px] bg-white border border-amber-300 hover:bg-amber-100 text-amber-950 font-bold px-3 py-1.5 transition uppercase tracking-wider flex items-center gap-1 flex-shrink-0"
+              >
+                Ver voucher subido <ExternalLink className="w-3 h-3" />
+              </a>
+            )}
+          </div>
+        )}
+
+        {subscription.status === 'REJECTED' && (
+          <div className="bg-rose-50 border-2 border-rose-350 text-rose-955 text-xs font-mono p-4 rounded-none mb-6 flex flex-col sm:flex-row gap-3.5 items-start sm:items-center justify-between shadow-[2px_2px_0px_0px_rgba(244,63,94,0.15)] animate-pulse">
+            <div className="flex gap-2.5 items-start">
+              <XCircle className="w-5 h-5 text-rose-600 flex-shrink-0 mt-0.5" />
+              <div>
+                <span className="font-extrabold block uppercase text-[10px] tracking-wider text-rose-950 mb-0.5 font-bold">COMPROBANTE RECHAZADO POR ADMINISTRACIÓN ❌</span>
+                <p className="font-sans font-light text-[11px] text-zinc-750 leading-normal">
+                  Lo sentimos profundamente, tu comprobante para el plan <strong className="font-bold uppercase text-rose-955">{subscription.requestedPlan || 'Premium'}</strong> no pudo ser verificado.
+                  <span className="block mt-1 font-mono font-bold text-rose-800 bg-rose-100/50 p-2 border border-rose-200/50 text-[10.5px]">
+                    MOTIVO: {subscription.rejectReason || 'No se pudo validar el número de operación o la imagen del comprobante.'}
+                  </span>
+                </p>
+              </div>
+            </div>
+            <button 
+              onClick={() => setShowPaywall(true)}
+              className="text-[10px] bg-zinc-900 hover:bg-zinc-950 text-white font-mono font-bold px-3.5 py-2.5 uppercase tracking-widest flex-shrink-0 border-0 cursor-pointer"
+            >
+              Subir nueva boleta
+            </button>
+          </div>
+        )}
+
+        {/* LOADING BOX OR MAIN CONTENT */}
+        {isAdminView && (user?.email === 'velkoryauramiza@gmail.com' || user?.email === 'admin@marketcore.com') ? (
+          renderAdminPanel()
+        ) : loadingData ? (
           <div className="min-h-[60vh] flex flex-col items-center justify-center text-center gap-4">
             <div className="w-12 h-12 border-2 border-zinc-900 border-t-transparent rounded-none animate-spin"></div>
             <p className="text-xs font-mono tracking-widest text-zinc-500 uppercase">Sincronizando perfiles de marca y plan desde Firestore...</p>
