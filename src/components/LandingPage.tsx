@@ -456,7 +456,7 @@ export default function LandingPage() {
                 </p>
               </div>
               <div className="mt-6 border-t border-zinc-150 pt-4 text-[10px] font-mono text-zinc-500 uppercase tracking-wider flex items-center justify-between">
-                <span>Modelos: Gemini 3.5 Flash</span>
+                <span>Modelos: marketcore flash</span>
                 <span className="text-zinc-900 font-bold group-hover:translate-x-1 transition-transform">Acceso libre &rarr;</span>
               </div>
             </div>

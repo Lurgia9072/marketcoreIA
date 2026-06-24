@@ -309,7 +309,7 @@
           setType('Imagen');
         }
 
-        setUploadLog('Analizando archivo con Gemini Vision...');
+        setUploadLog('Analizando archivo con marketcore Vision...');
         
         // Analyze file with our endpoint
         const analysisRes = await fetch('/api/analyze-file', {
@@ -379,7 +379,7 @@
       }
       setGeneratingImage(true);
       setError(null);
-      setImageGenerationLog(imageEngine === 'gemini' ? 'Contactando a Gemini para generar la imagen...' : 'Conectando al Motor Libre (Pollinations AI)...');
+      setImageGenerationLog(imageEngine === 'gemini' ? 'Contactando a marketcore para generar la imagen...' : 'Conectando al Motor Libre (Pollinations AI)...');
 
       try {
         const res = await fetch('/api/generate-image', {
@@ -715,7 +715,7 @@
                 {loadingVariations ? (
                   <div className="py-12 flex flex-col items-center justify-center gap-3 text-center">
                     <div className="w-8 h-8 border-2 border-zinc-900 border-t-transparent animate-spin"></div>
-                    <span className="text-[10px] font-mono uppercase text-zinc-500">Generando alternativas mediante motor Gemini...</span>
+                    <span className="text-[10px] font-mono uppercase text-zinc-500">Generando alternativas mediante motor marketcore...</span>
                   </div>
                 ) : aiVariations ? (
                   <div className="space-y-5">
@@ -813,14 +813,14 @@
                         className="bg-white border border-zinc-300 text-[9.5px] font-mono font-bold text-zinc-750 py-1 px-2 focus:outline-none focus:border-zinc-500 rounded-none uppercase"
                       >
                         <option value="free">Motor Libre (Sin Cuotas)</option>
-                        <option value="gemini">Gemini 2.5 (Requiere Pro Key)</option>
+                        <option value="gemini">marketcore 2.5 (Requiere Pro Key)</option>
                       </select>
                     </div>
 
                     <p className="text-[10px] text-zinc-500 font-light leading-normal">
                       {imageEngine === 'gemini' ? (
                         <span className="text-amber-800 font-medium">
-                          ⚠️ Las claves de API Gemini gratuitas limitan la creación de imágenes a 0. Si falla por cuota, el sistema usará automáticamente el Motor Libre de respaldo para que nunca te quedes sin tu imagen.
+                          ⚠️ Las claves de API marketcore gratuitas limitan la creación de imágenes a 0. Si falla por cuota, el sistema usará automáticamente el Motor Libre de respaldo para que nunca te quedes sin tu imagen.
                         </span>
                       ) : (
                         "Edita el prompt de abajo (en inglés da mejores resultados) y presiona generar. El motor libre creará una imagen única de alta calidad sin ningún límite de API."
@@ -859,7 +859,7 @@
                 {/* Subir reemplazo */}
                 <div className="bg-zinc-50 p-5 border border-zinc-200 rounded-none space-y-3">
                   <span className="text-[10px] font-mono font-bold text-zinc-800 block uppercase">Subir o Reemplazar con Archivo Real</span>
-                  <p className="text-[11px] text-zinc-500 leading-relaxed font-sans font-light">Carga una nueva foto o video. Al hacerlo, el sistema disparará la IA de Gemini Vision para analizar el contenido estético y reestructurará su copy, hashtags sugeridos e indicaciones.</p>
+                  <p className="text-[11px] text-zinc-500 leading-relaxed font-sans font-light">Carga una nueva foto o video. Al hacerlo, el sistema disparará la IA de marketcore Vision para analizar el contenido estético y reestructurará su copy, hashtags sugeridos e indicaciones.</p>
                   
                   <div className="pt-2 flex flex-col gap-2.5">
                     <label className="bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 text-white font-mono text-xs py-3 px-4 rounded-none cursor-pointer text-center flex items-center justify-center gap-2 shadow-xs">

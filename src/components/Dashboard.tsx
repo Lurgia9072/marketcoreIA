@@ -586,7 +586,7 @@ export default function Dashboard() {
                 id: 'exp_' + Date.now(),
                 subject: 'Tu suscripción a Marketcore_IA ha vencido',
                 sender: 'Facturación Marketcore_IA',
-                body: `Hola,\n\nTu suscripción activa al plan ${subData.plan} ha expirado el ${new Date(subData.endDate).toLocaleString()}.\n\nTu acceso se ha reajustado al plan GRATUITO de prueba. Para reactivar tu capacidad creativa con Gemini e imágenes ilimitadas de alta conversión, por favor vuelve a realizar un abono mensual y sube el comprobante desde la pestaña "Upgrade" de tu panel.\n\nSaludos,\nEquipo de Crecimiento Marketcore_IA`,
+                body: `Hola,\n\nTu suscripción activa al plan ${subData.plan} ha expirado el ${new Date(subData.endDate).toLocaleString()}.\n\nTu acceso se ha reajustado al plan GRATUITO de prueba. Para reactivar tu capacidad creativa con marketcore e imágenes ilimitadas de alta conversión, por favor vuelve a realizar un abono mensual y sube el comprobante desde la pestaña "Upgrade" de tu panel.\n\nSaludos,\nEquipo de Crecimiento Marketcore_IA`,
                 date: now.toISOString()
               };
               
@@ -1995,7 +1995,7 @@ export default function Dashboard() {
                   {generatingStrategy ? (
                     <>
                       <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-none animate-spin"></div>
-                      <span>ARMANDO PLAN ESTRELLA CON GEMINI...</span>
+                      <span>ARMANDO PLAN ESTRELLA CON MARKETCORE...</span>
                     </>
                   ) : (
                     <>
@@ -3022,7 +3022,7 @@ export default function Dashboard() {
                     className="bg-zinc-50 p-5 rounded-none border border-zinc-200 mt-2 relative group shadow-[3px_3px_0px_0px_rgba(24,24,27,1)]"
                   >
                     <span className="text-[9px] bg-zinc-100 text-zinc-700 font-mono px-2 py-0.5 rounded-none font-bold uppercase tracking-widest block w-max mb-3 border border-zinc-200">
-                      PROPUESTA LOGRADA CON GEMINI
+                      PROPUESTA LOGRADA CON MARKETCORE
                     </span>
                     
                     <h5 className="font-sans font-bold text-sm text-zinc-900 uppercase tracking-wide">{cwResult.title}</h5>
@@ -3059,7 +3059,7 @@ export default function Dashboard() {
 
               {/* Drawer footer */}
               <div className="px-6 py-4 border-t-2 border-zinc-200 text-center text-[9px] text-zinc-500 font-mono uppercase tracking-widest bg-zinc-50">
-                Acceso bajo motor LLM de Gemini en Español
+                Acceso bajo motor LLM de marketcore en Español
               </div>
             </motion.div>
           </div>

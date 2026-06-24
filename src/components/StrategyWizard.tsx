@@ -474,7 +474,7 @@ export default function StrategyWizard({ userId, business, onClose, onSuccess, o
                 <Rocket className="w-4 h-4 text-zinc-700 absolute inset-0 m-auto animate-pulse" />
               </div>
               <div>
-                <h3 className="text-sm font-mono font-bold text-zinc-900 uppercase tracking-wider mb-1.5">El director creativo de Gemini está estructurando tu campaña...</h3>
+                <h3 className="text-sm font-mono font-bold text-zinc-900 uppercase tracking-wider mb-1.5">El director creativo de marketcore está estructurando tu campaña...</h3>
                 <p className="text-zinc-500 text-xs font-sans font-light max-w-sm mx-auto leading-relaxed italic">
                   "{genStepMessage}"
                 </p>
@@ -696,7 +696,7 @@ export default function StrategyWizard({ userId, business, onClose, onSuccess, o
                       Auditoría Visual de Recursos con IA (Opcional)
                     </h3>
                     <p className="text-xs text-zinc-500 font-light leading-relaxed">
-                      Si has subido fotos o videos, el motor de Gemini puede analizarlos antes de armar la estrategia para conocer la iluminación, composición y branding del producto real, agregando valor técnico.
+                      Si has subido fotos o videos, el motor de marketcore puede analizarlos antes de armar la estrategia para conocer la iluminación, composición y branding del producto real, agregando valor técnico.
                     </p>
                   </div>
 
@@ -735,7 +735,7 @@ export default function StrategyWizard({ userId, business, onClose, onSuccess, o
                               {isAnalyzing ? (
                                 <div className="flex items-center gap-2 font-mono text-[10px] text-zinc-500">
                                   <div className="w-4 h-4 border-2 border-zinc-900 border-t-transparent animate-spin"></div>
-                                  <span className="uppercase tracking-widest">Gemini está analizando este recurso estético...</span>
+                                  <span className="uppercase tracking-widest">marketcore está analizando este recurso estético...</span>
                                 </div>
                               ) : hasAnalysis ? (
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-[11px]">
@@ -800,7 +800,7 @@ export default function StrategyWizard({ userId, business, onClose, onSuccess, o
                       }!
                     </h3>
                     <p className="text-zinc-550 text-xs font-sans font-light leading-relaxed">
-                      Nuestra Inteligencia Artificial de Gemini integrará tu diagnóstico, metas elegidas y el material indexado para planificar {
+                      Nuestra Inteligencia Artificial de marketcore integrará tu diagnóstico, metas elegidas y el material indexado para planificar {
                         duration === 'diario' 
                           ? 'una publicación comercial única de alto impacto optimizada.' 
                           : duration === 'semanal'
