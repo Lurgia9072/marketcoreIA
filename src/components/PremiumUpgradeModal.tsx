@@ -135,7 +135,7 @@ export default function PremiumUpgradeModal({
   const planDetails = {
     EMPRENDEDOR: {
       name: "Básico",
-      price: "19",
+      price: "10",
       subtitle: "Ideal para emprendedores locales que desean comenzar a estructurar sus redes de manera consciente.",
       color: "from-zinc-900 to-zinc-950",
       accent: "zinc-900",
@@ -151,7 +151,7 @@ export default function PremiumUpgradeModal({
     },
     PRO: {
       name: "Profesional",
-      price: "29",
+      price: "25",
       subtitle: "Excelente para negocios digitales o tiendas en línea en etapa de tracción comercial que requieren constancia total.",
       color: "from-indigo-950 to-slate-900",
       accent: "indigo-600",
@@ -605,14 +605,15 @@ export default function PremiumUpgradeModal({
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-3 font-mono text-[11px] text-zinc-300">
                           <div className="bg-indigo-950/20 p-2.5 border border-indigo-900/30">
                             <span className="text-zinc-400 text-[9px] block">🟣 YAPE (NRO. DIRECTO):</span>
-                            <span className="font-bold text-white text-xs block">987 654 321</span>
-                            <span className="text-[9px] text-zinc-500">Destinatario: MarketcoreIA S.A.C.</span>
+                            <span className="font-bold text-white text-xs block">+51 960 354 149 </span>
+                            <span className="text-[9px] text-zinc-500">Destinatario: Lurgia Yupa A.</span>
                           </div>
                           
                           <div className="bg-zinc-900/50 p-2.5 border border-zinc-800">
                             <span className="text-zinc-400 text-[9px] block">🏦 BCP CTA CORRIENTE:</span>
-                            <span className="font-bold text-white text-[11px] block">191-98765432-0-12</span>
-                            <span className="text-[9px] text-zinc-500">CCI: 00219198765432012548</span>
+                            <span className="font-bold text-white text-[11px] block">19196511465026</span>
+                            <span className="text-[9px] text-zinc-500">CCI: 00219119651146502653</span>
+                            <span className="text-[9px] text-zinc-500">Destinatario: Lurgia Yupa A.</span>
                           </div>
                         </div>
 

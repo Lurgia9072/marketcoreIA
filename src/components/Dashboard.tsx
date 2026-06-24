@@ -1934,17 +1934,17 @@ export default function Dashboard() {
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 my-8 text-left text-xs font-mono">
                 <div className="bg-zinc-50 p-4 rounded-none border border-zinc-200">
-                  <span className="font-bold text-zinc-900 text-sm block mb-1">STEP_01</span>
+                  <span className="font-bold text-zinc-900 text-sm block mb-1">paso 1</span>
                   <span className="font-bold text-zinc-700 block mb-1 uppercase text-[10px] tracking-wide">Registras tu marca</span>
                   <p className="text-zinc-650 text-[11px] leading-normal font-sans font-light">Nos describes tus productos y target ideal.</p>
                 </div>
                 <div className="bg-zinc-50 p-4 rounded-none border border-zinc-200">
-                  <span className="font-bold text-zinc-900 text-sm block mb-1">STEP_02</span>
+                  <span className="font-bold text-zinc-900 text-sm block mb-1">paso 2</span>
                   <span className="font-bold text-zinc-700 block mb-1 uppercase text-[10px] tracking-wide">Generas estrategia</span>
-                  <p className="text-zinc-650 text-[11px] leading-normal font-sans font-light">El Analista IA de Gemini armará tu plan de copy.</p>
+                  <p className="text-zinc-650 text-[11px] leading-normal font-sans font-light">El Analista marketcore armará tu plan de copy.</p>
                 </div>
                 <div className="bg-zinc-50 p-4 rounded-none border border-zinc-200">
-                  <span className="font-bold text-zinc-900 text-sm block mb-1">STEP_03</span>
+                  <span className="font-bold text-zinc-900 text-sm block mb-1">paso 3</span>
                   <span className="font-bold text-zinc-700 block mb-1 uppercase text-[10px] tracking-wide">Calendario Listo</span>
                   <p className="text-zinc-650 text-[11px] leading-normal font-sans font-light">Copias tus posts listos con 1-click al portapapeles.</p>
                 </div>
