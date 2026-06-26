@@ -16,7 +16,8 @@ import {
   X,
   HelpCircle,
   Clock,
-  ArrowRight
+  ArrowRight,
+  Rocket
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
