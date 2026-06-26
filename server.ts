@@ -147,6 +147,59 @@ async function startServer() {
     return { provider: "gemini", apiKey: geminiKey || "" };
   };
 
+  function parseCleanJson(text: string, defaultObj: any = {}): any {
+    if (!text || typeof text !== "string") return defaultObj;
+    let cleaned = text.trim();
+    
+    // Strip markdown fences
+    if (cleaned.startsWith("```json")) {
+      cleaned = cleaned.replace(/^```json/, "").trim();
+    } else if (cleaned.startsWith("```")) {
+      cleaned = cleaned.replace(/^```/, "").trim();
+    }
+    if (cleaned.endsWith("```")) {
+      cleaned = cleaned.replace(/```$/, "").trim();
+    }
+    
+    try {
+      return JSON.parse(cleaned);
+    } catch (err) {
+      // Attempt cleanup: remove trailing commas before } or ]
+      cleaned = cleaned.replace(/,\s*([}\]])/g, '$1');
+      try {
+        return JSON.parse(cleaned);
+      } catch (err2) {
+        // Attempt repair for truncated JSON strings (common when free AI providers hit max token cutoff)
+        let openBraces = 0;
+        let openBrackets = 0;
+        let inString = false;
+        let escaped = false;
+        for (let i = 0; i < cleaned.length; i++) {
+          const char = cleaned[i];
+          if (escaped) { escaped = false; continue; }
+          if (char === '\\') { escaped = true; continue; }
+          if (char === '"') { inString = !inString; continue; }
+          if (!inString) {
+            if (char === '{') openBraces++;
+            if (char === '}') openBraces--;
+            if (char === '[') openBrackets++;
+            if (char === ']') openBrackets--;
+          }
+        }
+        if (inString) cleaned += '"';
+        while (openBrackets > 0) { cleaned += ']'; openBrackets--; }
+        while (openBraces > 0) { cleaned += '}'; openBraces--; }
+        cleaned = cleaned.replace(/,\s*([}\]])/g, '$1');
+        try {
+          return JSON.parse(cleaned);
+        } catch (err3) {
+          console.error("Failed to parse JSON even after repair:", text.substring(0, 300));
+          throw new Error("La Inteligencia Artificial devolvió una respuesta incompleta o saturada. Por favor haz clic en GENERAR nuevamente.");
+        }
+      }
+    }
+  }
+
   const callAI = async (prompt: string): Promise<string> => {
     const { provider, apiKey } = getProviderAndKey();
 
@@ -175,11 +228,12 @@ async function startServer() {
         });
 
         const response = await ai.models.generateContent({
-          model: "gemini-3.5-flash",
+          model: "gemini-2.5-flash",
           contents: prompt,
           config: {
             responseMimeType: "application/json",
             temperature: 0.7,
+            maxOutputTokens: 16384,
           }
         });
 
@@ -476,7 +530,7 @@ Devuelve de manera EXCLUSIVA un objeto JSON estructurado con el siguiente format
 }`;
 
       const responseText = await callAI(prompt);
-      const parsedData = JSON.parse(responseText);
+      const parsedData = parseCleanJson(responseText);
 
       // Increment limits on successful plan creation
       const subRef = doc(db, "subscriptions", userId);
@@ -605,7 +659,7 @@ Devuelve un JSON estrictamente estructurado en español con el formato:
         }
 
         const response = await ai.models.generateContent({
-          model: "gemini-3.5-flash",
+          model: "gemini-2.5-flash",
           contents: contentsData,
           config: {
             responseMimeType: "application/json",
@@ -614,7 +668,7 @@ Devuelve un JSON estrictamente estructurado en español con el formato:
         });
 
         const text = response.text;
-        return res.json(JSON.parse(text || "{}"));
+        return res.json(parseCleanJson(text || "{}"));
       } else {
         // Fallback for Qwen or offline
         const mockAnalysis = {
@@ -699,7 +753,7 @@ Devuelve de manera exclusiva un JSON estructurado con el formato:
         updatedAt: new Date().toISOString()
       });
 
-      res.json(JSON.parse(responseText));
+      res.json(parseCleanJson(responseText));
     } catch (error: any) {
       console.error("Error generating post variants:", error);
       res.status(500).json({ error: error.message || "Error al generar alternativas" });
@@ -750,7 +804,7 @@ Devuelve un JSON con la estructura:
         updatedAt: new Date().toISOString()
       });
 
-      res.json(JSON.parse(responseText));
+      res.json(parseCleanJson(responseText));
     } catch (error: any) {
       console.error("Error in copywriter api:", error);
       res.status(500).json({ error: error.message || "Error interno" });

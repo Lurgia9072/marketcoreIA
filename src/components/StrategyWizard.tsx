@@ -16,8 +16,7 @@ import {
   X,
   HelpCircle,
   Clock,
-  ArrowRight,
-  Rocket
+  ArrowRight
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
@@ -275,18 +274,28 @@ export default function StrategyWizard({ userId, business, onClose, onSuccess, o
         })
       });
 
+      const contentType = res.headers.get('content-type') || '';
+      if (contentType.includes('text/html')) {
+        throw new Error("⚠️ Error de conexión con el Backend (/api/generate-complete-strategy no disponible). Si publicaste tu app en hosting estático (como Firebase Hosting tradicional), recuerda que este proyecto requiere un servidor Node.js/Cloud Run activo para ejecutar la Inteligencia Artificial de forma segura.");
+      }
+
+      let data: any = {};
+      try {
+        data = await res.json();
+      } catch (e) {
+        throw new Error("⚠️ El servidor backend no devolvió JSON válido. Verifica que el servidor Express Node.js esté funcionando correctamente.");
+      }
+
       if (!res.ok) {
-        const errorData = await res.json().catch(() => ({}));
-        if (errorData.error === "LIMIT_EXCEEDED") {
+        if (data.error === "LIMIT_EXCEEDED") {
           if (onLimitExceeded) {
-            onLimitExceeded(errorData.type || "strategies");
+            onLimitExceeded(data.type || "strategies");
           }
           throw new Error("Socio IA: Has superado el límite de Estrategias en tu Plan Gratuito. Por favor actualiza para continuar.");
         }
-        throw new Error(errorData.error || "El Analista IA no pudo finalizar la estrategia de marketing. Verifica tu Clave API.");
+        throw new Error(data.error || "El Analista IA no pudo finalizar la estrategia de marketing. Verifica tu Clave API o servidor.");
       }
 
-      const data = await res.json();
       setStrategyOutput(data);
       if (data && data.posts) {
         const preppedPosts = data.posts.map((p: any, idx: number) => {
