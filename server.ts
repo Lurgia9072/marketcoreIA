@@ -94,7 +94,7 @@ async function getOrCreateUserSubscription(userId: string): Promise<Subscription
 const systemGeminiKey = (process.env.GEMINI_API_KEY || "").trim();
 const systemDashscopeKey = (process.env.DASHSCOPE_API_KEY || "").trim();
 
-dotenv.config({ override: true });
+dotenv.config();
 
 // If the system injected a real Google Gemini key, restore it to override any dummy .env values
 if (systemGeminiKey.startsWith("AIzaSy") || systemGeminiKey.startsWith("AQ.")) {
@@ -106,7 +106,7 @@ if (systemDashscopeKey && !process.env.DASHSCOPE_API_KEY) {
 
 async function startServer() {
   const app = express();
-  const PORT = 3000;
+ const PORT = process.env.PORT || 3000;
 
   app.use(express.json({ limit: "50mb" }));
   app.use(express.urlencoded({ limit: "50mb", extended: true }));
@@ -1187,11 +1187,12 @@ Devuelve un JSON con la estructura:
 
   // Vite middleware setup
   if (process.env.NODE_ENV !== "production") {
-    const vite = await createViteServer({
-      server: { middlewareMode: true },
-      appType: "spa",
-    });
-    app.use(vite.middlewares);
+  const vite = await createViteServer({
+    server: { middlewareMode: true },
+    appType: "spa",
+  });
+
+  app.use(vite.middlewares);
   } else {
     const distPath = path.join(process.cwd(), "dist");
     app.use(express.static(distPath));
