@@ -1,0 +1,31 @@
+query ListAllCampaigns @auth(level: USER) {
+  campaigns {
+    id
+    name
+    budget
+    platform {
+      name
+      apiType
+    }
+  }
+}
+
+query GetUserInsights($campaignId: UUID!) @auth(level: USER) {
+  insights(where: {campaignId: {eq: $campaignId}}) {
+    content
+    type
+    generatedAt
+  }
+}
+
+mutation CreatePlatform($name: String!, $apiType: String!) @auth(level: USER) {
+  platform_insert(data: {
+    name: $name,
+    apiType: $apiType,
+    userId_expr: "auth.uid"
+  })
+}
+
+mutation UpdateCampaignBudget($id: UUID!, $newBudget: Float!) @auth(level: USER) {
+  campaign_update(key: {id: $id}, data: {budget: $newBudget})
+}

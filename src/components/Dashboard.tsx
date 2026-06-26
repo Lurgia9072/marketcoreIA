@@ -1941,7 +1941,7 @@ export default function Dashboard() {
                 <div className="bg-zinc-50 p-4 rounded-none border border-zinc-200">
                   <span className="font-bold text-zinc-900 text-sm block mb-1">paso 2</span>
                   <span className="font-bold text-zinc-700 block mb-1 uppercase text-[10px] tracking-wide">Generas estrategia</span>
-                  <p className="text-zinc-650 text-[11px] leading-normal font-sans font-light">El Analista marketcore armará tu plan de copy.</p>
+                  <p className="text-zinc-650 text-[11px] leading-normal font-sans font-light">El Analista IA de Marketcore armará tu plan de copy.</p>
                 </div>
                 <div className="bg-zinc-50 p-4 rounded-none border border-zinc-200">
                   <span className="font-bold text-zinc-900 text-sm block mb-1">paso 3</span>
@@ -1986,16 +1986,16 @@ export default function Dashboard() {
                 </div>
               </div>
 
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 w-full sm:w-auto">
                 <button
                   onClick={handleGenerateStrategy}
                   disabled={generatingStrategy}
-                  className="bg-zinc-900 hover:bg-zinc-950 text-white disabled:opacity-50 disabled:pointer-events-none py-3.5 px-5 rounded-none text-xs font-mono font-bold uppercase tracking-widest border-r-4 border-b-4 border-zinc-600 active:translate-y-0.5 transition flex items-center gap-2 cursor-pointer shadow-md"
+                  className="bg-zinc-900 hover:bg-zinc-950 text-white disabled:opacity-50 disabled:pointer-events-none py-3.5 px-5 rounded-none text-xs font-mono font-bold uppercase tracking-widest border-r-4 border-b-4 border-zinc-600 active:translate-y-0.5 transition flex items-center justify-center gap-2 cursor-pointer shadow-md w-full sm:w-auto text-center"
                 >
                   {generatingStrategy ? (
                     <>
                       <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-none animate-spin"></div>
-                      <span>ARMANDO PLAN ESTRELLA CON MARKETCORE...</span>
+                      <span>ARMANDO PLAN ESTRELLA CON GEMINI...</span>
                     </>
                   ) : (
                     <>
@@ -2533,11 +2533,11 @@ export default function Dashboard() {
                   ) : calendarView === 'grid' ? (
                     <div className="flex flex-col gap-4 font-sans text-xs">
                       {/* Grid representation */}
-                      <div className="grid grid-cols-7 gap-1 border-2 border-zinc-200 bg-zinc-100 p-1 select-none shadow-[4px_4px_0px_0px_rgba(24,24,27,1)]">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-7 gap-1.5 border-2 border-zinc-200 bg-zinc-100 p-1.5 select-none shadow-[4px_4px_0px_0px_rgba(24,24,27,1)]">
                         
                         {/* Day headers */}
                         {['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'].map((day) => (
-                          <div key={day} className="bg-zinc-200 border border-zinc-300 py-1.5 text-center font-mono font-bold text-zinc-700 text-[10px] uppercase tracking-wider">
+                          <div key={day} className="hidden lg:block bg-zinc-200 border border-zinc-300 py-1.5 text-center font-mono font-bold text-zinc-700 text-[10px] uppercase tracking-wider">
                             {day}
                           </div>
                         ))}
@@ -2563,11 +2563,12 @@ export default function Dashboard() {
                                 >
                                   {/* Week and abbreviated day */}
                                   <div className="flex justify-between items-center mb-1">
-                                    <span className="text-[8px] font-mono font-bold text-zinc-400 uppercase tracking-tighter">
+                                    <span className="text-[9px] lg:text-[8px] font-mono font-bold text-zinc-400 uppercase tracking-tighter">
                                       Sem {weekNum}
                                     </span>
-                                    <span className="text-[8.5px] font-mono leading-none text-zinc-500 font-bold">
-                                      {day.slice(0, 3)}
+                                    <span className="text-[10px] lg:text-[8.5px] font-mono leading-none text-zinc-700 font-bold uppercase">
+                                      <span className="lg:hidden">{day}</span>
+                                      <span className="hidden lg:inline">{day.slice(0, 3)}</span>
                                     </span>
                                   </div>
 
