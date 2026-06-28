@@ -118,6 +118,9 @@ app.use(cors({
   allowedHeaders: ["Content-Type", "Authorization"]
 }));
 app.options("*", cors());
+app._router.stack.forEach((r: any) => {
+  if (r.route) console.log(r.route.path);
+});
 
 app.get("/cors-test", (req, res) => {
   res.json({ ok: true });
