@@ -348,7 +348,7 @@ app.get("/cors-test", (req, res) => {
         throw new Error(`Servicios de IA no disponibles. Error original: ${primaryError.message || "Quota/Conexión"}`);
       }
     }
-  };  app.post("https://marketcore-backend-l6dq.onrender.com/api/generate-complete-strategy", async (req, res) => {
+  };  app.post("/api/generate-complete-strategy", async (req, res) => {
     try {
       const { 
         userId,
