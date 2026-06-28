@@ -257,7 +257,7 @@ export default function StrategyWizard({ userId, business, onClose, onSuccess, o
       }, 6000);
       setTimeout(() => setGenStepMessage('Redactando copies premium con IA...'), 8500);
 
-      const res = await fetch('/api/generate-complete-strategy', {
+      const res = await fetch('https://marketcore-backend-l6dq.onrender.com/api/generate-complete-strategy', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -277,7 +277,7 @@ export default function StrategyWizard({ userId, business, onClose, onSuccess, o
 
       const contentType = res.headers.get('content-type') || '';
       if (contentType.includes('text/html')) {
-        throw new Error("⚠️ Error de conexión con el Backend (/api/generate-complete-strategy no disponible). Si publicaste tu app en hosting estático (como Firebase Hosting tradicional), recuerda que este proyecto requiere un servidor Node.js/Cloud Run activo para ejecutar la Inteligencia Artificial de forma segura.");
+        throw new Error("⚠️ Error de conexión con el Backend (https://marketcore-backend-l6dq.onrender.com/api/generate-complete-strategy no disponible). Si publicaste tu app en hosting estático (como Firebase Hosting tradicional), recuerda que este proyecto requiere un servidor Node.js/Cloud Run activo para ejecutar la Inteligencia Artificial de forma segura.");
       }
 
       let data: any = {};
