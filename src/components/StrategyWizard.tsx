@@ -24,7 +24,6 @@ import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { doc, setDoc } from 'firebase/firestore';
 import { db, storage } from '../lib/firebase';
 import { MarketingStrategy, CalendarPost, UploadedMaterial } from '../types';
-import cors from "cors";
 
 interface StrategyWizardProps {
   userId: string;
@@ -257,7 +256,7 @@ export default function StrategyWizard({ userId, business, onClose, onSuccess, o
         }
       }, 6000);
       setTimeout(() => setGenStepMessage('Redactando copies premium con IA...'), 8500);
-
+ console.log("ANTES DE LLAMAR GIMINIA");
       const res = await fetch('https://marketcore-backend-l6dq.onrender.com/api/generate-complete-strategy', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -275,7 +274,7 @@ export default function StrategyWizard({ userId, business, onClose, onSuccess, o
           duration
         })
       });
-
+ console.log("ENTRÓ AL ENDPOINT");
       const contentType = res.headers.get('content-type') || '';
       if (contentType.includes('text/html')) {
         throw new Error("⚠️ Error de conexión con el Backend (https://marketcore-backend-l6dq.onrender.com/api/generate-complete-strategy no disponible 1). Si publicaste tu app en hosting estático (como Firebase Hosting tradicional), recuerda que este proyecto requiere un servidor Node.js/Cloud Run activo para ejecutar la Inteligencia Artificial de forma segura.");
