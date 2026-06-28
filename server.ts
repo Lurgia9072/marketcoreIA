@@ -1218,7 +1218,9 @@ Devuelve un JSON con la estructura:
       res.sendFile(path.join(distPath, "index.html"));
     });
   }
-
+console.log("=================================");
+console.log("SERVER VERSION 28 JUNIO");
+console.log("Registering routes...");
   app.listen(PORT, "0.0.0.0", () => {
     console.log(`Server running on http://0.0.0.0:${PORT}`);
   });
