@@ -84,7 +84,7 @@ export default function StrategyWizard({ userId, business, onClose, onSuccess, o
   const [genStepMessage, setGenStepMessage] = useState('');
   const [strategyOutput, setStrategyOutput] = useState<any | null>(null);
   const [editablePosts, setEditablePosts] = useState<any[]>([]);
-
+  const API_URL = process.env.VITE_API_URL;
   // Toggle checklist utilities
   const handleToggleGoal = (goal: string) => {
     setObjectives(prev => 
@@ -257,7 +257,7 @@ export default function StrategyWizard({ userId, business, onClose, onSuccess, o
       }, 6000);
       setTimeout(() => setGenStepMessage('Redactando copies premium con IA...'), 8500);
  console.log("ANTES DE LLAMAR GIMINIA");
-      const res = await fetch('https://marketcore-backend-l6dq.onrender.com/api/generate-complete-strategy', {
+      const res = await fetch(`${API_URL}/api/generate-complete-strategy`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -277,7 +277,7 @@ export default function StrategyWizard({ userId, business, onClose, onSuccess, o
  console.log("ENTRÓ AL ENDPOINT");
       const contentType = res.headers.get('content-type') || '';
       if (contentType.includes('text/html')) {
-        throw new Error("⚠️ Error de conexión con el Backend (https://marketcore-backend-l6dq.onrender.com/api/generate-complete-strategy no disponible 1). Si publicaste tu app en hosting estático (como Firebase Hosting tradicional), recuerda que este proyecto requiere un servidor Node.js/Cloud Run activo para ejecutar la Inteligencia Artificial de forma segura.");
+        throw new Error(`⚠️ Error de conexión con el Backend (${API_URL}/api/generate-complete-strategy no disponible 1). Si publicaste tu app en hosting estático (como Firebase Hosting tradicional), recuerda que este proyecto requiere un servidor Node.js/Cloud Run activo para ejecutar la Inteligencia Artificial de forma segura.`);
       }
 
       let data: any = {};

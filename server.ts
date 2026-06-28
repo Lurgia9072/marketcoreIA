@@ -62,7 +62,7 @@ async function getOrCreateUserSubscription(userId: string): Promise<Subscription
   const subRef = doc(db, "subscriptions", userId);
   const subSnap = await getDoc(subRef);
   const now = new Date().toISOString();
-
+  
   if (subSnap.exists()) {
     const data = subSnap.data();
     return {
