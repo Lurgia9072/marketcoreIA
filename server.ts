@@ -112,6 +112,7 @@ async function startServer() {
     origin: [
   "https://marketcore-1f0be.web.app",
   "https://marketcore-backend-l6dq.onrender.com",
+  "https://marketcore-backend-l6dq.onrender.com/api/generate-complete-strategy",
   "http://localhost:5173"
 ],
     credentials: true,
