@@ -8,6 +8,7 @@ import { initializeApp as initializeFirebaseApp } from "firebase/app";
 import { getFirestore, doc, getDoc, setDoc, updateDoc } from "firebase/firestore";
 import firebaseConfig from "./firebase-applet-config.json";
 import nodemailer from "nodemailer";
+import cors from "cors";
 
 // Initialize Firebase App for server-side limits tracking
 const firebaseApp = initializeFirebaseApp(firebaseConfig);
@@ -107,6 +108,16 @@ if (systemDashscopeKey && !process.env.DASHSCOPE_API_KEY) {
 async function startServer() {
   const app = express();
  const PORT = process.env.PORT || 3000;
+ app.use(cors({
+  origin: [
+    "https://marketcore-1f0be.web.app",
+    "http://localhost:5173"
+  ],
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"]
+}));;
+
+app.options("*", cors());
 
   app.use(express.json({ limit: "50mb" }));
   app.use(express.urlencoded({ limit: "50mb", extended: true }));

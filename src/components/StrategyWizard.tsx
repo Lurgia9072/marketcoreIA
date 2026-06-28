@@ -24,6 +24,7 @@ import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { doc, setDoc } from 'firebase/firestore';
 import { db, storage } from '../lib/firebase';
 import { MarketingStrategy, CalendarPost, UploadedMaterial } from '../types';
+import cors from "cors";
 
 interface StrategyWizardProps {
   userId: string;
