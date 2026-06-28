@@ -84,7 +84,7 @@ export default function StrategyWizard({ userId, business, onClose, onSuccess, o
   const [genStepMessage, setGenStepMessage] = useState('');
   const [strategyOutput, setStrategyOutput] = useState<any | null>(null);
   const [editablePosts, setEditablePosts] = useState<any[]>([]);
-  const API_URL = process.env.VITE_API_URL;
+  const API_URL = process.env.VITE_API_URL;/* viene vacio */
   // Toggle checklist utilities
   const handleToggleGoal = (goal: string) => {
     setObjectives(prev => 
@@ -256,7 +256,7 @@ export default function StrategyWizard({ userId, business, onClose, onSuccess, o
         }
       }, 6000);
       setTimeout(() => setGenStepMessage('Redactando copies premium con IA...'), 8500);
- console.log("ANTES DE LLAMAR GIMINIA");
+ console.log("ANTES DE LLAMAR GIMINIA", API_URL);
       const res = await fetch(`${API_URL}/api/generate-complete-strategy`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
