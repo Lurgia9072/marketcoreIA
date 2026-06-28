@@ -84,7 +84,7 @@ export default function StrategyWizard({ userId, business, onClose, onSuccess, o
   const [genStepMessage, setGenStepMessage] = useState('');
   const [strategyOutput, setStrategyOutput] = useState<any | null>(null);
   const [editablePosts, setEditablePosts] = useState<any[]>([]);
-  const API_URL = process.env.APP_URL;/* viene vacio */
+  const API_URL = process.env.APP_URL || "https://marketcore-backend-l6dq.onrender.com";/* viene vacio */
   // Toggle checklist utilities
   const handleToggleGoal = (goal: string) => {
     setObjectives(prev => 

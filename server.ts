@@ -62,7 +62,7 @@ async function getOrCreateUserSubscription(userId: string): Promise<Subscription
   const subRef = doc(db, "subscriptions", userId);
   const subSnap = await getDoc(subRef);
   const now = new Date().toISOString();
-  
+
   if (subSnap.exists()) {
     const data = subSnap.data();
     return {
@@ -111,6 +111,7 @@ async function startServer() {
  app.use(cors({
     origin: [
   "https://marketcore-1f0be.web.app",
+  "https://marketcore-backend-l6dq.onrender.com",
   "http://localhost:5173"
 ],
     credentials: true,
@@ -136,7 +137,7 @@ app.options("*", cors());
   const getProviderAndKey = (): { provider: "gemini" | "qwen"; apiKey: string } => {
     const geminiKey = (process.env.GEMINI_API_KEY || "").trim();
     const dashscopeKey = (process.env.DASHSCOPE_API_KEY || "").trim();
-
+    const url = process.env.APP_URL || process.env.VITE_API_URL || "";
     // 1. If it looks like a real Google Gemini key (typically starting with AIzaSy or AQ.)
     if (geminiKey.startsWith("AIzaSy") || geminiKey.startsWith("AQ.")) {
       return { provider: "gemini", apiKey: geminiKey };
