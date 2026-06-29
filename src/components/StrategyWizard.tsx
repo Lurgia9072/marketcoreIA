@@ -78,7 +78,6 @@ export default function StrategyWizard({ userId, business, onClose, onSuccess, o
 
   // Paso 4 State: File analyses
   const [analyzingFileId, setAnalyzingFileId] = useState<string | null>(null);
-
   // Paso 5 & 6 State: Strategy outputs from API
   const [generating, setGenerating] = useState(false);
   const [genStepMessage, setGenStepMessage] = useState('');
@@ -120,7 +119,7 @@ export default function StrategyWizard({ userId, business, onClose, onSuccess, o
         reader.readAsDataURL(file);
         const base64Data = await base64Promise;
 
-        const uploadRes = await fetch('/api/upload', {
+        const uploadRes = await fetch(`${API_URL}/api/upload`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -168,7 +167,7 @@ export default function StrategyWizard({ userId, business, onClose, onSuccess, o
     setAnalyzingFileId(material.id);
     setError(null);
     try {
-      const res = await fetch('/api/analyze-file', {
+      const res = await fetch(`${API_URL}/api/analyze-file`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

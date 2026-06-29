@@ -73,7 +73,7 @@ export default function PremiumUpgradeModal({
   const [isDragOver, setIsDragOver] = useState(false);
   const [uploadingVoucher, setUploadingVoucher] = useState(false);
   const [isSubmittedPending, setIsSubmittedPending] = useState(false);
-  
+  const API_URL = import.meta.env.VITE_API_URL;
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Credit Card states
@@ -282,7 +282,7 @@ export default function PremiumUpgradeModal({
       const base64Data = await base64Promise;
 
       // 2. Upload to server
-      const uploadRes = await fetch('/api/upload', {
+      const uploadRes = await fetch(`${API_URL}/api/upload`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

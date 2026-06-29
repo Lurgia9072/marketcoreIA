@@ -103,6 +103,7 @@ export default function Dashboard() {
   const [activeBusiness, setActiveBusiness] = useState<BusinessProfile | null>(null);
   const [selectedStrategyId, setSelectedStrategyId] = useState<string | null>(null);
   const [showAllCalendarPosts, setShowAllCalendarPosts] = useState(false);
+  const API_URL = import.meta.env.VITE_API_URL;
 
   // Form states for adding business
   const [showAddBusiness, setShowAddBusiness] = useState(false);
@@ -255,7 +256,7 @@ export default function Dashboard() {
   const [smtpStatus, setSmtpStatus] = useState<{ configured: boolean; host: string | null; from: string | null } | null>(null);
 
   useEffect(() => {
-    fetch('/api/smtp-config-status')
+    fetch(`${API_URL}/api/smtp-config-status`)
       .then(res => res.json())
       .then(data => setSmtpStatus(data))
       .catch(err => console.error("Error fetching SMTP status:", err));
@@ -953,7 +954,7 @@ export default function Dashboard() {
     setCwResult(null);
 
     try {
-      const response = await fetch('/api/generate-copywriter', {
+      const response = await fetch(`${API_URL}/api/generate-copywriter`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -1036,7 +1037,7 @@ export default function Dashboard() {
   const handleTriggerEmailAlert = async (post: CalendarPost, alertType: string) => {
     setSimulatingAlertId(`${post.id}-${alertType}`);
     try {
-      const res = await fetch('/api/send-alert-email', {
+      const res = await fetch(`${API_URL}/api/send-alert-email`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

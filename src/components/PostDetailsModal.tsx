@@ -51,6 +51,7 @@
     const [imageUrlPrompt, setImageUrlPrompt] = useState(post.imageUrlPrompt || '');
     const [imageUrl, setImageUrl] = useState(post.imageUrl || '');
     const [videoUrl, setVideoUrl] = useState(post.videoUrl || '');
+    const API_URL = import.meta.env.VITE_API_URL;
 
     // Helper to parse and select Day and Week easily
     const parseDayName = (dateStr: string): string => {
@@ -214,7 +215,7 @@
       setLoadingVariations(true);
       setError(null);
       try {
-        const res = await fetch('/api/generate-post-variants', {
+        const res = await fetch(`${API_URL}/api/generate-post-variants`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -281,7 +282,7 @@
         const base64Data = await base64Promise;
 
         setUploadLog('Subiendo archivo al servidor de marketing...');
-        const uploadRes = await fetch('/api/upload', {
+        const uploadRes = await fetch(`${API_URL}/api/upload`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -312,7 +313,7 @@
         setUploadLog('Analizando archivo con marketcore Vision...');
         
         // Analyze file with our endpoint
-        const analysisRes = await fetch('/api/analyze-file', {
+        const analysisRes = await fetch(`${API_URL}/api/analyze-file`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -327,7 +328,7 @@
           setUploadLog('Escribiendo copy persuasivo con la información del recurso...');
 
           // Update post copy, hashtags and prompts automatically based on analysis
-          const copyRes = await fetch('/api/generate-copywriter', {
+          const copyRes = await fetch(`${API_URL}/api/generate-copywriter`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -382,7 +383,7 @@
       setImageGenerationLog(imageEngine === 'gemini' ? 'Contactando a marketcore para generar la imagen...' : 'Conectando al Motor Libre (Pollinations AI)...');
 
       try {
-        const res = await fetch('/api/generate-image', {
+        const res = await fetch(`${API_URL}/api/generate-image`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -405,7 +406,7 @@
         const { base64Image, source } = await res.json();
         setImageGenerationLog('Guardando la imagen en el servidor...');
         
-        const uploadRes = await fetch('/api/upload', {
+        const uploadRes = await fetch(`${API_URL}/api/upload`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -465,7 +466,7 @@
         const base64Data = await base64Promise;
 
         setImageGenerationLog('Almacenando imagen generada de forma segura...');
-        const uploadRes = await fetch('/api/upload', {
+        const uploadRes = await fetch(`${API_URL}/api/upload`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
