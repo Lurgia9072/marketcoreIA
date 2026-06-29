@@ -257,7 +257,7 @@ export default function StrategyWizard({ userId, business, onClose, onSuccess, o
       }, 6000);
       setTimeout(() => setGenStepMessage('Redactando copies premium con IA...'), 8500);
  console.log("ANTES DE LLAMAR GIMINIA", API_URL);
-      const res = await fetch(`/api/generate-complete-strategy`, {
+      const res = await fetch(`${API_URL}/api/generate-complete-strategy`,, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
