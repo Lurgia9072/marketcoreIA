@@ -297,9 +297,12 @@
           throw new Error(errData.error || "Fallo al subir el archivo al servidor.");
         }
 
-        const { url: downloadUrl } = await uploadRes.json();
+        /* const { url: downloadUrl } = await uploadRes.json();
         const absoluteUrl = downloadUrl.startsWith('http') ? downloadUrl : `${window.location.origin}${downloadUrl}`;
+ */
+        const { url: downloadUrl } = await uploadRes.json();
 
+        const absoluteUrl = `${API_URL}${downloadUrl}`;
         if (isVideo) {
           setVideoUrl(absoluteUrl);
           setImageUrl('');
@@ -420,8 +423,11 @@
           throw new Error("No se pudo guardar la imagen en el servidor de marketing.");
         }
 
+       /*  const { url: downloadUrl } = await uploadRes.json();
+        const absoluteUrl = downloadUrl.startsWith('http') ? downloadUrl : `${window.location.origin}${downloadUrl}`; */
         const { url: downloadUrl } = await uploadRes.json();
-        const absoluteUrl = downloadUrl.startsWith('http') ? downloadUrl : `${window.location.origin}${downloadUrl}`;
+
+        const absoluteUrl = `${API_URL}${downloadUrl}`;
 
         setImageUrl(absoluteUrl);
         setVideoUrl('');
@@ -480,8 +486,11 @@
           throw new Error("No se pudo almacenar la imagen generada.");
         }
 
+        /* const { url: downloadUrl } = await uploadRes.json();
+        const absoluteUrl = downloadUrl.startsWith('http') ? downloadUrl : `${window.location.origin}${downloadUrl}`; */
         const { url: downloadUrl } = await uploadRes.json();
-        const absoluteUrl = downloadUrl.startsWith('http') ? downloadUrl : `${window.location.origin}${downloadUrl}`;
+
+        const absoluteUrl = `${API_URL}${downloadUrl}`;
 
         setImageUrl(absoluteUrl);
         setVideoUrl('');

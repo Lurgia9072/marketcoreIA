@@ -134,9 +134,11 @@ export default function StrategyWizard({ userId, business, onClose, onSuccess, o
           throw new Error(errData.error || "Fallo en el servidor");
         }
 
+       /*  const { url: downloadUrl } = await uploadRes.json();
+        const absoluteUrl = downloadUrl.startsWith('http') ? downloadUrl : `${window.location.origin}${downloadUrl}`; */
         const { url: downloadUrl } = await uploadRes.json();
-        const absoluteUrl = downloadUrl.startsWith('http') ? downloadUrl : `${window.location.origin}${downloadUrl}`;
 
+        const absoluteUrl = `${API_URL}${downloadUrl}`;
         const materialId = 'mat_' + Math.random().toString(36).substring(2, 9);
         const materialObj: UploadedMaterial = {
           id: materialId,
