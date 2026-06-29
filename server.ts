@@ -148,7 +148,6 @@ app.get("/cors-test", (req, res) => {
   const getProviderAndKey = (): { provider: "gemini" | "qwen"; apiKey: string } => {
     const geminiKey = (process.env.GEMINI_API_KEY || "").trim();
     const dashscopeKey = (process.env.DASHSCOPE_API_KEY || "").trim();
-    const url = process.env.APP_URL || process.env.VITE_API_URL || "";
     // 1. If it looks like a real Google Gemini key (typically starting with AIzaSy or AQ.)
     if (geminiKey.startsWith("AIzaSy") || geminiKey.startsWith("AQ.")) {
       return { provider: "gemini", apiKey: geminiKey };
